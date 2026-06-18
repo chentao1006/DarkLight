@@ -13,14 +13,32 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 # Read current version from manifest.json
 CURRENT_VERSION=$(grep '"version"' "$MANIFEST_PATH" | sed -E 's/.*"([^"]+)".*/\1/')
 
+bump_patch_version() {
+    local version="$1"
+    local major minor patch
+
+    IFS='.' read -r major minor patch <<< "$version"
+    if [ -z "${major:-}" ] || [ -z "${minor:-}" ]; then
+        echo "Invalid version format: $version"
+        exit 1
+    fi
+
+    if [ -z "${patch:-}" ]; then
+        patch=0
+    fi
+
+    echo "$major.$minor.$((patch + 1))"
+}
+
 echo "==================================="
 echo "Dark Light Release Wizard"
 echo "==================================="
 echo "Current version is: $CURRENT_VERSION"
-read -p "Enter new version (or press Enter to keep $CURRENT_VERSION): " NEW_VERSION
+read -p "Enter new version (or press Enter to bump patch from $CURRENT_VERSION): " NEW_VERSION
 
 if [ -z "$NEW_VERSION" ]; then
-    NEW_VERSION=$CURRENT_VERSION
+    NEW_VERSION=$(bump_patch_version "$CURRENT_VERSION")
+    echo "Auto bumped version: $CURRENT_VERSION -> $NEW_VERSION"
 fi
 
 echo ""
