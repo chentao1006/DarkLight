@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Dark Light Options</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <main class="app">
+        <header class="topbar">
+            <div>
+                <h1 data-i18n="appName">Dark Light</h1>
+                <p data-i18n="optionsSubtitle">Manage default appearance and site rules.</p>
+            </div>
+        </header>
+
+        <section class="section">
+            <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
+            <select id="defaultMode">
+                <option value="followSystem" data-i18n="followSystem">Follow System</option>
+                <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+                <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+                <option value="forceLight" data-i18n="forceLight">Force Light</option>
+            </select>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 data-i18n="siteRules">Site Rules</h2>
+                <button id="addRule" data-i18n="addRule">Add Rule</button>
+            </div>
+
+            <div class="rule-form hidden" id="ruleForm">
+                <input id="rulePattern" type="text" data-i18n-placeholder="enterSiteDomain" placeholder="example.com">
+                <select id="ruleMode">
+                    <option value="inherit" data-i18n="useDefault">Use Default</option>
+                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                </select>
+                <label class="inline-check">
+                    <input id="ruleSubdomains" type="checkbox" checked>
+                    <span data-i18n="matchSubdomains">Match subdomains</span>
+                </label>
+                <button id="saveRule" data-i18n="save">Save</button>
+                <button id="cancelRule" class="ghost" data-i18n="cancel">Cancel</button>
+            </div>
+
+            <div id="ruleList" class="rule-list"></div>
+        </section>
+    </main>
+
+    <script src="options.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "Control each website's appearance with Follow System, Preserve Site Design, Force Dark, and Force Light modes."
+  },
+  "defaultMode": {
+    "message": "Default Mode"
+  },
+  "siteMode": {
+    "message": "Site Mode"
+  },
+  "followSystem": {
+    "message": "Follow System"
+  },
+  "preserveSite": {
+    "message": "Preserve Site Design"
+  },
+  "forceDark": {
+    "message": "Force Dark"
+  },
+  "forceLight": {
+    "message": "Force Light"
+  },
+  "useDefault": {
+    "message": "Use Default"
+  },
+  "currentSite": {
+    "message": "Current Site"
+  },
+  "matchSubdomains": {
+    "message": "Match subdomains"
+  },
+  "manageRules": {
+    "message": "Manage All Rules"
+  },
+  "optionsSubtitle": {
+    "message": "Manage default appearance and site rules."
+  },
+  "siteRules": {
+    "message": "Site Rules"
+  },
+  "addRule": {
+    "message": "Add Rule"
+  },
+  "addSite": {
+    "message": "Add"
+  },
+  "editSite": {
+    "message": "Edit"
+  },
+  "deleteSite": {
+    "message": "Delete"
+  },
+  "enterSiteDomain": {
+    "message": "Enter domain (e.g. example.com)"
+  },
+  "emptyRules": {
+    "message": "No site rules yet"
+  },
+  "exactDomainOnly": {
+    "message": "Exact domain only"
+  },
+  "enabled": {
+    "message": "Enabled"
+  },
+  "disabled": {
+    "message": "Disabled"
+  },
+  "enable": {
+    "message": "Enable"
+  },
+  "disable": {
+    "message": "Disable"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "activeBannerText": {
+    "message": "Active on this page"
+  }
+}

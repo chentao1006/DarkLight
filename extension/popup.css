@@ -1,0 +1,141 @@
+:root {
+  --bg: #f4f1ea;
+  --panel: #ffffff;
+  --text: #1f2328;
+  --muted: #66707a;
+  --border: #d8d2c7;
+  --accent: #0f766e;
+  --accent-dark: #115e59;
+}
+
+body {
+  width: 300px;
+  margin: 0;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.version {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.panel {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+label,
+.site-heading span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.site-heading {
+  display: grid;
+  gap: 3px;
+}
+
+.site-heading strong {
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.select-mode {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  padding: 0 9px;
+}
+
+.select-mode:focus {
+  border-color: var(--accent);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.checkbox-row input {
+  margin: 0;
+}
+
+.site-btn {
+  width: 100%;
+  height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.site-btn:hover {
+  background: var(--accent-dark);
+}
+
+.site-btn.secondary {
+  background: #2f3a40;
+}
+
+.site-btn.secondary:hover {
+  background: #1f272b;
+}
+
+.active-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 9px 10px;
+  background: #e7f5f2;
+  border: 1px solid #b9ded7;
+  border-radius: 8px;
+  color: #0f4f49;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.hidden {
+  display: none !important;
+}

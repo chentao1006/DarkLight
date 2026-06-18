@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="header">
+        <img src="icons/icon-48.png" alt="Dark Light Logo" width="32" height="32">
+        <div>
+            <div class="title" data-i18n="appName">Dark Light</div>
+            <div id="version" class="version"></div>
+        </div>
+    </div>
+
+    <div id="activeBanner" class="active-banner hidden">
+        <span id="activeDot" class="active-dot"></span>
+        <span id="activeBannerText" data-i18n="activeBannerText">Active on this page</span>
+    </div>
+
+    <section class="panel">
+        <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
+        <select id="defaultMode" class="select-mode">
+            <option value="followSystem" data-i18n="followSystem">Follow System</option>
+            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+            <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+            <option value="forceLight" data-i18n="forceLight">Force Light</option>
+        </select>
+    </section>
+
+    <section id="sitePanel" class="panel">
+        <div class="site-heading">
+            <span data-i18n="currentSite">Current Site</span>
+            <strong id="currentHostname">-</strong>
+        </div>
+
+        <label for="siteMode" data-i18n="siteMode">Site Mode</label>
+        <select id="siteMode" class="select-mode">
+            <option value="inherit" data-i18n="useDefault">Use Default</option>
+            <option value="followSystem" data-i18n="followSystem">Follow System</option>
+            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+            <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+            <option value="forceLight" data-i18n="forceLight">Force Light</option>
+        </select>
+
+        <label class="checkbox-row">
+            <input type="checkbox" id="matchSubdomains">
+            <span data-i18n="matchSubdomains">Match subdomains</span>
+        </label>
+    </section>
+
+    <button id="openOptions" class="site-btn secondary" data-i18n="manageRules">Manage All Rules</button>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

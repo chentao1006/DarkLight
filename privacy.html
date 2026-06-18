@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Dark Light</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-glow: rgba(0, 123, 255, 0.4);
+      --bg: #ffffff;
+      --bg-alt: #f8f9fa;
+      --text: #212529;
+      --text-muted: #6c757d;
+      --card-bg: #ffffff;
+      --header-blur: rgba(255, 255, 255, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    header {
+      padding: 15px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      background: var(--header-blur);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.5px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .logo img {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    .lang-switcher {
+      background: var(--bg-alt);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .lang-switcher:hover {
+      border-color: var(--primary);
+      background: #fff;
+      transform: scale(1.05);
+    }
+
+    .content-section {
+      max-width: 800px;
+      margin: 120px auto 60px;
+      padding: 40px 20px;
+    }
+
+    .content-section h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #007bff 0%, #00d4ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .content-section h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .content-section p {
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 40px;
+      background: var(--bg);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    footer a:hover {
+      color: var(--primary);
+    }
+
+    .footer-links {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 15px 24px; }
+      .content-section { margin-top: 100px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <a href="index.html" class="logo">
+      <img src="assets/icon-48.png" alt="Dark Light Logo">
+      <span data-i18n="logo_title">DARK LIGHT</span>
+    </a>
+    <nav>
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <button class="lang-switcher" onclick="toggleLang()">
+        <span id="lang-text">中文</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="content-section">
+      <h1 data-i18n="privacy_title">Privacy Policy</h1>
+      <p data-i18n="privacy_last_updated">Last updated: April 2026</p>
+      
+      <h2 data-i18n="privacy_section1_title">1. No Data Collection</h2>
+      <p data-i18n="privacy_section1_content">Dark Light does not collect, store, or transmit any personal information, browsing history, or user data. Everything happens locally on your device.</p>
+      
+      <h2 data-i18n="privacy_section2_title">2. Permissions</h2>
+      <p data-i18n="privacy_section2_content">The extension requires permissions only to store your appearance rules and modify website CSS locally. This is necessary for the core functionality and is executed entirely within your browser.</p>
+      
+      <h2 data-i18n="privacy_section3_title">3. Third-Party Services</h2>
+      <p data-i18n="privacy_section3_content">We do not use any third-party analytics, tracking services, or advertising networks.</p>
+      
+      <h2 data-i18n="privacy_section4_title">4. Contact</h2>
+      <p data-i18n="privacy_section4_content">If you have any questions or concerns regarding this privacy policy, please contact us via our GitHub repository.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p data-i18n="footer_copy">&copy; 2026 Dark Light.</p>
+    <div class="footer-links">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="https://ct106.com" target="_blank" data-i18n="footer_author">Author</a>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        logo_title: "DARK LIGHT",
+        nav_home: "Home",
+        privacy_title: "Privacy Policy",
+        privacy_last_updated: "Last updated: April 2026",
+        privacy_section1_title: "1. No Data Collection",
+        privacy_section1_content: "Dark Light does not collect, store, or transmit any personal information, browsing history, or user data. Everything happens locally on your device.",
+        privacy_section2_title: "2. Permissions",
+        privacy_section2_content: "The extension requires permissions only to store your appearance rules and modify website CSS locally. This is necessary for the core functionality and is executed entirely within your browser.",
+        privacy_section3_title: "3. Third-Party Services",
+        privacy_section3_content: "We do not use any third-party analytics, tracking services, or advertising networks.",
+        privacy_section4_title: "4. Contact",
+        privacy_section4_content: "If you have any questions or concerns regarding this privacy policy, please contact us via our GitHub repository.",
+        footer_copy: "© 2026 Dark Light.",
+        footer_author: "Author",
+        lang_btn: "中文"
+      },
+      zh: {
+        logo_title: "DARK LIGHT",
+        nav_home: "首页",
+        privacy_title: "隐私政策",
+        privacy_last_updated: "最后更新：2026年4月",
+        privacy_section1_title: "1. 不收集数据",
+        privacy_section1_content: "Dark Light 不收集、不存储、亦不传输任何个人信息、浏览历史或用户数据。所有操作均在您的本地设备上完成。",
+        privacy_section2_title: "2. 权限说明",
+        privacy_section2_content: "本扩展仅需要权限来保存你的外观规则，并在本地修改网站 CSS。这是核心功能所必需的，且完全在你的浏览器内执行。",
+        privacy_section3_title: "3. 第三方服务",
+        privacy_section3_content: "我们不使用任何第三方分析、追踪服务或广告网络。",
+        privacy_section4_title: "4. 联系我们",
+        privacy_section4_content: "如果您对本隐私政策有任何疑问或建议，请通过 GitHub 仓库与我们联系。",
+        footer_copy: "© 2026 Dark Light.",
+        footer_author: "作者主页",
+        lang_btn: "English"
+      }
+    };
+
+    let currentLang = localStorage.getItem('lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+
+    function applyLang(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      document.getElementById('lang-text').textContent = translations[lang].lang_btn;
+      document.documentElement.lang = lang;
+      document.title = lang === 'zh' ? '隐私政策 - Dark Light' : 'Privacy Policy - Dark Light';
+    }
+
+    function toggleLang() {
+      currentLang = currentLang === 'en' ? 'zh' : 'en';
+      localStorage.setItem('lang', currentLang);
+      applyLang(currentLang);
+    }
+
+    applyLang(currentLang);
+  </script>
+</body>
+
+</html>

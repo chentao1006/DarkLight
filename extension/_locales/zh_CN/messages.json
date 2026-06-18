@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "为每个网站控制外观，支持跟随系统、强制深色和强制浅色。"
+  },
+  "defaultMode": {
+    "message": "默认模式"
+  },
+  "siteMode": {
+    "message": "当前网站模式"
+  },
+  "followSystem": {
+    "message": "跟随系统外观"
+  },
+  "preserveSite": {
+    "message": "维持网站设计"
+  },
+  "forceDark": {
+    "message": "强制深色"
+  },
+  "forceLight": {
+    "message": "强制浅色"
+  },
+  "useDefault": {
+    "message": "使用默认模式"
+  },
+  "currentSite": {
+    "message": "当前网站"
+  },
+  "matchSubdomains": {
+    "message": "匹配子域名"
+  },
+  "manageRules": {
+    "message": "管理全部规则"
+  },
+  "optionsSubtitle": {
+    "message": "管理默认外观和网站规则。"
+  },
+  "siteRules": {
+    "message": "网站规则"
+  },
+  "addRule": {
+    "message": "添加规则"
+  },
+  "addSite": {
+    "message": "添加"
+  },
+  "editSite": {
+    "message": "编辑"
+  },
+  "deleteSite": {
+    "message": "删除"
+  },
+  "enterSiteDomain": {
+    "message": "输入域名 (如 example.com)"
+  },
+  "emptyRules": {
+    "message": "暂无网站规则"
+  },
+  "exactDomainOnly": {
+    "message": "仅精确域名"
+  },
+  "enabled": {
+    "message": "已启用"
+  },
+  "disabled": {
+    "message": "已停用"
+  },
+  "enable": {
+    "message": "启用"
+  },
+  "disable": {
+    "message": "停用"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "activeBannerText": {
+    "message": "已在此页面生效"
+  }
+}
