@@ -11,34 +11,21 @@ XCODEPROJ_PATH="safari/Dark Light/Dark Light.xcodeproj/project.pbxproj"
 # Ensure Homebrew/local bin is in PATH so the newer Git is used
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 # Read current version from manifest.json
-CURRENT_VERSION=$(grep '"version"' "$MANIFEST_PATH" | sed -E 's/.*"([^"]+)".*/\1/')
+CURRENT_VERSION="$(perl -ne 'if (/"version"\s*:\s*"([^"]+)"/) { print $1; exit }' "$MANIFEST_PATH")"
 
-bump_patch_version() {
-    local version="$1"
-    local major minor patch
-
-    IFS='.' read -r major minor patch <<< "$version"
-    if [ -z "${major:-}" ] || [ -z "${minor:-}" ]; then
-        echo "Invalid version format: $version"
-        exit 1
-    fi
-
-    if [ -z "${patch:-}" ]; then
-        patch=0
-    fi
-
-    echo "$major.$minor.$((patch + 1))"
-}
+if [ -z "$CURRENT_VERSION" ]; then
+    echo "Failed to read version from $MANIFEST_PATH"
+    exit 1
+fi
 
 echo "==================================="
 echo "Dark Light Release Wizard"
 echo "==================================="
 echo "Current version is: $CURRENT_VERSION"
-read -p "Enter new version (or press Enter to bump patch from $CURRENT_VERSION): " NEW_VERSION
+read -p "Enter new version (or press Enter to keep $CURRENT_VERSION): " NEW_VERSION
 
 if [ -z "$NEW_VERSION" ]; then
-    NEW_VERSION=$(bump_patch_version "$CURRENT_VERSION")
-    echo "Auto bumped version: $CURRENT_VERSION -> $NEW_VERSION"
+    NEW_VERSION=$CURRENT_VERSION
 fi
 
 echo ""
@@ -64,8 +51,8 @@ perl -i -pe "s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = $NEXT_
 if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
     echo "Updating version strings..."
     # Update Chrome + Safari extension manifests
-    perl -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\")/\$1$NEW_VERSION\$2/" "$MANIFEST_PATH"
-    perl -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\")/\$1$NEW_VERSION\$2/" "$SAFARI_EXTENSION_MANIFEST_PATH"
+    perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$MANIFEST_PATH"
+    perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$SAFARI_EXTENSION_MANIFEST_PATH"
 
     # Update macOS app + Safari extension MARKETING_VERSION in Xcode project
     perl -i -pe "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $NEW_VERSION;/g" "$XCODEPROJ_PATH"
