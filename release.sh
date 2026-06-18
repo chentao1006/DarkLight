@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
 MANIFEST_PATH="extension/manifest.json"
+SAFARI_EXTENSION_MANIFEST_PATH="safari/Dark Light/Dark Light Extension/Resources/manifest.json"
 XCODEPROJ_PATH="safari/Dark Light/Dark Light.xcodeproj/project.pbxproj"
 
 # Ensure Homebrew/local bin is in PATH so the newer Git is used
@@ -25,7 +26,13 @@ fi
 echo ""
 echo "Releasing version v$NEW_VERSION..."
 
-CURRENT_BUILD_NUMBER=$(grep -Eo 'CURRENT_PROJECT_VERSION = [0-9]+' "$XCODEPROJ_PATH" | awk '{print $3}' | sort -nr | head -n1)
+CURRENT_BUILD_NUMBER="$(
+    grep -Eo 'CURRENT_PROJECT_VERSION = [0-9]+' "$XCODEPROJ_PATH" \
+        | sed -E 's/.*= ([0-9]+)/\1/' \
+        | sort -nr \
+        | head -n 1 \
+        || true
+)"
 if [ -z "$CURRENT_BUILD_NUMBER" ]; then
     CURRENT_BUILD_NUMBER=0
 fi
@@ -33,18 +40,19 @@ NEXT_BUILD_NUMBER=$((CURRENT_BUILD_NUMBER + 1))
 echo "Incrementing Xcode build number: $CURRENT_BUILD_NUMBER -> $NEXT_BUILD_NUMBER"
 
 # Always increment macOS app + Safari extension build number for each release
-perl -i -pe "s/(CURRENT_PROJECT_VERSION = )[^;]+;/\$1$NEXT_BUILD_NUMBER;/g" "$XCODEPROJ_PATH"
+perl -i -pe "s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = $NEXT_BUILD_NUMBER;/g" "$XCODEPROJ_PATH"
 
 # Update versions if changed
 if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
     echo "Updating version strings..."
-    # Update manifest.json
-    sed -i '' "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/g" "$MANIFEST_PATH"
+    # Update Chrome + Safari extension manifests
+    perl -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\")/\$1$NEW_VERSION\$2/" "$MANIFEST_PATH"
+    perl -i -pe "s/(\"version\"\s*:\s*\")[^\"]+(\")/\$1$NEW_VERSION\$2/" "$SAFARI_EXTENSION_MANIFEST_PATH"
 
     # Update macOS app + Safari extension MARKETING_VERSION in Xcode project
-    perl -i -pe "s/(MARKETING_VERSION = )[^;]+;/\$1$NEW_VERSION;/g" "$XCODEPROJ_PATH"
+    perl -i -pe "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $NEW_VERSION;/g" "$XCODEPROJ_PATH"
 
-    echo "Version updated in manifest.json and Xcode MARKETING_VERSION."
+    echo "Version updated in Chrome/Safari manifests and Xcode MARKETING_VERSION."
 else
     echo "Version unchanged (build number still incremented)."
 fi
