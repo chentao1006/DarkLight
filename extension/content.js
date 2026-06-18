@@ -41,11 +41,14 @@ let currentSettings = null;
 let activeAppearance = null;
 let themeObserver = null;
 let appearanceRunId = 0;
+let systemSchemeMediaQuery = null;
+let systemSchemeChangeHandler = null;
 const themeSnapshots = new WeakMap();
 
 loadSettings((settings) => {
   applyResolvedSettings(settings);
 });
+setupSystemAppearanceListener();
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
@@ -210,6 +213,45 @@ function resolveEffectiveAppearance(configuredMode) {
   if (configuredMode === MODE_FORCE_DARK) return 'dark';
   if (configuredMode === MODE_FORCE_LIGHT) return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function setupSystemAppearanceListener() {
+  if (typeof window.matchMedia !== 'function') return;
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const onSystemAppearanceChanged = () => {
+    if (!currentSettings) return;
+
+    const rule = resolveRule(window.location.hostname, currentSettings);
+    const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
+    if (configuredMode !== MODE_FOLLOW_SYSTEM) return;
+
+    applyResolvedSettings(currentSettings);
+  };
+
+  if (systemSchemeMediaQuery && systemSchemeChangeHandler) {
+    removeMediaQueryListener(systemSchemeMediaQuery, systemSchemeChangeHandler);
+  }
+
+  addMediaQueryListener(mediaQuery, onSystemAppearanceChanged);
+  systemSchemeMediaQuery = mediaQuery;
+  systemSchemeChangeHandler = onSystemAppearanceChanged;
+}
+
+function addMediaQueryListener(mediaQuery, handler) {
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', handler);
+  } else if (typeof mediaQuery.addListener === 'function') {
+    mediaQuery.addListener(handler);
+  }
+}
+
+function removeMediaQueryListener(mediaQuery, handler) {
+  if (typeof mediaQuery.removeEventListener === 'function') {
+    mediaQuery.removeEventListener('change', handler);
+  } else if (typeof mediaQuery.removeListener === 'function') {
+    mediaQuery.removeListener(handler);
+  }
 }
 
 function getLuminance(r, g, b) {

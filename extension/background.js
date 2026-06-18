@@ -2,6 +2,16 @@ function setBadgeOff() {
   chrome.action.setBadgeText({ text: '' });
 }
 
+function refreshTabAppearance(tabId) {
+  if (typeof tabId !== 'number') return;
+
+  chrome.tabs.sendMessage(tabId, { action: 'darkLightRefresh' }, () => {
+    if (chrome.runtime.lastError) {
+      // Ignore tabs without a live content script, such as browser internal pages.
+    }
+  });
+}
+
 function setBadgeState(tabId, appearance, mode) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
@@ -16,6 +26,9 @@ function setBadgeState(tabId, appearance, mode) {
 
 chrome.runtime.onInstalled.addListener(setBadgeOff);
 chrome.runtime.onStartup.addListener(setBadgeOff);
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  refreshTabAppearance(tabId);
+});
 
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message.action === 'setBadgeState' && typeof sender.tab?.id === 'number') {

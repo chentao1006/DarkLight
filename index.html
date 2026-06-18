@@ -314,8 +314,8 @@
 
   <main>
     <section class="hero">
-      <h1 data-i18n="hero_h1">Dark or Light, Site by Site</h1>
-      <p data-i18n="hero_p">A lightweight browser extension for controlling website appearance. Follow your system, preserve site design, force dark mode, or force light mode globally and override individual domains when needed.</p>
+      <h1 data-i18n="hero_h1">You Decide: Dark or Light</h1>
+      <p data-i18n="hero_p">Unlike typical dark-mode extensions, Dark Light also gives you a reliable light mode. Darken bright sites, or turn dark sites back to light when you need it.</p>
       <div class="cta-group">
         <a href="#install" class="cta-button" style="display: flex; align-items: center; gap: 12px;">
           <img src="https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg" width="24" height="24" alt="Chrome" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
@@ -346,8 +346,8 @@
       </div>
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
-        <h3 data-i18n="feature3_h3">Better Dark Mode</h3>
-        <p data-i18n="feature3_p">Dark Light prefers native site themes first, then applies conservative fixes for stubborn light areas.</p>
+        <h3 data-i18n="feature3_h3">Not Just Dark Mode</h3>
+        <p data-i18n="feature3_p">Most extensions stop at dark mode. Dark Light also includes Force Light, so dark websites can be switched back to light.</p>
       </div>
     </section>
 
@@ -376,8 +376,8 @@
       en: {
         nav_features: "Features",
         nav_get_extension: "Get Extension",
-        hero_h1: "Dark or Light, Site by Site",
-        hero_p: "A lightweight browser extension for controlling website appearance. Follow your system, preserve site design, force dark mode, or force light mode globally and override individual domains when needed.",
+        hero_h1: "You Decide: Dark or Light",
+        hero_p: "Unlike typical dark-mode extensions, Dark Light also gives you a reliable light mode. Darken bright sites, or turn dark sites back to light when you need it.",
         hero_cta: "Add to Chrome",
         hero_cta_sub: "Safari version planned",
         or: "or",
@@ -388,8 +388,8 @@
         feature1_p: "Follow System, Preserve Site Design, Force Dark, and Force Light are available as global defaults and per-site overrides.",
         feature2_h3: "Domain Rules",
         feature2_p: "Give each website its own appearance mode, including optional subdomain matching.",
-        feature3_h3: "Better Dark Mode",
-        feature3_p: "Dark Light prefers native site themes first, then applies conservative fixes for stubborn light areas.",
+        feature3_h3: "Not Just Dark Mode",
+        feature3_p: "Most extensions stop at dark mode. Dark Light also includes Force Light, so dark websites can be switched back to light.",
         footer_copy: "© 2026 Dark Light.",
         footer_author: "Author",
         footer_privacy: "Privacy Policy",
@@ -399,9 +399,9 @@
       zh: {
         nav_features: "功能",
         nav_get_extension: "获取扩展",
-        logo_title: "DARK LIGHT",
-        hero_h1: "深色或浅色，每个网站自己定",
-        hero_p: "一个轻量浏览器扩展，用来控制网站外观。你可以全局跟随系统、维持网站设计、强制深色或强制浅色，也可以为单个域名设置独立规则。",
+        logo_title: "暗光",
+        hero_h1: "黑暗还是光明，由你决定",
+        hero_p: "和常见只做 dark mode 的插件不同，暗光还提供可靠的 light 模式。浅色网站可变深，深色网站也可变浅。",
         hero_cta: "添加至 Chrome",
         hero_cta_sub: "Safari 版本计划中",
         or: "或",
@@ -412,9 +412,9 @@
         feature1_p: "跟随系统外观、维持网站设计、强制深色、强制浅色都可以作为全局默认或单站规则。",
         feature2_h3: "域名规则",
         feature2_p: "每个网站都能设置自己的外观模式，并可选择是否匹配子域名。",
-        feature3_h3: "更好用的深色模式",
-        feature3_p: "Dark Light 优先使用网站原生深色主题，再对顽固的浅色区域做保守修正。",
-        footer_copy: "© 2026 Dark Light.",
+        feature3_h3: "不只是 Dark Mode",
+        feature3_p: "很多插件只到深色为止，暗光还内置 Force Light，让深色站点也能切回浅色。",
+        footer_copy: "© 2026 暗光.",
         footer_author: "作者主页",
         footer_privacy: "隐私政策",
         lang_btn: "English"
@@ -432,7 +432,7 @@
       });
       document.getElementById('lang-text').textContent = translations[lang].lang_btn;
       document.documentElement.lang = lang;
-      document.title = lang === 'zh' ? 'Dark Light - 浏览器扩展' : 'Dark Light - Browser Extension';
+      document.title = lang === 'zh' ? '暗光 - 浏览器扩展' : 'Dark Light - Browser Extension';
     }
 
     function toggleLang() {

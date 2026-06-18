@@ -1,6 +1,6 @@
 {
   "appName": {
-    "message": "Dark Light"
+    "message": "暗光"
   },
   "appDescription": {
     "message": "为每个网站控制外观，支持跟随系统、强制深色和强制浅色。"
@@ -81,6 +81,6 @@
     "message": "保存"
   },
   "activeBannerText": {
-    "message": "已在此页面生效"
+    "message": "当前页模式"
   }
 }

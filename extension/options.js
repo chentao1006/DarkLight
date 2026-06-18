@@ -164,6 +164,10 @@ function localize() {
     const message = chrome.i18n.getMessage(key);
     if (message) el.placeholder = message;
   });
+
+  const appName = chrome.i18n.getMessage('appName') || 'Dark Light';
+  const manageRules = chrome.i18n.getMessage('manageRules') || 'Options';
+  document.title = `${appName} - ${manageRules}`;
 }
 
 function loadSettings(callback) {

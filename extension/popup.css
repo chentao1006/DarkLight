@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light dark;
   --bg: #f4f1ea;
   --panel: #ffffff;
   --text: #1f2328;
@@ -6,6 +7,30 @@
   --border: #d8d2c7;
   --accent: #0f766e;
   --accent-dark: #115e59;
+  --input-bg: #ffffff;
+  --secondary-btn: #2f3a40;
+  --secondary-btn-hover: #1f272b;
+  --banner-bg: #e7f5f2;
+  --banner-border: #b9ded7;
+  --banner-text: #0f4f49;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161a1d;
+    --panel: #22272b;
+    --text: #e6edf3;
+    --muted: #9ba7b2;
+    --border: #3a434a;
+    --accent: #2fb6ab;
+    --accent-dark: #24988f;
+    --input-bg: #15191d;
+    --secondary-btn: #3a434a;
+    --secondary-btn-hover: #4a555e;
+    --banner-bg: #17332f;
+    --banner-border: #2d5e57;
+    --banner-text: #99e4d9;
+  }
 }
 
 body {
@@ -68,7 +93,7 @@ label,
   height: 36px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--input-bg);
   color: var(--text);
   font-size: 13px;
   outline: none;
@@ -108,11 +133,11 @@ label,
 }
 
 .site-btn.secondary {
-  background: #2f3a40;
+  background: var(--secondary-btn);
 }
 
 .site-btn.secondary:hover {
-  background: #1f272b;
+  background: var(--secondary-btn-hover);
 }
 
 .active-banner {
@@ -121,10 +146,10 @@ label,
   gap: 8px;
   margin-bottom: 12px;
   padding: 9px 10px;
-  background: #e7f5f2;
-  border: 1px solid #b9ded7;
+  background: var(--banner-bg);
+  border: 1px solid var(--banner-border);
   border-radius: 8px;
-  color: #0f4f49;
+  color: var(--banner-text);
   font-size: 13px;
   font-weight: 700;
 }

@@ -10,20 +10,25 @@
 <body>
     <main class="app">
         <header class="topbar">
-            <div>
+            <div class="brand">
+                <img class="brand-icon" src="icons/icon-48.png" alt="Dark Light" width="32" height="32">
+                <div>
                 <h1 data-i18n="appName">Dark Light</h1>
                 <p data-i18n="optionsSubtitle">Manage default appearance and site rules.</p>
+                </div>
             </div>
         </header>
 
         <section class="section">
-            <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
-            <select id="defaultMode">
-                <option value="followSystem" data-i18n="followSystem">Follow System</option>
-                <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
-                <option value="forceDark" data-i18n="forceDark">Force Dark</option>
-                <option value="forceLight" data-i18n="forceLight">Force Light</option>
-            </select>
+            <div class="default-mode-row">
+                <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
+                <select id="defaultMode">
+                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                </select>
+            </div>
         </section>
 
         <section class="section">

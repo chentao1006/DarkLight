@@ -38,7 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 chrome.action.getBadgeText({ tabId: tab.id }, (text) => {
                     if (text) {
                         const activeBanner = document.getElementById('activeBanner');
-                        if (activeBanner) activeBanner.classList.remove('hidden');
+                        if (activeBanner) {
+                            activeBanner.classList.remove('hidden');
+                            updateActiveBanner(resolveEffectiveMode(currentHostname, settings));
+                        }
                     }
                 });
                 renderSiteRule();
@@ -50,7 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     defaultMode.addEventListener('change', () => {
         settings.defaultMode = defaultMode.value;
-        saveSettings(settings, notifyActiveTab);
+        saveSettings(settings, () => {
+            renderSiteRule();
+            notifyActiveTab();
+        });
     });
 
     siteMode.addEventListener('change', () => {
@@ -75,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
         siteMode.value = rule ? rule.mode : 'inherit';
         matchSubdomains.checked = rule ? rule.matchSubdomains !== false : true;
         matchSubdomains.disabled = !rule;
+
+        const activeBanner = document.getElementById('activeBanner');
+        if (activeBanner && !activeBanner.classList.contains('hidden')) {
+            updateActiveBanner(resolveEffectiveMode(currentHostname, settings));
+        }
     }
 
     function setRuleForCurrentSite(mode) {
@@ -95,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             matchSubdomains.disabled = true;
             matchSubdomains.checked = false;
-            saveSettings(settings, notifyActiveTab);
+            saveSettings(settings, () => {
+                renderSiteRule();
+                notifyActiveTab();
+            });
             return;
         }
 
@@ -112,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         matchSubdomains.disabled = false;
-        saveSettings(settings, notifyActiveTab);
+        saveSettings(settings, () => {
+            renderSiteRule();
+            notifyActiveTab();
+        });
     }
 });
 
@@ -122,6 +139,36 @@ function localize() {
         const message = chrome.i18n.getMessage(key);
         if (message) el.textContent = message;
     });
+}
+
+function resolveEffectiveMode(hostname, settings) {
+    const rule = resolveRule(hostname, settings, false);
+    if (rule && rule.mode !== 'inherit') {
+        return rule.mode;
+    }
+    return settings.defaultMode;
+}
+
+function updateActiveBanner(mode) {
+    const activeBannerText = document.getElementById('activeBannerText');
+    if (!activeBannerText) {
+        return;
+    }
+
+    const prefix = chrome.i18n.getMessage('activeBannerText') || 'Current page mode';
+    activeBannerText.textContent = `${prefix}: ${modeLabel(mode)}`;
+}
+
+function modeLabel(mode) {
+    const key = {
+        inherit: 'useDefault',
+        followSystem: 'followSystem',
+        preserveSite: 'preserveSite',
+        forceDark: 'forceDark',
+        forceLight: 'forceLight'
+    }[mode] || 'followSystem';
+
+    return chrome.i18n.getMessage(key) || mode || 'followSystem';
 }
 
 function loadSettings(callback) {

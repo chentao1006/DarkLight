@@ -7,6 +7,26 @@
   --border: #d8d2c7;
   --accent: #0f766e;
   --danger: #b42318;
+  --input-bg: #ffffff;
+  --ghost-bg: transparent;
+  --ghost-bg-hover: #f2eee6;
+  --danger-bg-hover: #fef0f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171b20;
+    --panel: #232a30;
+    --text: #e6edf3;
+    --muted: #a5b1bb;
+    --border: #3a444d;
+    --accent: #2fb6ab;
+    --danger: #ff9f97;
+    --input-bg: #151a1f;
+    --ghost-bg: transparent;
+    --ghost-bg-hover: #2c343c;
+    --danger-bg-hover: #3b2425;
+  }
 }
 
 body {
@@ -25,9 +45,21 @@ body {
 
 .topbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
 }
 
 h1,
@@ -78,13 +110,28 @@ label {
   margin-bottom: 8px;
 }
 
+.default-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.default-mode-row label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.default-mode-row select {
+  flex: 1;
+}
+
 select,
 input[type="text"] {
   height: 36px;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0 10px;
-  background: #ffffff;
+  background: var(--input-bg);
   color: var(--text);
   font-size: 14px;
 }
@@ -101,9 +148,19 @@ button {
 }
 
 button.ghost {
-  background: transparent;
+  background: var(--ghost-bg);
   color: var(--text);
   border: 1px solid var(--border);
+}
+
+button:hover {
+  filter: brightness(0.96);
+}
+
+button.ghost:hover,
+.rule-actions button:hover {
+  background: var(--ghost-bg-hover);
+  filter: none;
 }
 
 .rule-form {
@@ -165,6 +222,10 @@ button.ghost {
 
 .rule-actions button.delete {
   color: var(--danger);
+}
+
+.rule-actions button.delete:hover {
+  background: var(--danger-bg-hover);
 }
 
 .empty {
