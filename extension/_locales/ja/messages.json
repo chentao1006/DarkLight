@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "各Webサイトの外観をコントロールします。"
+  },
+  "defaultMode": {
+    "message": "デフォルトモード"
+  },
+  "siteMode": {
+    "message": "サイトモード"
+  },
+  "followSystem": {
+    "message": "システムに従う"
+  },
+  "preserveSite": {
+    "message": "サイトのデザインを維持する"
+  },
+  "forceDark": {
+    "message": "強制的にダーク"
+  },
+  "forceLight": {
+    "message": "強制的にライト"
+  },
+  "useDefault": {
+    "message": "デフォルトを使用"
+  },
+  "currentSite": {
+    "message": "現在のサイト"
+  },
+  "matchSubdomains": {
+    "message": "サブドメインを一致させる"
+  },
+  "manageRules": {
+    "message": "すべてのルールを管理"
+  },
+  "optionsSubtitle": {
+    "message": "デフォルトの外観とサイトルールを管理します。"
+  },
+  "siteRules": {
+    "message": "サイトルール"
+  },
+  "addRule": {
+    "message": "ルールを追加"
+  },
+  "addSite": {
+    "message": "追加"
+  },
+  "editSite": {
+    "message": "編集"
+  },
+  "deleteSite": {
+    "message": "削除"
+  },
+  "enterSiteDomain": {
+    "message": "ドメインを入力 (例: example.com)"
+  },
+  "emptyRules": {
+    "message": "サイトルールはまだありません"
+  },
+  "exactDomainOnly": {
+    "message": "完全一致のドメインのみ"
+  },
+  "enabled": {
+    "message": "有効"
+  },
+  "disabled": {
+    "message": "無効"
+  },
+  "enable": {
+    "message": "有効にする"
+  },
+  "disable": {
+    "message": "無効にする"
+  },
+  "cancel": {
+    "message": "キャンセル"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "activeBannerText": {
+    "message": "現在のページのモード"
+  }
+}

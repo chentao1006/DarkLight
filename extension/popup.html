@@ -3,10 +3,24 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Dark Light</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
+    <div class="lang-switcher-container">
+        <select class="lang-switcher" id="extLangSwitcher">
+            <option value="en">English</option>
+            <option value="zh">简体中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+        </select>
+    </div>
+
     <div class="header">
         <img src="icons/icon-48.png" alt="Dark Light Logo" width="32" height="32">
         <div>
@@ -53,6 +67,7 @@
 
     <button id="openOptions" class="site-btn secondary" data-i18n="manageRules">Manage All Rules</button>
 
+    <script src="i18n.js"></script>
     <script src="popup.js"></script>
 </body>
 

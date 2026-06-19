@@ -38,7 +38,7 @@
 ### Safari App（Xcode）
 
 1. 用 Xcode 打开 `safari/Dark Light/Dark Light.xcodeproj`。
-2. 选择 `Dark Light` scheme，并在 `My Mac` 上运行。
+2. macOS 选择 `Dark Light` scheme 并在 `My Mac` 上运行；iPhone 和 iPad（iOS 15+）选择 `Dark Light iOS` scheme。
 3. 启动后会出现一个简单介绍窗口，提供“打开 Safari”和“打开 Safari 扩展设置”的按钮。
 4. 在 Safari 中启用 `Dark Light` 后，就可以正常使用工具栏弹窗和站点规则。
 

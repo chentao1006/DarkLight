@@ -6,7 +6,20 @@ const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
 let settings = null;
 let editingRuleId = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await I18n.init();
+
+  const extLangSwitcher = document.getElementById('extLangSwitcher');
+  if (extLangSwitcher) {
+    extLangSwitcher.value = I18n.currentLang;
+    extLangSwitcher.addEventListener('change', async (e) => {
+      await new Promise(resolve => chrome.storage.local.set({ userLanguage: e.target.value }, resolve));
+      await I18n.init();
+      localize();
+      render();
+    });
+  }
+
   localize();
   loadSettings((loaded) => {
     settings = loaded;
@@ -34,7 +47,7 @@ function render() {
   if (settings.siteRules.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty';
-    empty.textContent = chrome.i18n.getMessage('emptyRules') || 'No site rules yet';
+    empty.textContent = I18n.getMessage('emptyRules') || 'No site rules yet';
     ruleList.appendChild(empty);
     return;
   }
@@ -57,27 +70,27 @@ function render() {
       meta.className = 'rule-meta';
       meta.textContent = [
         modeLabel(rule.mode),
-        rule.matchSubdomains ? chrome.i18n.getMessage('matchSubdomains') : chrome.i18n.getMessage('exactDomainOnly'),
-        rule.enabled ? chrome.i18n.getMessage('enabled') : chrome.i18n.getMessage('disabled')
+        rule.matchSubdomains ? I18n.getMessage('matchSubdomains') : I18n.getMessage('exactDomainOnly'),
+        rule.enabled ? I18n.getMessage('enabled') : I18n.getMessage('disabled')
       ].filter(Boolean).join(' / ');
 
       const actions = document.createElement('div');
       actions.className = 'rule-actions';
 
       const toggleBtn = document.createElement('button');
-      toggleBtn.textContent = rule.enabled ? chrome.i18n.getMessage('disable') : chrome.i18n.getMessage('enable');
+      toggleBtn.textContent = rule.enabled ? I18n.getMessage('disable') : I18n.getMessage('enable');
       toggleBtn.addEventListener('click', () => {
         rule.enabled = !rule.enabled;
         saveSettings(settings, render);
       });
 
       const editBtn = document.createElement('button');
-      editBtn.textContent = chrome.i18n.getMessage('editSite') || 'Edit';
+      editBtn.textContent = I18n.getMessage('editSite') || 'Edit';
       editBtn.addEventListener('click', () => openRuleForm(rule));
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete';
-      deleteBtn.textContent = chrome.i18n.getMessage('deleteSite') || 'Delete';
+      deleteBtn.textContent = I18n.getMessage('deleteSite') || 'Delete';
       deleteBtn.addEventListener('click', () => {
         settings.siteRules = settings.siteRules.filter((item) => item.id !== rule.id);
         saveSettings(settings, render);
@@ -149,24 +162,20 @@ function modeLabel(mode) {
     forceDark: 'forceDark',
     forceLight: 'forceLight'
   }[mode];
-  return chrome.i18n.getMessage(key) || mode;
+  return I18n.getMessage(key) || mode;
 }
 
 function localize() {
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    const key = el.getAttribute('data-i18n');
-    const message = chrome.i18n.getMessage(key);
-    if (message) el.textContent = message;
-  });
+  I18n.applyToDOM(document);
 
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     const key = el.getAttribute('data-i18n-placeholder');
-    const message = chrome.i18n.getMessage(key);
+    const message = I18n.getMessage(key);
     if (message) el.placeholder = message;
   });
 
-  const appName = chrome.i18n.getMessage('appName') || 'Dark Light';
-  const manageRules = chrome.i18n.getMessage('manageRules') || 'Options';
+  const appName = I18n.getMessage('appName') || 'Dark Light';
+  const manageRules = I18n.getMessage('manageRules') || 'Options';
   document.title = `${appName} - ${manageRules}`;
 }
 

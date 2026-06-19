@@ -3,32 +3,61 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
     <title data-i18n="pageTitle">Dark Light for Safari</title>
 
     <link rel="stylesheet" href="../Style.css">
     <script src="../Script.js" defer></script>
 </head>
 <body>
-    <main class="window-shell">
-        <img class="app-icon" src="../Icon.png" width="96" height="96" alt="Dark Light Icon" data-i18n-attr="alt:appIconAlt">
-        <h1 data-i18n="heroTitle">Dark Light for Safari</h1>
-        <p class="intro" data-i18n="heroIntro">Dark Light lets you decide how each website should look: follow system, preserve site design, force dark, or force light.</p>
+    <div class="lang-switcher-container">
+        <select class="lang-switcher" id="appLangSwitcher">
+            <option value="en">English</option>
+            <option value="zh">简体中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+        </select>
+    </div>
 
-        <section class="usage-card">
-            <h2 data-i18n="usageTitle">How to use it</h2>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <main class="window-shell">
+        <div class="header">
+            <img class="app-icon" src="../Icon.png" width="96" height="96" alt="Dark Light Icon" data-i18n-attr="alt:appIconAlt">
+            <h1 data-i18n="heroTitle">Dark Light</h1>
+            <p class="intro" data-i18n="heroIntro">Dark Light lets you decide how each website should look: follow system, preserve site design, force dark, or force light.</p>
+        </div>
+
+        <section class="usage-card glass-panel" id="mac-guide" style="display: none;">
+            <h2 data-i18n="macUsageTitle">How to enable on Mac</h2>
             <ol>
-                <li data-i18n="usageStep1">Open Safari.</li>
-                <li data-i18n="usageStep2">Enable Dark Light in Safari Extensions settings and set "Always Allow on Every Website".</li>
-                <li data-i18n="usageStep3">Use the toolbar popup to switch modes for the current site.</li>
+                <li data-i18n="macStep1">Open Safari.</li>
+                <li data-i18n="macStep2">Enable Dark Light in Safari Extensions Preferences.</li>
+                <li data-i18n="macStep3">Use the toolbar popup to switch modes for the current site.</li>
             </ol>
         </section>
 
-        <p class="status status-banner" data-i18n="statusUnknownSettings" role="status" aria-live="polite">Dark Light is ready to be enabled in Safari.</p>
+        <section class="usage-card glass-panel" id="ios-guide" style="display: none;">
+            <h2 data-i18n="iosUsageTitle">How to enable on iPhone & iPad</h2>
+            <ol>
+                <li data-i18n="iosStep1">Tap the button below to open Settings.</li>
+                <li data-i18n="iosStep2">Go to <strong>Safari</strong> > <strong>Extensions</strong>.</li>
+                <li data-i18n="iosStep3">Tap <strong>Dark Light</strong> and toggle it <strong>On</strong>.</li>
+                <li data-i18n="iosStep4">Set all website permissions to <strong>Allow</strong>.</li>
+            </ol>
+        </section>
+
+        <p class="status status-banner glass-panel" data-i18n="statusUnknownSettings" role="status" aria-live="polite">Dark Light is ready to be enabled.</p>
 
         <div class="actions">
-            <button class="primary-action open-preferences" data-i18n="openPreferencesSettings">Open Safari Extensions Settings</button>
+            <button class="primary-action open-preferences" data-i18n="openPreferencesSettings">Open Settings</button>
+            <button class="secondary-action open-safari" data-i18n="openSafari">Open Safari</button>
         </div>
     </main>
 </body>

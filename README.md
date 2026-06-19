@@ -38,7 +38,7 @@ Dark Light is a lightweight browser extension where you decide how each website 
 ### Safari App (Xcode)
 
 1. Open `safari/Dark Light/Dark Light.xcodeproj` in Xcode.
-2. Select the `Dark Light` scheme and run it on `My Mac`.
+2. Select the `Dark Light` scheme and run it on `My Mac`, or select `Dark Light iOS` to run it on iPhone or iPad (iOS 15+).
 3. The host app opens a simple introduction window with buttons to launch Safari and open Safari's extension settings.
 4. Enable `Dark Light` in Safari, then use the Safari toolbar popup as usual.
 

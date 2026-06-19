@@ -3,7 +3,26 @@ const SETTINGS_VERSION = 2;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
 const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (navigator.userAgent.includes('iPhone')) {
+        document.body.style.width = '100%';
+    }
+
+    await I18n.init();
+
+    const extLangSwitcher = document.getElementById('extLangSwitcher');
+    if (extLangSwitcher) {
+        extLangSwitcher.value = I18n.currentLang;
+        extLangSwitcher.addEventListener('change', async (e) => {
+            await new Promise(resolve => chrome.storage.local.set({ userLanguage: e.target.value }, resolve));
+            await I18n.init();
+            localize();
+            if (typeof renderSiteRule === 'function') {
+                renderSiteRule();
+            }
+        });
+    }
+
     localize();
 
     const defaultMode = document.getElementById('defaultMode');
@@ -69,7 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const rule = resolveRule(currentHostname, settings, true);
         if (!rule) return;
         rule.matchSubdomains = matchSubdomains.checked;
-        saveSettings(settings, notifyActiveTab);
+        saveSettings(settings, () => {
+            renderSiteRule();
+            notifyActiveTab();
+        });
     });
 
     openOptions.addEventListener('click', () => {
@@ -134,11 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function localize() {
-    document.querySelectorAll('[data-i18n]').forEach((el) => {
-        const key = el.getAttribute('data-i18n');
-        const message = chrome.i18n.getMessage(key);
-        if (message) el.textContent = message;
-    });
+    I18n.applyToDOM(document);
 }
 
 function resolveEffectiveMode(hostname, settings) {
@@ -155,7 +173,7 @@ function updateActiveBanner(mode) {
         return;
     }
 
-    const prefix = chrome.i18n.getMessage('activeBannerText') || 'Current page mode';
+    const prefix = I18n.getMessage('activeBannerText') || 'Current page mode';
     activeBannerText.textContent = `${prefix}: ${modeLabel(mode)}`;
 }
 
@@ -168,7 +186,7 @@ function modeLabel(mode) {
         forceLight: 'forceLight'
     }[mode] || 'followSystem';
 
-    return chrome.i18n.getMessage(key) || mode || 'followSystem';
+    return I18n.getMessage(key) || mode || 'followSystem';
 }
 
 function loadSettings(callback) {
@@ -189,8 +207,16 @@ function loadSettings(callback) {
     });
 }
 
-function saveSettings(settings, callback) {
-    chrome.storage.sync.set({ [SETTINGS_KEY]: normalizeSettings(settings) }, callback);
+function saveSettings(nextSettings, callback) {
+    const normalized = normalizeSettings(nextSettings);
+    // Update the outer settings reference so subsequent reads see the latest state
+    settings = normalized;
+    chrome.storage.sync.set({ [SETTINGS_KEY]: normalized }, () => {
+        if (chrome.runtime.lastError) {
+            console.error('[DarkLight] saveSettings error:', chrome.runtime.lastError.message);
+        }
+        if (typeof callback === 'function') callback();
+    });
 }
 
 function migrateLegacySettings(result) {

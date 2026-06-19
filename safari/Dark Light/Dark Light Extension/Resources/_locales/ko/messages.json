@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "각 웹사이트의 외관을 제어합니다."
+  },
+  "defaultMode": {
+    "message": "기본 모드"
+  },
+  "siteMode": {
+    "message": "사이트 모드"
+  },
+  "followSystem": {
+    "message": "시스템 따르기"
+  },
+  "preserveSite": {
+    "message": "사이트 디자인 유지"
+  },
+  "forceDark": {
+    "message": "강제 다크"
+  },
+  "forceLight": {
+    "message": "강제 라이트"
+  },
+  "useDefault": {
+    "message": "기본값 사용"
+  },
+  "currentSite": {
+    "message": "현재 사이트"
+  },
+  "matchSubdomains": {
+    "message": "하위 도메인 일치"
+  },
+  "manageRules": {
+    "message": "모든 규칙 관리"
+  },
+  "optionsSubtitle": {
+    "message": "기본 외관 및 사이트 규칙을 관리합니다."
+  },
+  "siteRules": {
+    "message": "사이트 규칙"
+  },
+  "addRule": {
+    "message": "규칙 추가"
+  },
+  "addSite": {
+    "message": "추가"
+  },
+  "editSite": {
+    "message": "편집"
+  },
+  "deleteSite": {
+    "message": "삭제"
+  },
+  "enterSiteDomain": {
+    "message": "도메인 입력 (예: example.com)"
+  },
+  "emptyRules": {
+    "message": "아직 사이트 규칙이 없습니다"
+  },
+  "exactDomainOnly": {
+    "message": "정확한 도메인만"
+  },
+  "enabled": {
+    "message": "활성화됨"
+  },
+  "disabled": {
+    "message": "비활성화됨"
+  },
+  "enable": {
+    "message": "활성화"
+  },
+  "disable": {
+    "message": "비활성화"
+  },
+  "cancel": {
+    "message": "취소"
+  },
+  "save": {
+    "message": "저장"
+  },
+  "activeBannerText": {
+    "message": "현재 페이지 모드"
+  }
+}

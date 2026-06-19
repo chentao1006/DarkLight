@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "Steuern Sie das Erscheinungsbild jeder Website."
+  },
+  "defaultMode": {
+    "message": "Standardmodus"
+  },
+  "siteMode": {
+    "message": "Website-Modus"
+  },
+  "followSystem": {
+    "message": "System folgen"
+  },
+  "preserveSite": {
+    "message": "Site-Design beibehalten"
+  },
+  "forceDark": {
+    "message": "Dunkel erzwingen"
+  },
+  "forceLight": {
+    "message": "Hell erzwingen"
+  },
+  "useDefault": {
+    "message": "Standard verwenden"
+  },
+  "currentSite": {
+    "message": "Aktuelle Website"
+  },
+  "matchSubdomains": {
+    "message": "Subdomains einschließen"
+  },
+  "manageRules": {
+    "message": "Alle Regeln verwalten"
+  },
+  "optionsSubtitle": {
+    "message": "Standard-Erscheinungsbild und Regeln verwalten."
+  },
+  "siteRules": {
+    "message": "Website-Regeln"
+  },
+  "addRule": {
+    "message": "Regel hinzufügen"
+  },
+  "addSite": {
+    "message": "Hinzufügen"
+  },
+  "editSite": {
+    "message": "Bearbeiten"
+  },
+  "deleteSite": {
+    "message": "Löschen"
+  },
+  "enterSiteDomain": {
+    "message": "Domain eingeben (z.B. example.com)"
+  },
+  "emptyRules": {
+    "message": "Noch keine Regeln"
+  },
+  "exactDomainOnly": {
+    "message": "Nur exakte Domain"
+  },
+  "enabled": {
+    "message": "Aktiviert"
+  },
+  "disabled": {
+    "message": "Deaktiviert"
+  },
+  "enable": {
+    "message": "Aktivieren"
+  },
+  "disable": {
+    "message": "Deaktivieren"
+  },
+  "cancel": {
+    "message": "Abbrechen"
+  },
+  "save": {
+    "message": "Speichern"
+  },
+  "activeBannerText": {
+    "message": "Aktueller Seitenmodus"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "appName": {
+    "message": "Dark Light"
+  },
+  "appDescription": {
+    "message": "Controla la apariencia de cada sitio web."
+  },
+  "defaultMode": {
+    "message": "Modo predeterminado"
+  },
+  "siteMode": {
+    "message": "Modo de sitio"
+  },
+  "followSystem": {
+    "message": "Seguir al sistema"
+  },
+  "preserveSite": {
+    "message": "Conservar diseño del sitio"
+  },
+  "forceDark": {
+    "message": "Forzar oscuro"
+  },
+  "forceLight": {
+    "message": "Forzar claro"
+  },
+  "useDefault": {
+    "message": "Usar predeterminado"
+  },
+  "currentSite": {
+    "message": "Sitio actual"
+  },
+  "matchSubdomains": {
+    "message": "Coincidir subdominios"
+  },
+  "manageRules": {
+    "message": "Administrar todas las reglas"
+  },
+  "optionsSubtitle": {
+    "message": "Administrar la apariencia predeterminada y las reglas."
+  },
+  "siteRules": {
+    "message": "Reglas de sitio"
+  },
+  "addRule": {
+    "message": "Agregar regla"
+  },
+  "addSite": {
+    "message": "Agregar"
+  },
+  "editSite": {
+    "message": "Editar"
+  },
+  "deleteSite": {
+    "message": "Eliminar"
+  },
+  "enterSiteDomain": {
+    "message": "Ingresar dominio (ej. example.com)"
+  },
+  "emptyRules": {
+    "message": "Aún no hay reglas"
+  },
+  "exactDomainOnly": {
+    "message": "Solo dominio exacto"
+  },
+  "enabled": {
+    "message": "Habilitado"
+  },
+  "disabled": {
+    "message": "Deshabilitado"
+  },
+  "enable": {
+    "message": "Habilitar"
+  },
+  "disable": {
+    "message": "Deshabilitar"
+  },
+  "cancel": {
+    "message": "Cancelar"
+  },
+  "save": {
+    "message": "Guardar"
+  },
+  "activeBannerText": {
+    "message": "Modo de página actual"
+  }
+}

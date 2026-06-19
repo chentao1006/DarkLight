@@ -7,13 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C6776748DB693B78A7C2B7C /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = EA2CE68D86AF9F84BF337F08 /* i18n.js */; };
 		C62198CF2FE3E54400899251 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62198CE2FE3E54400899251 /* AppDelegate.swift */; };
 		C62198D32FE3E54400899251 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = C62198D12FE3E54400899251 /* Main.html */; };
 		C62198D52FE3E54400899251 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = C62198D42FE3E54400899251 /* Icon.png */; };
 		C62198D72FE3E54400899251 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = C62198D62FE3E54400899251 /* Style.css */; };
 		C62198D92FE3E54400899251 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = C62198D82FE3E54400899251 /* Script.js */; };
 		C62198DB2FE3E54400899251 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62198DA2FE3E54400899251 /* ViewController.swift */; };
-		C62198DE2FE3E54400899251 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C62198DC2FE3E54400899251 /* Main.storyboard */; };
+		C62198DE2FE3E54400899251 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C62198DC2FE3E54400899251 /* Main.storyboard */; platformFilters = (macos, ); };
 		C62198E02FE3E54700899251 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C62198DF2FE3E54700899251 /* Assets.xcassets */; };
 		C62198E72FE3E54700899251 /* Dark Light Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C62198E62FE3E54700899251 /* Dark Light Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C62198EC2FE3E54700899251 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62198EB2FE3E54700899251 /* SafariWebExtensionHandler.swift */; };
@@ -81,6 +82,7 @@
 		C62199012FE3E54800899251 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
 		C62199022FE3E54800899251 /* options.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = options.css; path = Resources/options.css; sourceTree = "<group>"; };
 		C621990F2FE3E54800899251 /* vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vendor; path = Resources/vendor; sourceTree = "<group>"; };
+		EA2CE68D86AF9F84BF337F08 /* i18n.js */ = {isa = PBXFileReference; includeInIndex = 1; name = i18n.js; path = Resources/i18n.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +170,7 @@
 				C62199012FE3E54800899251 /* content.js */,
 				C62199022FE3E54800899251 /* options.css */,
 				C621990F2FE3E54800899251 /* vendor */,
+				EA2CE68D86AF9F84BF337F08 /* i18n.js */,
 			);
 			name = Resources;
 			path = "Dark Light Extension";
@@ -191,8 +194,6 @@
 				C62198E92FE3E54700899251 /* PBXTargetDependency */,
 			);
 			name = "Dark Light";
-			packageProductDependencies = (
-			);
 			productName = "Dark Light";
 			productReference = C62198CB2FE3E54400899251 /* Dark Light.app */;
 			productType = "com.apple.product-type.application";
@@ -210,8 +211,6 @@
 			dependencies = (
 			);
 			name = "Dark Light Extension";
-			packageProductDependencies = (
-			);
 			productName = "Dark Light Extension";
 			productReference = C62198E62FE3E54700899251 /* Dark Light Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -284,6 +283,7 @@
 				C62199082FE3E54800899251 /* manifest.json in Resources */,
 				C621990D2FE3E54800899251 /* options.css in Resources */,
 				C62199032FE3E54800899251 /* popup.js in Resources */,
+				0C6776748DB693B78A7C2B7C /* i18n.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,7 +394,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
+				SDKROOT = auto;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -450,7 +450,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SDKROOT = macosx;
+				SDKROOT = auto;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -459,15 +459,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
-				ENABLE_APP_SANDBOX = YES;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Dark Light Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Dark Light Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -483,10 +484,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -494,15 +498,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
-				ENABLE_APP_SANDBOX = YES;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Dark Light Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Dark Light Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -518,10 +523,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -532,9 +540,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
-				ENABLE_APP_SANDBOX = YES;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -543,8 +551,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dark Light";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainStoryboardFile = Main;
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				"INFOPLIST_KEY_NSMainStoryboardFile[sdk=macosx*]" = Main;
+				"INFOPLIST_KEY_NSPrincipalClass[sdk=macosx*]" = NSApplication;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -561,11 +570,14 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -576,9 +588,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
-				ENABLE_APP_SANDBOX = YES;
+				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -587,8 +599,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Dark Light";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainStoryboardFile = Main;
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				"INFOPLIST_KEY_NSMainStoryboardFile[sdk=macosx*]" = Main;
+				"INFOPLIST_KEY_NSPrincipalClass[sdk=macosx*]" = NSApplication;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -605,11 +618,14 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
