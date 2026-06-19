@@ -84,8 +84,13 @@ body {
 }
 
 @keyframes float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(50px, 50px) scale(1.1); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(50px, 50px) scale(1.1);
+    }
 }
 
 .window-shell {
@@ -157,6 +162,7 @@ ol {
 ol li {
     margin-bottom: 6px;
 }
+
 ol li:last-child {
     margin-bottom: 0;
 }
@@ -175,6 +181,7 @@ ol li:last-child {
 body.state-on .status-banner {
     border-left: 4px solid #10b981;
 }
+
 body.state-off .status-banner {
     border-left: 4px solid #f59e0b;
 }
@@ -237,38 +244,17 @@ button {
 
 .lang-switcher-container {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 24px;
+    right: 24px;
     z-index: 100;
 }
 
-.lang-switcher {
-    appearance: none;
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 999px;
-    padding: 8px 30px 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f2328' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    outline: none;
-    transition: background 0.2s;
-}
-
-@media (prefers-color-scheme: dark) {
-    .lang-switcher {
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e6edf3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+@supports (-webkit-touch-callout: none) {
+    .lang-switcher-container {
+        top: 68px;
     }
 }
 
-.lang-switcher:hover {
-    background-color: rgba(128, 128, 128, 0.1);
+.lang-switcher {
+    cursor: pointer;
 }
