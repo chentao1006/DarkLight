@@ -63,12 +63,32 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
+let lastAppliedState = null;
+
 function applyResolvedSettings(settings) {
-  const runId = ++appearanceRunId;
-  currentSettings = normalizeSettings(settings);
+  const normalized = normalizeSettings(settings);
   const hostname = window.location.hostname;
-  const rule = resolveRule(hostname, currentSettings);
-  const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
+  const rule = resolveRule(hostname, normalized);
+  const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : normalized.defaultMode;
+  const effectiveAppearance = resolveEffectiveAppearance(configuredMode);
+
+  const stateString = JSON.stringify(normalized) + '|' + effectiveAppearance;
+  if (lastAppliedState === stateString) {
+    if (configuredMode === MODE_PRESERVE_SITE) {
+      try {
+        chrome.runtime.sendMessage({ action: 'clearBadgeState', source: rule ? 'siteRule' : 'default' });
+      } catch (e) {}
+    } else {
+      try {
+        chrome.runtime.sendMessage({ action: 'setBadgeState', mode: configuredMode, effectiveAppearance, source: rule ? 'siteRule' : 'default' });
+      } catch (e) {}
+    }
+    return;
+  }
+  lastAppliedState = stateString;
+
+  const runId = ++appearanceRunId;
+  currentSettings = normalized;
 
   cleanupAppearanceOverrides();
   if (configuredMode === MODE_PRESERVE_SITE) {
@@ -78,13 +98,10 @@ function applyResolvedSettings(settings) {
         action: 'clearBadgeState',
         source: rule ? 'siteRule' : 'default'
       });
-    } catch (e) {
-      // Ignore context invalidation during reloads.
-    }
+    } catch (e) {}
     return;
   }
 
-  const effectiveAppearance = resolveEffectiveAppearance(configuredMode);
   activeAppearance = effectiveAppearance;
 
   try {
@@ -94,9 +111,7 @@ function applyResolvedSettings(settings) {
       effectiveAppearance,
       source: rule ? 'siteRule' : 'default'
     });
-  } catch (e) {
-    // Ignore context invalidation during reloads.
-  }
+  } catch (e) {}
 
   if (effectiveAppearance === 'dark') {
     applyDarkLight(runId);
@@ -917,26 +932,91 @@ function applyDarkLight(runId) {
   if (!isCurrentRun(runId)) return;
   flipThemeSignalsToDark();
 
-  if (window.DarkReader?.enable) {
-    try {
-      window.DarkReader.setFetchMethod?.(window.fetch.bind(window));
-      window.DarkReader.enable({
-        brightness: 100,
-        contrast: 100,
-        sepia: 0
-      });
-    } catch (e) {
-      console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
+  const startDarkReader = () => {
+    if (!isCurrentRun(runId)) return;
+    if (window.DarkReader?.enable) {
+      try {
+        window.DarkReader.setFetchMethod?.(async (url) => {
+          return new Promise((resolve, reject) => {
+            const tryFetch = (retries = 15) => {
+              let handled = false;
+              const timeoutId = setTimeout(() => {
+                if (handled) return;
+                handled = true;
+                if (retries > 0) {
+                  tryFetch(retries - 1);
+                } else {
+                  window.fetch(url).then(resolve).catch(reject);
+                }
+              }, 500);
+
+              try {
+                chrome.runtime.sendMessage({ action: 'dl_fetch', url }, (response) => {
+                  if (handled) return;
+                  handled = true;
+                  clearTimeout(timeoutId);
+
+                  if (chrome.runtime.lastError) {
+                    if (retries > 0) {
+                      setTimeout(() => tryFetch(retries - 1), 200);
+                      return;
+                    }
+                    window.fetch(url).then(resolve).catch(reject);
+                    return;
+                  }
+                  if (!response || response.error || typeof response.text !== 'string') {
+                    window.fetch(url).then(resolve).catch(reject);
+                    return;
+                  }
+                  resolve(new Response(response.text, {
+                    status: 200,
+                    headers: { 'Content-Type': 'text/css' }
+                  }));
+                });
+              } catch (e) {
+                if (handled) return;
+                handled = true;
+                clearTimeout(timeoutId);
+                if (retries > 0) {
+                  setTimeout(() => tryFetch(retries - 1), 200);
+                } else {
+                  window.fetch(url).then(resolve).catch(reject);
+                }
+              }
+            };
+            tryFetch();
+          });
+        });
+        window.DarkReader.enable({
+          brightness: 100,
+          contrast: 100,
+          sepia: 0
+        });
+      } catch (e) {
+        console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
+        applyDarkTokenLayer();
+        darkenPersistentLightContainers();
+        darkenVisibleLightBlocks();
+        liftDarkForegrounds();
+      }
+    } else {
       applyDarkTokenLayer();
       darkenPersistentLightContainers();
       darkenVisibleLightBlocks();
       liftDarkForegrounds();
     }
+  };
+
+  if (document.head) {
+    startDarkReader();
   } else {
-    applyDarkTokenLayer();
-    darkenPersistentLightContainers();
-    darkenVisibleLightBlocks();
-    liftDarkForegrounds();
+    const headObserver = new MutationObserver(() => {
+      if (document.head) {
+        headObserver.disconnect();
+        startDarkReader();
+      }
+    });
+    headObserver.observe(document.documentElement || document, { childList: true, subtree: true });
   }
 
   const reinforceNativeSignals = () => {

@@ -30,7 +30,14 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   refreshTabAppearance(tabId);
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'dl_fetch') {
+    fetch(message.url, { credentials: 'omit' })
+      .then(res => res.text())
+      .then(text => sendResponse({ text }))
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
   if (message.action === 'setBadgeState' && typeof sender.tab?.id === 'number') {
     setBadgeState(sender.tab.id, message.effectiveAppearance, message.mode);
   }

@@ -1,6 +1,6 @@
 const STRINGS = {
     en: {
-        pageTitle: 'Dark Light for Safari',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Dark Light Icon',
         heroTitle: 'Dark Light',
         heroIntro: 'Dark Light lets you decide how each website should look: follow system, preserve site design, force dark, or force light.',
@@ -26,7 +26,7 @@ const STRINGS = {
         openSafari: 'Open Safari'
     },
     zh: {
-        pageTitle: 'Safari 版暗光',
+        pageTitle: '暗光',
         appIconAlt: '暗光图标',
         heroTitle: '暗光',
         heroIntro: '暗光让你决定每个网站该如何显示：跟随系统外观、维持网站设计、强制深色或强制浅色。',
@@ -52,7 +52,7 @@ const STRINGS = {
         openSafari: '打开 Safari'
     },
     ja: {
-        pageTitle: 'Safari用 Dark Light',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Dark Light アイコン',
         heroTitle: 'Dark Light',
         heroIntro: 'Dark Lightでは、各ウェブサイトの表示方法（システムに従う、サイトのデザインを維持する、強制的にダーク、強制的にライト）を決定できます。',
@@ -78,7 +78,7 @@ const STRINGS = {
         openSafari: 'Safariを開く'
     },
     ko: {
-        pageTitle: 'Safari용 Dark Light',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Dark Light 아이콘',
         heroTitle: 'Dark Light',
         heroIntro: 'Dark Light를 사용하면 각 웹사이트의 표시 방법(시스템 따르기, 사이트 디자인 유지, 강제 다크, 강제 라이트)을 결정할 수 있습니다.',
@@ -104,7 +104,7 @@ const STRINGS = {
         openSafari: 'Safari 열기'
     },
     es: {
-        pageTitle: 'Dark Light para Safari',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Icono de Dark Light',
         heroTitle: 'Dark Light',
         heroIntro: 'Dark Light te permite decidir cómo debe verse cada sitio web: seguir el sistema, conservar el diseño del sitio, forzar oscuro o forzar claro.',
@@ -130,7 +130,7 @@ const STRINGS = {
         openSafari: 'Abrir Safari'
     },
     fr: {
-        pageTitle: 'Dark Light pour Safari',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Icône Dark Light',
         heroTitle: 'Dark Light',
         heroIntro: 'Dark Light vous permet de décider de l\'apparence de chaque site Web : suivre le système, conserver la conception du site, forcer le mode sombre ou forcer le mode clair.',
@@ -156,7 +156,7 @@ const STRINGS = {
         openSafari: 'Ouvrir Safari'
     },
     de: {
-        pageTitle: 'Dark Light für Safari',
+        pageTitle: 'Dark Light',
         appIconAlt: 'Dark Light Symbol',
         heroTitle: 'Dark Light',
         heroIntro: 'Mit Dark Light können Sie entscheiden, wie jede Website aussehen soll: System folgen, Site-Design beibehalten, Dunkel erzwingen oder Hell erzwingen.',

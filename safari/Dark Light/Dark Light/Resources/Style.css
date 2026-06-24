@@ -29,7 +29,6 @@
 
 html {
     height: 100%;
-    overflow: hidden;
 }
 
 body {
@@ -98,7 +97,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    width: min(100%, 460px);
+    width: min(100%, 540px);
     z-index: 1;
     margin: auto 0;
 }
