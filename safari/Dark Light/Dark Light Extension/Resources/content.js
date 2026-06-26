@@ -328,12 +328,12 @@ function getEffectiveBackground(el) {
 }
 
 function isPageDark() {
-  const majorTargets = document.querySelectorAll('div, section, main, article');
+  const majorTargets = document.querySelectorAll('body > div, #app, #__next, div, section, main, article');
   for (const el of majorTargets) {
     const rect = el.getBoundingClientRect();
     if (rect.width > window.innerWidth * 0.6 && rect.height > window.innerHeight * 0.4) {
       const bg = getEffectiveBackground(el);
-      if (bg && isLightColor(bg.r, bg.g, bg.b)) return false;
+      if (bg && bg.a > 0.5 && isLightColor(bg.r, bg.g, bg.b)) return false;
     }
   }
 
@@ -863,6 +863,9 @@ function darkenPersistentLightContainers() {
   if (!document.body) return;
 
   const selector = [
+    'body > div',
+    '#app',
+    '#__next',
     'main',
     'article',
     'section',
@@ -876,7 +879,11 @@ function darkenPersistentLightContainers() {
     '[class*="panel"]',
     '[class*="modal"]',
     '[class*="content"]',
-    '[class*="container"]'
+    '[class*="container"]',
+    '[class*="wrapper"]',
+    '[class*="layout"]',
+    '[class*="page-wrapper"]',
+    '[class*="site-wrapper"]'
   ].join(',');
 
   document.querySelectorAll(selector).forEach((el) => {
@@ -992,6 +999,16 @@ function applyDarkLight(runId) {
           contrast: 100,
           sepia: 0
         });
+        
+        setTimeout(() => {
+          if (!isCurrentRun(runId)) return;
+          if (!isPageDark()) {
+            applyDarkTokenLayer();
+            darkenPersistentLightContainers();
+            darkenVisibleLightBlocks();
+            liftDarkForegrounds();
+          }
+        }, 1500);
       } catch (e) {
         console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
         applyDarkTokenLayer();
@@ -1034,7 +1051,14 @@ function applyDarkLight(runId) {
 
   window.addEventListener('load', () => setTimeout(reinforceNativeSignals, 200));
   observeThemeChanges(() => {
+    if (!isCurrentRun(runId)) return;
     flipThemeSignalsToDark();
+    setTimeout(() => {
+      if (isCurrentRun(runId) && !isPageDark()) {
+        darkenPersistentLightContainers();
+        darkenVisibleLightBlocks();
+      }
+    }, 150);
   });
 }
 

@@ -19,8 +19,8 @@ echo "🚀 Starting build for ${APP_NAME}..."
 
 # 1. Clean old build files
 if [ -d "${BUILD_DIR}" ]; then
-    echo "🧹 Cleaning old build directory... (Skipped for debugging)"
-    # rm -rf "${BUILD_DIR}"
+    echo "🧹 Cleaning old build directory..."
+    rm -rf "${BUILD_DIR}"
 fi
 
 # 3. Run compilation

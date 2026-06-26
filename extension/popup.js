@@ -114,20 +114,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const exactRule = settings.siteRules.find((rule) => rule.pattern === currentHostname);
         if (mode === 'inherit') {
             if (exactRule) {
-                exactRule.mode = 'inherit';
-                exactRule.enabled = true;
-                exactRule.matchSubdomains = false;
-            } else {
-                settings.siteRules.push({
-                    id: createId(),
-                    pattern: currentHostname,
-                    mode: 'inherit',
-                    enabled: true,
-                    matchSubdomains: false
-                });
+                settings.siteRules = settings.siteRules.filter((rule) => rule.pattern !== currentHostname);
             }
             matchSubdomains.disabled = true;
-            matchSubdomains.checked = false;
+            matchSubdomains.checked = true;
             saveSettings(settings, () => {
                 renderSiteRule();
                 notifyActiveTab();
