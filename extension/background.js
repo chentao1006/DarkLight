@@ -21,7 +21,12 @@ function setBadgeState(tabId, appearance, mode) {
 
   chrome.action.setBadgeText({ text, tabId });
   chrome.action.setBadgeBackgroundColor({ color, tabId });
-  chrome.action.setBadgeTextColor({ color: '#ffffff', tabId });
+  // setBadgeTextColor is not supported in Firefox; guard with try/catch
+  try {
+    chrome.action.setBadgeTextColor({ color: '#ffffff', tabId });
+  } catch (_) {
+    // Firefox does not support setBadgeTextColor — silently ignore
+  }
 }
 
 chrome.runtime.onInstalled.addListener(setBadgeOff);

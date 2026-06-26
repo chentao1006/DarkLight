@@ -4,12 +4,15 @@
   "version": "1.0.2",
   "description": "__MSG_appDescription__",
   "default_locale": "en",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "dark-light@chentao1006",
+      "strict_min_version": "109.0"
+    }
+  },
   "permissions": [
     "storage",
     "activeTab"
-  ],
-  "host_permissions": [
-    "<all_urls>"
   ],
   "web_accessible_resources": [
     {
@@ -31,7 +34,8 @@
   },
   "options_page": "options.html",
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"],
+    "type": "module"
   },
   "content_scripts": [
     {

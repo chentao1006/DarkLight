@@ -53,6 +53,7 @@ if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
     # Update Chrome + Safari extension manifests
     perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$MANIFEST_PATH"
     perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$SAFARI_EXTENSION_MANIFEST_PATH"
+    perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "firefox/manifest.json"
 
     # Update macOS app + Safari extension MARKETING_VERSION in Xcode project
     perl -i -pe "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $NEW_VERSION;/g" "$XCODEPROJ_PATH"
@@ -61,6 +62,8 @@ if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
 else
     echo "Version unchanged (build number still incremented)."
 fi
+
+FIREFOX_MANIFEST_PATH="firefox/manifest.json"
 
 # Package Chrome extension
 mkdir -p dist
@@ -71,6 +74,22 @@ cd extension
 zip -r "../$ZIP_NAME" . -x "*/.*" -x ".*" > /dev/null
 cd ..
 echo "Chrome extension packaged successfully."
+
+# Package Firefox extension (same source, overlay Firefox manifest)
+FIREFOX_ZIP_NAME="dist/dark-light-firefox-v$NEW_VERSION.xpi"
+echo "Packaging Firefox extension to $FIREFOX_ZIP_NAME..."
+rm -f "$FIREFOX_ZIP_NAME"
+FIREFOX_TMP="$(mktemp -d)"
+cp -r extension/. "$FIREFOX_TMP/"
+# Overlay Firefox-specific manifest (adds gecko ID, replaces service_worker with scripts)
+cp "$FIREFOX_MANIFEST_PATH" "$FIREFOX_TMP/manifest.json"
+# Update version in Firefox manifest to match release version
+perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$FIREFOX_TMP/manifest.json"
+cd "$FIREFOX_TMP"
+zip -r "$ROOT_DIR/$FIREFOX_ZIP_NAME" . -x "*/.*" -x ".*" > /dev/null
+cd "$ROOT_DIR"
+rm -rf "$FIREFOX_TMP"
+echo "Firefox extension packaged successfully."
 
 # Git commit and push
 echo "Committing to git..."

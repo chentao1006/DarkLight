@@ -229,7 +229,7 @@ class SetupViewModel: ObservableObject {
             }
         }
         #else
-        if #available(iOS 15.0, *) {
+        if #available(iOS 26.2, *) {
             SFSafariExtensionManager.getStateOfExtension(withIdentifier: extensionBundleIdentifier) { (state, error) in
                 DispatchQueue.main.async {
                     if error != nil {
@@ -239,6 +239,10 @@ class SetupViewModel: ObservableObject {
                     }
                 }
             }
+        } else {
+            // getStateOfExtension is not available on iOS < 26.2
+            // Fall back to unknown state; the UI will prompt the user to open Settings
+            self.isEnabled = nil
         }
         #endif
     }
