@@ -6,12 +6,12 @@
 
 ---
 
-Dark Light is a lightweight browser extension where you decide how each website looks. Unlike typical dark-mode extensions, Dark Light also has a reliable Force Light mode to turn dark sites back to light. Use one global default, then override individual domains whenever you want.
+Dark Light is a lightweight browser extension that gives you bidirectional control over website appearance. Unlike typical dark-mode extensions, Dark Light provides both Force Dark mode for bright pages and a reliable Force Light mode to turn dark sites back to light, letting you customize your reading environment exactly how you want.
 
 ## Why Use Dark Light?
 
+* **True Bidirectional Control:** Force dark mode on bright websites, or force light mode on dark websites to match your reading environment.
 * **Follow your real preference:** Choose Follow System, Preserve Site Design, Force Dark, or Force Light as the default behavior.
-* **Different from typical dark-mode plugins:** It supports both directions - Force Dark for bright pages and Force Light for dark pages.
 * **Per-site rules:** Set a different mode for any domain, with optional subdomain matching.
 * **Better dark mode:** Turn light-heavy websites into comfortable dark reading spaces.
 * **Reliable light mode:** Turn dark websites back to light when you want daytime readability.
@@ -26,6 +26,39 @@ Dark Light is a lightweight browser extension where you decide how each website 
 * **Safari app included:** A native macOS host app and Safari Web Extension project are included under `safari/`.
 
 ## Installation
+
+[![Download on the App Store](assets/app_store.png)](https://apps.apple.com/us/app/dark-light-for-webpages/id6781749180)
+[![Available in the Chrome Web Store](assets/chrome-web-store-badge.png)](https://chromewebstore.google.com/detail/dark-light/jmckaadolajjpcmlciacmdenlfkolnhf)
+[![Get the Firefox Add-on](assets/firefox.png)](https://addons.mozilla.org/zh-CN/firefox/addon/dark-light-web-mode/)
+
+## Screenshots
+
+### Safari (iOS / iPadOS)
+
+| Popup | Rules Manager | App Setup |
+|-------|---------------|-----------|
+| ![Safari iOS popup](assets/000001.jpg) | ![Safari iOS rules](assets/000004.jpg) | ![Safari iPhone app](assets/000003.jpg) |
+
+| iPad App |
+|----------|
+| ![Safari iPad app](assets/000002.jpg) |
+
+### Chrome
+
+| Popup (compact) | Popup (wide) | Options Page |
+|-----------------|--------------|--------------|
+| ![Chrome popup compact](assets/000007.jpg) | ![Chrome popup wide](assets/000008.jpg) | ![Chrome options](assets/000010.jpg) |
+
+| Options Page (full) |
+|---------------------|
+| ![Chrome options full](assets/000009.jpg) |
+
+### In Action
+
+| Force Dark | Force Light |
+|------------|-------------|
+| ![Force Dark on a website – Safari](assets/000005.jpg) | ![Force Light on a website – Safari](assets/000006.jpg) |
+
 
 ### Chrome Extension (Developer Mode)
 

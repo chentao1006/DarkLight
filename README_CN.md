@@ -6,12 +6,12 @@
 
 ---
 
-暗光是一个轻量浏览器扩展，由你来决定每个网站显示成什么外观。和常见只支持深色模式的插件不同，暗光还提供可靠的强制浅色模式，能把深色站点切回浅色。你可以设置一个全局默认模式，再为单独域名配置自己的规则。
+暗光是一个轻量浏览器扩展，提供网页外观的双向控制。和常见只支持深色模式的插件不同，暗光不仅能将刺眼的亮色网站强制变深，还能提供可靠的强制浅色模式，让深色站点也变回浅色，让你完全掌控自己的阅读环境。
 
 ## 为什么使用暗光?
 
+* **真正的双向控制：** 不只支持强制深色，也支持强制浅色，亮色网站能变深，深色网站也能恢复浅色，完美适配不同的阅读环境。
 * **尊重你的真实偏好：** 默认模式支持跟随系统外观、维持网站设计、强制深色、强制浅色。
-* **区别于常见深色模式插件：** 不只支持强制深色，也支持强制浅色，浅站能变深，深站也能变浅。
 * **每个网站独立规则：** 任意域名都可以单独设置模式，并可选择是否匹配子域名。
 * **更好用的深色模式：** 能把浅色站点稳定转成更舒适的深色阅读体验。
 * **可靠的浅色模式：** 也能把深色站点切回浅色，适合白天阅读或强光环境。
@@ -27,7 +27,40 @@
 
 ## 安装方法
 
-### Chrome 扩展程序 (开发者模式)
+[![Download on the App Store](assets/app_store.png)](https://apps.apple.com/us/app/dark-light-for-webpages/id6781749180)
+[![Available in the Chrome Web Store](assets/chrome-web-store-badge.png)](https://chromewebstore.google.com/detail/dark-light/jmckaadolajjpcmlciacmdenlfkolnhf)
+[![Get the Firefox Add-on](assets/firefox.png)](https://addons.mozilla.org/zh-CN/firefox/addon/dark-light-web-mode/)
+
+## 截图预览
+
+### Safari（iOS / iPadOS）
+
+| 弹出面板 | 规则管理页 | App 设置引导 |
+|---------|-----------|-------------|
+| ![Safari iOS 弹出面板](assets/000001.jpg) | ![Safari iOS 规则管理](assets/000004.jpg) | ![Safari iPhone App](assets/000003.jpg) |
+
+| iPad App |
+|----------|
+| ![Safari iPad App](assets/000002.jpg) |
+
+### Chrome
+
+| 弹出面板（小视口） | 弹出面板（大视口） | 选项页 |
+|-------------------|-------------------|-------|
+| ![Chrome 弹出面板小](assets/000007.jpg) | ![Chrome 弹出面板大](assets/000008.jpg) | ![Chrome 选项页](assets/000010.jpg) |
+
+| 选项页（完整桌面视图） |
+|----------------------|
+| ![Chrome 选项页完整](assets/000009.jpg) |
+
+### 实际效果
+
+| 强制深色 | 强制浅色 |
+|---------|----------|
+| ![强制深色效果 – Safari](assets/000005.jpg) | ![强制浅色效果 – Safari](assets/000006.jpg) |
+
+
+### Chrome 扩展程序（开发者模式）
 
 1. 克隆或下载本仓库到本地。
 2. 打开 Chrome，进入 `chrome://extensions/`。
