@@ -67,6 +67,9 @@ FIREFOX_MANIFEST_PATH="firefox/manifest.json"
 
 # Package Chrome extension
 mkdir -p dist
+echo "Cleaning up old package files..."
+rm -f dist/*.zip dist/*.xpi
+
 ZIP_NAME="dist/dark-light-chrome-v$NEW_VERSION.zip"
 echo "Packaging Chrome extension to $ZIP_NAME..."
 rm -f "$ZIP_NAME"
