@@ -88,6 +88,7 @@ body {
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-size: 14px;
+  cursor: pointer;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -96,7 +97,7 @@ body {
   }
 }
 .lang-switcher:hover {
-  background-color: var(--secondary-btn-hover);
+  background-color: var(--bg);
 }
 
 .panel {
@@ -131,11 +132,11 @@ label,
   height: 36px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--input-bg);
+  background-color: var(--input-bg);
   color: var(--text);
   font-size: 13px;
   outline: none;
-  padding: 0 9px;
+  padding: 0 24px 0 9px;
 }
 
 .select-mode:focus {

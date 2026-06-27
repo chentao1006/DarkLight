@@ -51,6 +51,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
+            const isNormalPage = tab.url.startsWith('http://') || tab.url.startsWith('https://');
+            if (!isNormalPage) {
+                sitePanel.classList.add('hidden');
+                return;
+            }
+
             try {
                 currentHostname = normalizePattern(new URL(tab.url).hostname);
                 currentHostnameEl.textContent = currentHostname;
