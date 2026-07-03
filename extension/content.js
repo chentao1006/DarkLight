@@ -10,6 +10,7 @@ const MODE_FORCE_DARK = 'forceDark';
 const MODE_FORCE_LIGHT = 'forceLight';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
+const VALID_DEFAULT_MODES = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
 
 const MATCH_ATTRS = [
   'theme',
@@ -51,8 +52,9 @@ loadSettings((settings) => {
 setupSystemAppearanceListener();
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
-  applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
+  if (namespace === 'sync' && changes[SETTINGS_KEY]) {
+    applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -147,8 +149,8 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(settings) {
-  const validDefaultModes = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
-  const validRuleModes = [...validDefaultModes, MODE_INHERIT];
+  const validDefaultModes = allowedDefaultModes();
+  const validRuleModes = allowedRuleModes();
   const normalized = {
     version: SETTINGS_VERSION,
     defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : MODE_FOLLOW_SYSTEM,
@@ -168,6 +170,14 @@ function normalizeSettings(settings) {
   }
 
   return normalized;
+}
+
+function allowedDefaultModes() {
+  return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes() {
+  return [...allowedDefaultModes(), MODE_INHERIT];
 }
 
 function createRule(pattern, mode) {

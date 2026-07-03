@@ -1,7 +1,6 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
-const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
 
 let settings = null;
 let editingRuleId = null;
@@ -40,6 +39,8 @@ function bindEvents() {
 }
 
 function render() {
+  renderModeOptions(document.getElementById('defaultMode'), false);
+  renderModeOptions(document.getElementById('ruleMode'), true);
   document.getElementById('defaultMode').value = settings.defaultMode;
   const ruleList = document.getElementById('ruleList');
   ruleList.innerHTML = '';
@@ -125,7 +126,7 @@ function saveRuleFromForm() {
   const pattern = normalizePattern(document.getElementById('rulePattern').value);
   const mode = document.getElementById('ruleMode').value;
   const matchSubdomains = document.getElementById('ruleSubdomains').checked;
-  if (!pattern || !VALID_RULE_MODES.includes(mode)) return;
+  if (!pattern || !allowedRuleModes().includes(mode)) return;
 
   const duplicate = settings.siteRules.find((rule) => rule.pattern === pattern && rule.id !== editingRuleId);
   if (duplicate) {
@@ -165,6 +166,19 @@ function modeLabel(mode) {
   return I18n.getMessage(key) || mode;
 }
 
+function renderModeOptions(select, includeInherit) {
+  const currentValue = select.value;
+  const modes = includeInherit ? ['inherit', ...allowedDefaultModes()] : allowedDefaultModes();
+  select.innerHTML = '';
+  modes.forEach((mode) => {
+    const option = document.createElement('option');
+    option.value = mode;
+    option.textContent = modeLabel(mode);
+    select.appendChild(option);
+  });
+  select.value = modes.includes(currentValue) ? currentValue : modes[0];
+}
+
 function localize() {
   I18n.applyToDOM(document);
 
@@ -190,6 +204,14 @@ function loadSettings(callback) {
     const migrated = migrateLegacySettings(result);
     chrome.storage.sync.set({ [SETTINGS_KEY]: migrated }, () => callback(migrated));
   });
+}
+
+function allowedDefaultModes() {
+  return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes() {
+  return ['inherit', ...allowedDefaultModes()];
 }
 
 function saveSettings(nextSettings, callback) {
@@ -225,15 +247,17 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(nextSettings) {
+  const validDefaultModes = allowedDefaultModes();
+  const validRuleModes = allowedRuleModes();
   return {
     version: SETTINGS_VERSION,
-    defaultMode: VALID_DEFAULT_MODES.includes(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
+    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
     siteRules: Array.isArray(nextSettings.siteRules)
       ? nextSettings.siteRules
         .map((rule) => ({
           id: rule.id || createId(),
           pattern: normalizePattern(rule.pattern),
-          mode: VALID_RULE_MODES.includes(rule.mode) ? rule.mode : 'followSystem',
+          mode: validRuleModes.includes(rule.mode) ? rule.mode : 'followSystem',
           enabled: rule.enabled !== false,
           matchSubdomains: rule.matchSubdomains !== false
         }))

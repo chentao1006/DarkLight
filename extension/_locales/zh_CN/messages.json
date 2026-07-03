@@ -82,5 +82,8 @@
   },
   "activeBannerText": {
     "message": "当前页模式"
+  },
+  "importFailed": {
+    "message": "导入失败，请选择有效的暗光 JSON 文件。"
   }
 }

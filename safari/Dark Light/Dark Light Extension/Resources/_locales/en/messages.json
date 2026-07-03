@@ -82,5 +82,47 @@
   },
   "activeBannerText": {
     "message": "Current page mode"
+  },
+  "proTitle": {
+    "message": "Dark Light Premium"
+  },
+  "proChecking": {
+    "message": "Checking Premium status..."
+  },
+  "refreshPro": {
+    "message": "Refresh"
+  },
+  "iCloudSync": {
+    "message": "iCloud Sync"
+  },
+  "iCloudSyncDetail": {
+    "message": "Sync rules between Safari devices."
+  },
+  "exportRules": {
+    "message": "Export Rules"
+  },
+  "importRules": {
+    "message": "Import Rules"
+  },
+  "buyPremium": {
+    "message": "Buy Premium"
+  },
+  "proStatusICloudOn": {
+    "message": "Premium unlocked. iCloud sync is on."
+  },
+  "proStatusICloudOff": {
+    "message": "Premium unlocked. iCloud sync is off."
+  },
+  "proStatusLocked": {
+    "message": "Free version supports up to 5 site rules. Buy Premium in the Dark Light app to unlock unlimited rules, import/export, and iCloud sync."
+  },
+  "proRuleLimitAlert": {
+    "message": "Free version supports up to 5 site rules. Unlock Premium for unlimited rules, import/export, and iCloud sync."
+  },
+  "openPremiumFailed": {
+    "message": "Open Dark Light and buy Premium to unlock this feature."
+  },
+  "importFailed": {
+    "message": "Import failed. Please choose a valid Dark Light JSON file."
   }
 }

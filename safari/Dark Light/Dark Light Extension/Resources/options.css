@@ -192,6 +192,45 @@ button.ghost:hover,
   font-weight: 600;
 }
 
+.pro-section .section-header {
+  align-items: flex-start;
+}
+
+.pro-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pro-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pro-toggle {
+  align-items: flex-start;
+}
+
+.pro-toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.pro-toggle small {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.pro-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .rule-list {
   display: grid;
   gap: 8px;

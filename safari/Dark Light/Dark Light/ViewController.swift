@@ -2,10 +2,12 @@ import Foundation
 import SwiftUI
 import Combine
 import SafariServices
+import StoreKit
 import WebKit
 
 let extensionBundleIdentifier = "com.ct106.darklight.Extension"
 let safariBundleIdentifier = "com.apple.Safari" // only used on mac
+let openPremiumNotification = Notification.Name("DarkLightOpenPremium")
 
 // MARK: - Localization Strings
 let localizedStrings: [String: [String: String]] = [
@@ -31,8 +33,23 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Light is ready to be enabled.",
         "statusOnPreferences": "Dark Light is enabled and ready to use in Safari.",
         "statusOffMac": "Dark Light is currently disabled in Safari. You can turn it on in Preferences.",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "Upgrade to unlock unlimited site rules, import and export, and iCloud sync.",
+        "premiumFeatureRules": "Unlimited per-site rules",
+        "premiumFeatureImportExport": "Import and export rule backups",
+        "premiumFeatureICloud": "iCloud sync across Safari devices",
+        "proUnlocked": "Premium is unlocked.",
+        "proLocked": "Upgrade once to unlock Premium features.",
+        "proPriceUnavailable": "Purchase unavailable",
+        "buyPro": "Buy Premium",
+        "restorePurchases": "Restore Purchases",
+        "iCloudSync": "iCloud Sync",
+        "iCloudSyncDetail": "Sync site rules across your Safari devices with iCloud.",
+        "openingSafariExtensions": "Opening Safari extension settings...",
+        "safariExtensionsOpenRequested": "Safari extension settings were requested. Check Safari Settings > Extensions.",
+        "safariExtensionsOpenFailed": "Could not open Safari extension settings.",
         "openPreferencesIOS": "Open Apps Settings",
-        "openPreferencesMac": "Open Safari Preferences",
+        "openPreferencesMac": "Open Safari Extensions",
         "openSafari": "Open Safari"
     ],
     "zh": [
@@ -57,8 +74,23 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "暗光已准备好开启。",
         "statusOnPreferences": "暗光已在 Safari 中启用，可以直接使用。",
         "statusOffMac": "暗光当前处于关闭状态。你可以在偏好设置中启用它。",
+        "proTitle": "暗光高级版",
+        "proIntro": "升级后可解锁无限网站规则、导入导出和 iCloud 同步。",
+        "premiumFeatureRules": "无限网站规则",
+        "premiumFeatureImportExport": "导入和导出规则备份",
+        "premiumFeatureICloud": "通过 iCloud 在 Safari 设备之间同步",
+        "proUnlocked": "高级版已解锁。",
+        "proLocked": "一次购买即可解锁高级版功能。",
+        "proPriceUnavailable": "暂不可购买",
+        "buyPro": "购买高级版",
+        "restorePurchases": "恢复购买",
+        "iCloudSync": "iCloud 同步",
+        "iCloudSyncDetail": "通过 iCloud 在你的 Safari 设备之间同步网站规则。",
+        "openingSafariExtensions": "正在打开 Safari 扩展设置...",
+        "safariExtensionsOpenRequested": "已请求打开 Safari 扩展设置。请查看 Safari 设置 > 扩展。",
+        "safariExtensionsOpenFailed": "无法打开 Safari 扩展设置。",
         "openPreferencesIOS": "打开 Apps 设置",
-        "openPreferencesMac": "打开 Safari 偏好设置",
+        "openPreferencesMac": "打开 Safari 扩展设置",
         "openSafari": "打开 Safari"
     ],
     "ja": [
@@ -83,8 +115,20 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Lightを有効にする準備ができました。",
         "statusOnPreferences": "Dark LightはSafariで有効になっており、すぐに使用できます。",
         "statusOffMac": "Dark Lightは現在Safariで無効になっています。環境設定で有効にすることができます。",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "アップグレードすると、無制限のサイトルール、インポートとエクスポート、iCloud同期を利用できます。",
+        "premiumFeatureRules": "無制限のサイトルール",
+        "premiumFeatureImportExport": "ルールバックアップのインポートとエクスポート",
+        "premiumFeatureICloud": "Safariデバイス間のiCloud同期",
+        "proUnlocked": "Premiumはロック解除済みです。",
+        "proLocked": "一度の購入でPremium機能をロック解除できます。",
+        "proPriceUnavailable": "購入できません",
+        "buyPro": "Premiumを購入",
+        "restorePurchases": "購入を復元",
+        "iCloudSync": "iCloud同期",
+        "iCloudSyncDetail": "iCloudでSafariデバイス間のサイトルールを同期します。",
         "openPreferencesIOS": "設定アプリを開く",
-        "openPreferencesMac": "Safariの環境設定を開く",
+        "openPreferencesMac": "Safari機能拡張を開く",
         "openSafari": "Safariを開く"
     ],
     "ko": [
@@ -109,8 +153,20 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Light를 활성화할 준비가 되었습니다.",
         "statusOnPreferences": "Dark Light가 Safari에서 활성화되어 바로 사용할 수 있습니다.",
         "statusOffMac": "Dark Light가 현재 Safari에서 비활성화되어 있습니다. 환경설정에서 켤 수 있습니다.",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "업그레이드하면 무제한 사이트 규칙, 가져오기와 내보내기, iCloud 동기화를 사용할 수 있습니다.",
+        "premiumFeatureRules": "무제한 사이트 규칙",
+        "premiumFeatureImportExport": "규칙 백업 가져오기 및 내보내기",
+        "premiumFeatureICloud": "Safari 기기 간 iCloud 동기화",
+        "proUnlocked": "Premium이 잠금 해제되었습니다.",
+        "proLocked": "한 번 구매하면 Premium 기능을 잠금 해제할 수 있습니다.",
+        "proPriceUnavailable": "구매할 수 없음",
+        "buyPro": "Premium 구매",
+        "restorePurchases": "구매 복원",
+        "iCloudSync": "iCloud 동기화",
+        "iCloudSyncDetail": "iCloud로 Safari 기기 간 사이트 규칙을 동기화합니다.",
         "openPreferencesIOS": "설정 앱 열기",
-        "openPreferencesMac": "Safari 환경설정 열기",
+        "openPreferencesMac": "Safari 확장 프로그램 열기",
         "openSafari": "Safari 열기"
     ],
     "es": [
@@ -135,8 +191,20 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Light está listo para ser habilitado.",
         "statusOnPreferences": "Dark Light está habilitado y listo para usarse en Safari.",
         "statusOffMac": "Dark Light está actualmente deshabilitado en Safari. Puedes activarlo en Preferencias.",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "Actualiza para desbloquear reglas ilimitadas por sitio, importación y exportación y sincronización con iCloud.",
+        "premiumFeatureRules": "Reglas ilimitadas por sitio",
+        "premiumFeatureImportExport": "Importar y exportar copias de seguridad de reglas",
+        "premiumFeatureICloud": "Sincronización de iCloud entre dispositivos Safari",
+        "proUnlocked": "Premium está desbloqueado.",
+        "proLocked": "Actualiza una vez para desbloquear las funciones Premium.",
+        "proPriceUnavailable": "Compra no disponible",
+        "buyPro": "Comprar Premium",
+        "restorePurchases": "Restaurar compras",
+        "iCloudSync": "Sincronización de iCloud",
+        "iCloudSyncDetail": "Sincroniza reglas de sitios entre tus dispositivos Safari con iCloud.",
         "openPreferencesIOS": "Abrir Configuración",
-        "openPreferencesMac": "Abrir Preferencias de Safari",
+        "openPreferencesMac": "Abrir extensiones de Safari",
         "openSafari": "Abrir Safari"
     ],
     "fr": [
@@ -161,8 +229,20 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Light est prêt à être activé.",
         "statusOnPreferences": "Dark Light est activé et prêt à être utilisé dans Safari.",
         "statusOffMac": "Dark Light est actuellement désactivé dans Safari. Vous pouvez l\'activer dans les Préférences.",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "Passez à Premium pour débloquer des règles de site illimitées, l'importation et l'exportation, et la synchronisation iCloud.",
+        "premiumFeatureRules": "Règles de site illimitées",
+        "premiumFeatureImportExport": "Importation et exportation des sauvegardes de règles",
+        "premiumFeatureICloud": "Synchronisation iCloud entre appareils Safari",
+        "proUnlocked": "Premium est débloqué.",
+        "proLocked": "Achetez une fois pour débloquer les fonctions Premium.",
+        "proPriceUnavailable": "Achat indisponible",
+        "buyPro": "Acheter Premium",
+        "restorePurchases": "Restaurer les achats",
+        "iCloudSync": "Synchronisation iCloud",
+        "iCloudSyncDetail": "Synchronisez les règles de site entre vos appareils Safari avec iCloud.",
         "openPreferencesIOS": "Ouvrir les Réglages",
-        "openPreferencesMac": "Ouvrir les Préférences Safari",
+        "openPreferencesMac": "Ouvrir les extensions Safari",
         "openSafari": "Ouvrir Safari"
     ],
     "de": [
@@ -187,8 +267,20 @@ let localizedStrings: [String: [String: String]] = [
         "statusUnknownPreferences": "Dark Light kann jetzt aktiviert werden.",
         "statusOnPreferences": "Dark Light ist in Safari aktiviert und einsatzbereit.",
         "statusOffMac": "Dark Light ist derzeit in Safari deaktiviert. Sie können es in den Einstellungen einschalten.",
+        "proTitle": "Dark Light Premium",
+        "proIntro": "Mit dem Upgrade schalten Sie unbegrenzte Website-Regeln, Import und Export sowie iCloud-Sync frei.",
+        "premiumFeatureRules": "Unbegrenzte Website-Regeln",
+        "premiumFeatureImportExport": "Regelsicherungen importieren und exportieren",
+        "premiumFeatureICloud": "iCloud-Sync zwischen Safari-Geräten",
+        "proUnlocked": "Premium ist freigeschaltet.",
+        "proLocked": "Einmal upgraden, um Premium-Funktionen freizuschalten.",
+        "proPriceUnavailable": "Kauf nicht verfügbar",
+        "buyPro": "Premium kaufen",
+        "restorePurchases": "Käufe wiederherstellen",
+        "iCloudSync": "iCloud-Sync",
+        "iCloudSyncDetail": "Synchronisieren Sie Website-Regeln per iCloud zwischen Ihren Safari-Geräten.",
         "openPreferencesIOS": "Einstellungen öffnen",
-        "openPreferencesMac": "Safari-Einstellungen öffnen",
+        "openPreferencesMac": "Safari-Erweiterungen öffnen",
         "openSafari": "Safari öffnen"
     ]
 ]
@@ -196,6 +288,7 @@ let localizedStrings: [String: [String: String]] = [
 class SetupViewModel: ObservableObject {
     @Published var isEnabled: Bool? = nil
     @Published var currentLanguage: String = "en"
+    @Published var preferencesMessage: String? = nil
     
     init() {
         let locale = Locale.current.languageCode ?? "en"
@@ -253,9 +346,16 @@ class SetupViewModel: ObservableObject {
     
     func openPreferences() {
         #if os(macOS)
-        SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { _ in
+        preferencesMessage = t("openingSafariExtensions")
+        SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { error in
             DispatchQueue.main.async {
-                self.openSafari()
+                if let error {
+                    self.preferencesMessage = "\(self.t("safariExtensionsOpenFailed")) \(error.localizedDescription)"
+                    self.activateSafari()
+                    return
+                }
+                self.preferencesMessage = self.t("safariExtensionsOpenRequested")
+                self.refreshExtensionState()
             }
         }
         #else
@@ -287,14 +387,10 @@ class SetupViewModel: ObservableObject {
     
     func openSafari() {
         #if os(macOS)
-        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: safariBundleIdentifier) {
-            NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration()) { _, _ in
-                DispatchQueue.main.async {
-                    NSApplication.shared.terminate(nil)
-                }
+        activateSafari {
+            DispatchQueue.main.async {
+                NSApplication.shared.terminate(nil)
             }
-        } else {
-            NSApplication.shared.terminate(nil)
         }
         #else
         if let url = URL(string: "x-web-search://") {
@@ -308,10 +404,24 @@ class SetupViewModel: ObservableObject {
         }
         #endif
     }
+    
+    #if os(macOS)
+    private func activateSafari(completion: (() -> Void)? = nil) {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: safariBundleIdentifier) {
+            NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration()) { _, _ in
+                completion?()
+            }
+        } else {
+            completion?()
+        }
+    }
+    #endif
 }
 
 struct SetupView: View {
     @StateObject var viewModel = SetupViewModel()
+    @StateObject var proStore = ProStore()
+    @State private var showingPremiumDetails = false
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -357,13 +467,6 @@ struct SetupView: View {
                         Text(viewModel.t("heroTitle"))
                             .font(.title2)
                             .fontWeight(.bold)
-                        
-                        Text(viewModel.t("heroIntro"))
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: 480)
-                            .lineSpacing(4)
                     }
                     
                     // Usage Card
@@ -428,7 +531,7 @@ struct SetupView: View {
                             .padding(.vertical, 1),
                         alignment: .leading
                     )
-                    
+
                     // Actions
                     HStack(spacing: 16) {
                         if viewModel.isEnabled != true {
@@ -450,6 +553,14 @@ struct SetupView: View {
                         }
                     }
                     .padding(.top, 10)
+                    
+                    if let preferencesMessage = viewModel.preferencesMessage {
+                        Text(preferencesMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: 480)
+                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 60)
@@ -458,10 +569,18 @@ struct SetupView: View {
                 .frame(maxWidth: .infinity)
             }
             
-            // Lang Switcher
+            // Top Controls
             VStack {
                 HStack {
+                    Button(action: {
+                        showingPremiumDetails = true
+                    }) {
+                        Label(viewModel.t("proTitle"), systemImage: "star.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    
                     Spacer()
+                    
                     Picker("", selection: $viewModel.currentLanguage) {
                         Text("English").tag("en")
                         Text("简体中文").tag("zh")
@@ -473,8 +592,8 @@ struct SetupView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(width: 120)
-                    .padding()
                 }
+                .padding()
                 Spacer()
             }
         }
@@ -483,6 +602,12 @@ struct SetupView: View {
         #else
         .background(Color(UIColor.systemBackground))
         #endif
+        .sheet(isPresented: $showingPremiumDetails) {
+            PremiumDetailsView(viewModel: viewModel, proStore: proStore)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: openPremiumNotification)) { _ in
+            showingPremiumDetails = true
+        }
     }
     
     var statusText: String {
@@ -515,6 +640,97 @@ struct SetupView: View {
         } else {
             return .clear
         }
+    }
+}
+
+struct PremiumDetailsView: View {
+    @ObservedObject var viewModel: SetupViewModel
+    @ObservedObject var proStore: ProStore
+    @Environment(\.dismiss) private var dismiss
+    
+    private var featureKeys: [String] {
+        [
+            "premiumFeatureRules",
+            "premiumFeatureImportExport",
+            "premiumFeatureICloud"
+        ]
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(viewModel.t("proTitle"))
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text(proStore.isPro ? viewModel.t("proUnlocked") : viewModel.t("proLocked"))
+                        .font(.subheadline)
+                        .foregroundColor(proStore.isPro ? .green : .secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.borderless)
+            }
+            
+            Text(viewModel.t("proIntro"))
+                .font(.body)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(featureKeys, id: \.self) { key in
+                    Label(viewModel.t(key), systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .labelStyle(.titleAndIcon)
+                }
+            }
+            
+            Divider()
+            
+            if proStore.isPro {
+                Toggle(isOn: $proStore.iCloudSyncEnabled) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(viewModel.t("iCloudSync"))
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(viewModel.t("iCloudSyncDetail"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+            } else {
+                HStack(spacing: 12) {
+                    Button(action: {
+                        Task { await proStore.purchase() }
+                    }) {
+                        Text(proStore.product == nil ? viewModel.t("proPriceUnavailable") : "\(viewModel.t("buyPro")) \(proStore.product?.displayPrice ?? "")")
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(proStore.product == nil || proStore.isPurchasing)
+                    
+                    Button(action: {
+                        Task { await proStore.restore() }
+                    }) {
+                        Text(viewModel.t("restorePurchases"))
+                    }
+                    .disabled(proStore.isPurchasing)
+                }
+            }
+            
+            if let message = proStore.purchaseMessage {
+                Text(message)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(24)
+        .frame(width: 460, alignment: .leading)
     }
 }
 

@@ -1,10 +1,16 @@
 const SETTINGS_KEY = 'darkLightSettings';
+const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
+const FREE_RULE_LIMIT = 5;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
-const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
+const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
+const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
 
 let settings = null;
 let editingRuleId = null;
+let entitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
+let premiumAutoRefreshTimer = null;
+let premiumAutoRefreshStartedAt = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await I18n.init();
@@ -21,10 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   localize();
-  loadSettings((loaded) => {
-    settings = loaded;
-    bindEvents();
-    render();
+  loadEntitlements((loadedEntitlements) => {
+    entitlements = loadedEntitlements;
+    loadSettings((loaded) => {
+      settings = loaded;
+      bindEvents();
+      bindEntitlementRefreshEvents();
+      render();
+    });
   });
 });
 
@@ -37,10 +47,38 @@ function bindEvents() {
   document.getElementById('addRule').addEventListener('click', () => openRuleForm());
   document.getElementById('cancelRule').addEventListener('click', closeRuleForm);
   document.getElementById('saveRule').addEventListener('click', saveRuleFromForm);
+  document.getElementById('buyPremium').addEventListener('click', openPremium);
+  document.getElementById('iCloudSync').addEventListener('change', toggleICloudSync);
+  document.getElementById('exportRules').addEventListener('click', exportRules);
+  document.getElementById('importRules').addEventListener('click', () => {
+    if (requiresProUpgrade()) {
+      showProRequired();
+      return;
+    }
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', importRules);
+}
+
+function bindEntitlementRefreshEvents() {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      refreshEntitlements();
+    }
+  });
+  window.addEventListener('focus', refreshEntitlements);
+  chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace !== 'local' || !changes[ENTITLEMENTS_KEY]) return;
+    entitlements = normalizeEntitlements(changes[ENTITLEMENTS_KEY].newValue);
+    render();
+  });
 }
 
 function render() {
+  renderModeOptions(document.getElementById('defaultMode'), false);
+  renderModeOptions(document.getElementById('ruleMode'), true);
   document.getElementById('defaultMode').value = settings.defaultMode;
+  renderProControls();
   const ruleList = document.getElementById('ruleList');
   ruleList.innerHTML = '';
 
@@ -108,6 +146,11 @@ function render() {
 }
 
 function openRuleForm(rule) {
+  if (!rule && requiresProUpgrade() && settings.siteRules.length >= FREE_RULE_LIMIT) {
+    showProRequired();
+    return;
+  }
+
   editingRuleId = rule ? rule.id : null;
   document.getElementById('rulePattern').value = rule ? rule.pattern : '';
   document.getElementById('ruleMode').value = rule ? rule.mode : 'forceDark';
@@ -125,7 +168,7 @@ function saveRuleFromForm() {
   const pattern = normalizePattern(document.getElementById('rulePattern').value);
   const mode = document.getElementById('ruleMode').value;
   const matchSubdomains = document.getElementById('ruleSubdomains').checked;
-  if (!pattern || !VALID_RULE_MODES.includes(mode)) return;
+  if (!pattern || !allowedRuleModes().includes(mode)) return;
 
   const duplicate = settings.siteRules.find((rule) => rule.pattern === pattern && rule.id !== editingRuleId);
   if (duplicate) {
@@ -141,6 +184,10 @@ function saveRuleFromForm() {
       rule.matchSubdomains = matchSubdomains;
     }
   } else {
+    if (requiresProUpgrade() && settings.siteRules.length >= FREE_RULE_LIMIT) {
+      showProRequired();
+      return;
+    }
     settings.siteRules.push({
       id: createId(),
       pattern,
@@ -154,6 +201,142 @@ function saveRuleFromForm() {
   saveSettings(settings, render);
 }
 
+function renderProControls() {
+  const proStatus = document.getElementById('proStatus');
+  const addRule = document.getElementById('addRule');
+  const iCloudSync = document.getElementById('iCloudSync');
+  const exportRulesButton = document.getElementById('exportRules');
+  const importRulesButton = document.getElementById('importRules');
+  const buyPremiumButton = document.getElementById('buyPremium');
+
+  document.querySelector('.pro-section').classList.toggle('hidden', !entitlements.supportsPro);
+
+  if (entitlements.isPro) {
+    proStatus.textContent = entitlements.iCloudSyncEnabled
+      ? I18n.getMessage('proStatusICloudOn') || 'Premium unlocked. iCloud sync is on.'
+      : I18n.getMessage('proStatusICloudOff') || 'Premium unlocked. iCloud sync is off.';
+  } else {
+    proStatus.textContent = I18n.getMessage('proStatusLocked') || `Free version supports up to ${FREE_RULE_LIMIT} site rules. Buy Premium in the Dark Light app to unlock unlimited rules, import/export, and iCloud sync.`;
+  }
+
+  iCloudSync.checked = entitlements.iCloudSyncEnabled;
+  iCloudSync.disabled = !entitlements.isPro;
+  buyPremiumButton.classList.toggle('hidden', entitlements.isPro);
+  exportRulesButton.disabled = requiresProUpgrade();
+  importRulesButton.disabled = requiresProUpgrade();
+  addRule.disabled = requiresProUpgrade() && settings.siteRules.length >= FREE_RULE_LIMIT;
+}
+
+function refreshEntitlements() {
+  loadEntitlements((loadedEntitlements) => {
+    entitlements = loadedEntitlements;
+    render();
+    if (entitlements.isPro) {
+      stopPremiumAutoRefresh();
+    }
+  });
+}
+
+function toggleICloudSync(event) {
+  if (requiresProUpgrade()) {
+    event.target.checked = false;
+    showProRequired();
+    return;
+  }
+
+  chrome.runtime.sendMessage({ action: 'setICloudSyncEnabled', enabled: event.target.checked }, (response) => {
+    if (chrome.runtime.lastError) {
+      event.target.checked = entitlements.iCloudSyncEnabled;
+      return;
+    }
+    entitlements = normalizeEntitlements(response);
+    renderProControls();
+  });
+}
+
+function exportRules() {
+  if (requiresProUpgrade()) {
+    showProRequired();
+    return;
+  }
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    app: 'Dark Light',
+    settings: normalizeSettings(settings)
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'dark-light-rules.json';
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function importRules(event) {
+  if (requiresProUpgrade()) {
+    showProRequired();
+    event.target.value = '';
+    return;
+  }
+
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(String(reader.result || '{}'));
+      const imported = payload.settings || payload;
+      settings = normalizeSettings(imported);
+      saveSettings(settings, render);
+    } catch (error) {
+      alert(I18n.getMessage('importFailed') || 'Import failed. Please choose a valid Dark Light JSON file.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showProRequired() {
+  openPremium();
+}
+
+function openPremium() {
+  chrome.runtime.sendMessage({ action: 'openPremium' }, (response) => {
+    if (chrome.runtime.lastError || response?.ok !== true) {
+      alert(I18n.getMessage('openPremiumFailed') || 'Open Dark Light and buy Premium to unlock this feature.');
+      return;
+    }
+    startPremiumAutoRefresh();
+  });
+}
+
+function startPremiumAutoRefresh() {
+  if (premiumAutoRefreshTimer) {
+    return;
+  }
+  premiumAutoRefreshStartedAt = Date.now();
+  premiumAutoRefreshTimer = setInterval(() => {
+    if (Date.now() - premiumAutoRefreshStartedAt > PREMIUM_AUTO_REFRESH_TIMEOUT_MS) {
+      stopPremiumAutoRefresh();
+      return;
+    }
+    refreshEntitlements();
+  }, PREMIUM_AUTO_REFRESH_INTERVAL_MS);
+  refreshEntitlements();
+}
+
+function stopPremiumAutoRefresh() {
+  if (!premiumAutoRefreshTimer) {
+    return;
+  }
+  clearInterval(premiumAutoRefreshTimer);
+  premiumAutoRefreshTimer = null;
+}
+
 function modeLabel(mode) {
   const key = {
     inherit: 'useDefault',
@@ -163,6 +346,19 @@ function modeLabel(mode) {
     forceLight: 'forceLight'
   }[mode];
   return I18n.getMessage(key) || mode;
+}
+
+function renderModeOptions(select, includeInherit) {
+  const currentValue = select.value;
+  const modes = includeInherit ? ['inherit', ...allowedDefaultModes()] : allowedDefaultModes();
+  select.innerHTML = '';
+  modes.forEach((mode) => {
+    const option = document.createElement('option');
+    option.value = mode;
+    option.textContent = modeLabel(mode);
+    select.appendChild(option);
+  });
+  select.value = modes.includes(currentValue) ? currentValue : modes[0];
 }
 
 function localize() {
@@ -190,6 +386,38 @@ function loadSettings(callback) {
     const migrated = migrateLegacySettings(result);
     chrome.storage.sync.set({ [SETTINGS_KEY]: migrated }, () => callback(migrated));
   });
+}
+
+function loadEntitlements(callback) {
+  chrome.runtime.sendMessage({ action: 'refreshProState' }, (response) => {
+    if (chrome.runtime.lastError) {
+      chrome.storage.local.get([ENTITLEMENTS_KEY], (result) => {
+        callback(normalizeEntitlements(result[ENTITLEMENTS_KEY]));
+      });
+      return;
+    }
+    callback(normalizeEntitlements(response));
+  });
+}
+
+function normalizeEntitlements(nextEntitlements) {
+  return {
+    supportsPro: nextEntitlements?.supportsPro === true,
+    isPro: nextEntitlements?.supportsPro === true ? nextEntitlements?.isPro === true : true,
+    iCloudSyncEnabled: nextEntitlements?.iCloudSyncEnabled === true
+  };
+}
+
+function requiresProUpgrade() {
+  return entitlements.supportsPro && !entitlements.isPro;
+}
+
+function allowedDefaultModes() {
+  return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes() {
+  return ['inherit', ...allowedDefaultModes()];
 }
 
 function saveSettings(nextSettings, callback) {
@@ -225,15 +453,17 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(nextSettings) {
+  const validDefaultModes = allowedDefaultModes();
+  const validRuleModes = allowedRuleModes();
   return {
     version: SETTINGS_VERSION,
-    defaultMode: VALID_DEFAULT_MODES.includes(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
+    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
     siteRules: Array.isArray(nextSettings.siteRules)
       ? nextSettings.siteRules
         .map((rule) => ({
           id: rule.id || createId(),
           pattern: normalizePattern(rule.pattern),
-          mode: VALID_RULE_MODES.includes(rule.mode) ? rule.mode : 'followSystem',
+          mode: validRuleModes.includes(rule.mode) ? rule.mode : 'followSystem',
           enabled: rule.enabled !== false,
           matchSubdomains: rule.matchSubdomains !== false
         }))

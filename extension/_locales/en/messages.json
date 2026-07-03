@@ -82,5 +82,8 @@
   },
   "activeBannerText": {
     "message": "Current page mode"
+  },
+  "importFailed": {
+    "message": "Import failed. Please choose a valid Dark Light JSON file."
   }
 }

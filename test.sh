@@ -25,14 +25,13 @@ fi
 
 # 3. Run compilation
 echo "🏗️ Compiling Release version..."
-xcodebuild -project "${XCODE_PROJECT}" \
-           -scheme "${SCHEME}" \
-           -configuration "Release" \
-           -destination "platform=macOS,arch=arm64" \
-           -derivedDataPath "${DERIVED_DATA_DIR}" \
-           build > /dev/null
-
-if [ $? -eq 0 ]; then
+if xcodebuild -project "${XCODE_PROJECT}" \
+              -scheme "${SCHEME}" \
+              -configuration "Release" \
+              -destination "generic/platform=macOS" \
+              -derivedDataPath "${DERIVED_DATA_DIR}" \
+              -allowProvisioningUpdates \
+              build; then
     echo "✅ Compilation successful!"
 else
     echo "❌ Compilation failed, please check errors."
@@ -78,6 +77,7 @@ sleep 1
 echo "📝 Registering with LaunchServices..."
 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f "${INSTALL_PATH}"
 echo "🔌 Enabling Safari Extension..."
+pluginkit -a "${INSTALL_PATH}/Contents/PlugIns/Dark Light Extension.appex" || true
 pluginkit -e use -i "${EXTENSION_BUNDLE_ID}" || true
 open "${INSTALL_PATH}"
 

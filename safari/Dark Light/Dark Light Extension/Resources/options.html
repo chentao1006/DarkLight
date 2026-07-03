@@ -69,6 +69,33 @@
 
             <div id="ruleList" class="rule-list"></div>
         </section>
+
+        <section class="section pro-section">
+            <div class="section-header">
+                <div>
+                    <h2 data-i18n="proTitle">Dark Light Premium</h2>
+                    <p id="proStatus" data-i18n="proChecking">Checking Premium status...</p>
+                </div>
+                <div class="pro-header-actions">
+                    <button id="buyPremium" data-i18n="buyPremium">Buy Premium</button>
+                </div>
+            </div>
+
+            <div class="pro-grid">
+                <label class="inline-check pro-toggle">
+                    <input id="iCloudSync" type="checkbox">
+                    <span>
+                        <strong data-i18n="iCloudSync">iCloud Sync</strong>
+                        <small data-i18n="iCloudSyncDetail">Sync rules between Safari devices.</small>
+                    </span>
+                </label>
+                <div class="pro-actions">
+                    <button id="exportRules" class="ghost" data-i18n="exportRules">Export Rules</button>
+                    <button id="importRules" class="ghost" data-i18n="importRules">Import Rules</button>
+                    <input id="importFile" class="hidden" type="file" accept="application/json,.json">
+                </div>
+            </div>
+        </section>
     </main>
 
     <script src="i18n.js"></script>

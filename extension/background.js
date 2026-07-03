@@ -1,3 +1,5 @@
+const SETTINGS_KEY = 'darkLightSettings';
+
 function setBadgeOff() {
   chrome.action.setBadgeText({ text: '' });
 }
@@ -35,7 +37,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   refreshTabAppearance(tabId);
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'setBadgeState' && typeof sender.tab?.id === 'number') {
     setBadgeState(sender.tab.id, message.effectiveAppearance, message.mode);
   }

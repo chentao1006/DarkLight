@@ -4,12 +4,15 @@
 // as the shared content engine.
 
 const SETTINGS_KEY = 'darkLightSettings';
+const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
+const FREE_RULE_LIMIT = 5;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
 const MODE_FORCE_LIGHT = 'forceLight';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
+const VALID_DEFAULT_MODES = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
 
 const MATCH_ATTRS = [
   'theme',
@@ -38,6 +41,7 @@ const THEME_CLASSES = [
 ];
 
 let currentSettings = null;
+let currentEntitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
 let activeAppearance = null;
 let themeObserver = null;
 let appearanceRunId = 0;
@@ -45,14 +49,24 @@ let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
 const themeSnapshots = new WeakMap();
 
-loadSettings((settings) => {
-  applyResolvedSettings(settings);
+loadEntitlements((entitlements) => {
+  currentEntitlements = entitlements;
+  loadSettings((settings) => {
+    applyResolvedSettings(settings);
+  });
 });
 setupSystemAppearanceListener();
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
-  applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
+  if (namespace === 'sync' && changes[SETTINGS_KEY]) {
+    applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
+  }
+  if (namespace === 'local' && changes[ENTITLEMENTS_KEY]) {
+    currentEntitlements = normalizeEntitlements(changes[ENTITLEMENTS_KEY].newValue);
+    if (currentSettings) {
+      applyResolvedSettings(currentSettings);
+    }
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -162,8 +176,8 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(settings) {
-  const validDefaultModes = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
-  const validRuleModes = [...validDefaultModes, MODE_INHERIT];
+  const validDefaultModes = allowedDefaultModes();
+  const validRuleModes = allowedRuleModes();
   const normalized = {
     version: SETTINGS_VERSION,
     defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : MODE_FOLLOW_SYSTEM,
@@ -182,7 +196,43 @@ function normalizeSettings(settings) {
       .filter((rule) => rule.pattern);
   }
 
+  if (currentEntitlements.supportsPro && !currentEntitlements.isPro) {
+    normalized.siteRules = normalized.siteRules.slice(0, FREE_RULE_LIMIT);
+  }
+
   return normalized;
+}
+
+function allowedDefaultModes() {
+  return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes() {
+  return [...allowedDefaultModes(), MODE_INHERIT];
+}
+
+function requiresProUpgrade() {
+  return currentEntitlements.supportsPro && !currentEntitlements.isPro;
+}
+
+function loadEntitlements(callback) {
+  chrome.runtime.sendMessage({ action: 'getProState' }, (response) => {
+    if (chrome.runtime.lastError) {
+      chrome.storage.local.get([ENTITLEMENTS_KEY], (result) => {
+        callback(normalizeEntitlements(result[ENTITLEMENTS_KEY]));
+      });
+      return;
+    }
+    callback(normalizeEntitlements(response));
+  });
+}
+
+function normalizeEntitlements(entitlements) {
+  return {
+    supportsPro: entitlements?.supportsPro === true,
+    isPro: entitlements?.supportsPro === true ? entitlements?.isPro === true : true,
+    iCloudSyncEnabled: entitlements?.iCloudSyncEnabled === true
+  };
 }
 
 function createRule(pattern, mode) {

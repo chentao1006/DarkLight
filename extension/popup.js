@@ -1,7 +1,6 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
-const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.userAgent.includes('iPhone')) {
@@ -17,6 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             await new Promise(resolve => chrome.storage.local.set({ userLanguage: e.target.value }, resolve));
             await I18n.init();
             localize();
+            renderModeOptions(defaultMode, false);
+            renderModeOptions(siteMode, true);
             if (typeof renderSiteRule === 'function') {
                 renderSiteRule();
             }
@@ -40,6 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         versionEl.textContent = 'v' + chrome.runtime.getManifest().version;
     }
 
+    renderModeOptions(defaultMode, false);
+    renderModeOptions(siteMode, true);
     loadSettings((loaded) => {
         settings = loaded;
         defaultMode.value = settings.defaultMode;
@@ -203,6 +206,27 @@ function loadSettings(callback) {
     });
 }
 
+function allowedDefaultModes(entitlements) {
+    return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes(entitlements) {
+    return ['inherit', ...allowedDefaultModes(entitlements)];
+}
+
+function renderModeOptions(select, includeInherit) {
+    const currentValue = select.value;
+    const modes = includeInherit ? allowedRuleModes() : allowedDefaultModes();
+    select.innerHTML = '';
+    modes.forEach((mode) => {
+        const option = document.createElement('option');
+        option.value = mode;
+        option.textContent = modeLabel(mode);
+        select.appendChild(option);
+    });
+    select.value = modes.includes(currentValue) ? currentValue : modes[0];
+}
+
 function saveSettings(nextSettings, callback) {
     const normalized = normalizeSettings(nextSettings);
     // Update the outer settings reference so subsequent reads see the latest state
@@ -243,15 +267,17 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(settings) {
+    const validDefaultModes = allowedDefaultModes();
+    const validRuleModes = allowedRuleModes();
     return {
         version: SETTINGS_VERSION,
-        defaultMode: VALID_DEFAULT_MODES.includes(settings.defaultMode) ? settings.defaultMode : 'followSystem',
+        defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : 'followSystem',
         siteRules: Array.isArray(settings.siteRules)
             ? settings.siteRules
                 .map((rule) => ({
                     id: rule.id || createId(),
                     pattern: normalizePattern(rule.pattern),
-                    mode: VALID_RULE_MODES.includes(rule.mode) ? rule.mode : 'followSystem',
+                    mode: validRuleModes.includes(rule.mode) ? rule.mode : 'followSystem',
                     enabled: rule.enabled !== false,
                     matchSubdomains: rule.matchSubdomains !== false
                 }))

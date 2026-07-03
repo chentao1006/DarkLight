@@ -1,7 +1,11 @@
 const SETTINGS_KEY = 'darkLightSettings';
+const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
+const FREE_RULE_LIMIT = 5;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
-const VALID_RULE_MODES = [...VALID_DEFAULT_MODES, 'inherit'];
+const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
+const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
+let currentEntitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.userAgent.includes('iPhone')) {
@@ -17,6 +21,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             await new Promise(resolve => chrome.storage.local.set({ userLanguage: e.target.value }, resolve));
             await I18n.init();
             localize();
+            renderModeOptions(defaultMode, false);
+            renderModeOptions(siteMode, true);
             if (typeof renderSiteRule === 'function') {
                 renderSiteRule();
             }
@@ -30,49 +36,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     const matchSubdomains = document.getElementById('matchSubdomains');
     const currentHostnameEl = document.getElementById('currentHostname');
     const openOptions = document.getElementById('openOptions');
+    const buyPremium = document.getElementById('buyPremium');
     const sitePanel = document.getElementById('sitePanel');
+    const premiumPanel = document.getElementById('premiumPanel');
 
     let settings = null;
+    let entitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
     let currentHostname = '';
+    let premiumAutoRefreshTimer = null;
+    let premiumAutoRefreshStartedAt = 0;
 
     const versionEl = document.getElementById('version');
     if (versionEl && chrome.runtime.getManifest) {
         versionEl.textContent = 'v' + chrome.runtime.getManifest().version;
     }
 
-    loadSettings((loaded) => {
-        settings = loaded;
-        defaultMode.value = settings.defaultMode;
+    loadEntitlements((loadedEntitlements) => {
+        entitlements = loadedEntitlements;
+        currentEntitlements = entitlements;
+        renderPremiumPanel();
+        renderModeOptions(defaultMode, false);
+        renderModeOptions(siteMode, true);
+        loadSettings((loaded) => {
+            settings = loaded;
+            defaultMode.value = settings.defaultMode;
 
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const tab = tabs[0];
-            if (!tab || !tab.url) {
-                sitePanel.classList.add('hidden');
-                return;
-            }
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                const tab = tabs[0];
+                if (!tab || !tab.url) {
+                    sitePanel.classList.add('hidden');
+                    return;
+                }
 
-            const isNormalPage = tab.url.startsWith('http://') || tab.url.startsWith('https://');
-            if (!isNormalPage) {
-                sitePanel.classList.add('hidden');
-                return;
-            }
+                const isNormalPage = tab.url.startsWith('http://') || tab.url.startsWith('https://');
+                if (!isNormalPage) {
+                    sitePanel.classList.add('hidden');
+                    return;
+                }
 
-            try {
-                currentHostname = normalizePattern(new URL(tab.url).hostname);
-                currentHostnameEl.textContent = currentHostname;
-                chrome.action.getBadgeText({ tabId: tab.id }, (text) => {
-                    if (text) {
-                        const activeBanner = document.getElementById('activeBanner');
-                        if (activeBanner) {
-                            activeBanner.classList.remove('hidden');
-                            updateActiveBanner(resolveEffectiveMode(currentHostname, settings));
+                try {
+                    currentHostname = normalizePattern(new URL(tab.url).hostname);
+                    currentHostnameEl.textContent = currentHostname;
+                    chrome.action.getBadgeText({ tabId: tab.id }, (text) => {
+                        if (text) {
+                            const activeBanner = document.getElementById('activeBanner');
+                            if (activeBanner) {
+                                activeBanner.classList.remove('hidden');
+                                updateActiveBanner(resolveEffectiveMode(currentHostname, settings));
+                            }
                         }
-                    }
-                });
-                renderSiteRule();
-            } catch (e) {
-                sitePanel.classList.add('hidden');
-            }
+                    });
+                    renderSiteRule();
+                } catch (e) {
+                    sitePanel.classList.add('hidden');
+                }
+            });
         });
     });
 
@@ -103,6 +121,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     openOptions.addEventListener('click', () => {
         chrome.runtime.openOptionsPage();
     });
+
+    buyPremium.addEventListener('click', openPremium);
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            refreshEntitlements();
+        }
+    });
+    window.addEventListener('focus', refreshEntitlements);
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace !== 'local' || !changes[ENTITLEMENTS_KEY]) return;
+        entitlements = normalizeEntitlements(changes[ENTITLEMENTS_KEY].newValue);
+        currentEntitlements = entitlements;
+        renderPremiumPanel();
+        renderModeOptions(defaultMode, false);
+        renderModeOptions(siteMode, true);
+        if (settings) {
+            settings = normalizeSettings(settings);
+            defaultMode.value = settings.defaultMode;
+            renderSiteRule();
+        }
+    });
+
+    function renderPremiumPanel() {
+        premiumPanel.classList.toggle('hidden', !requiresProUpgrade(entitlements));
+    }
 
     function renderSiteRule() {
         const rule = resolveRule(currentHostname, settings, true);
@@ -135,6 +179,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             exactRule.mode = mode;
             exactRule.enabled = true;
         } else {
+            if (requiresProUpgrade(entitlements) && settings.siteRules.length >= FREE_RULE_LIMIT) {
+                siteMode.value = 'inherit';
+                openPremium();
+                return;
+            }
             settings.siteRules.push({
                 id: createId(),
                 pattern: currentHostname,
@@ -148,6 +197,57 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderSiteRule();
             notifyActiveTab();
         });
+    }
+
+    function openPremium() {
+        chrome.runtime.sendMessage({ action: 'openPremium' }, (response) => {
+            if (chrome.runtime.lastError || response?.ok !== true) {
+                alert(I18n.getMessage('openPremiumFailed') || 'Open Dark Light and buy Premium to unlock this feature.');
+                return;
+            }
+            startPremiumAutoRefresh();
+        });
+    }
+
+    function refreshEntitlements() {
+        loadEntitlements((loadedEntitlements) => {
+            entitlements = loadedEntitlements;
+            currentEntitlements = entitlements;
+            renderPremiumPanel();
+            renderModeOptions(defaultMode, false);
+            renderModeOptions(siteMode, true);
+            if (settings) {
+                settings = normalizeSettings(settings);
+                defaultMode.value = settings.defaultMode;
+                renderSiteRule();
+            }
+            if (entitlements.isPro) {
+                stopPremiumAutoRefresh();
+            }
+        });
+    }
+
+    function startPremiumAutoRefresh() {
+        if (premiumAutoRefreshTimer) {
+            return;
+        }
+        premiumAutoRefreshStartedAt = Date.now();
+        premiumAutoRefreshTimer = setInterval(() => {
+            if (Date.now() - premiumAutoRefreshStartedAt > PREMIUM_AUTO_REFRESH_TIMEOUT_MS) {
+                stopPremiumAutoRefresh();
+                return;
+            }
+            refreshEntitlements();
+        }, PREMIUM_AUTO_REFRESH_INTERVAL_MS);
+        refreshEntitlements();
+    }
+
+    function stopPremiumAutoRefresh() {
+        if (!premiumAutoRefreshTimer) {
+            return;
+        }
+        clearInterval(premiumAutoRefreshTimer);
+        premiumAutoRefreshTimer = null;
     }
 });
 
@@ -203,6 +303,51 @@ function loadSettings(callback) {
     });
 }
 
+function loadEntitlements(callback) {
+    chrome.runtime.sendMessage({ action: 'refreshProState' }, (response) => {
+        if (chrome.runtime.lastError) {
+            chrome.storage.local.get([ENTITLEMENTS_KEY], (result) => {
+                callback(normalizeEntitlements(result[ENTITLEMENTS_KEY]));
+            });
+            return;
+        }
+        callback(normalizeEntitlements(response));
+    });
+}
+
+function normalizeEntitlements(entitlements) {
+    return {
+        supportsPro: entitlements?.supportsPro === true,
+        isPro: entitlements?.supportsPro === true ? entitlements?.isPro === true : true,
+        iCloudSyncEnabled: entitlements?.iCloudSyncEnabled === true
+    };
+}
+
+function requiresProUpgrade(entitlements) {
+    return entitlements.supportsPro && !entitlements.isPro;
+}
+
+function allowedDefaultModes(entitlements) {
+    return VALID_DEFAULT_MODES;
+}
+
+function allowedRuleModes(entitlements) {
+    return ['inherit', ...allowedDefaultModes(entitlements)];
+}
+
+function renderModeOptions(select, includeInherit) {
+    const currentValue = select.value;
+    const modes = includeInherit ? allowedRuleModes(currentEntitlements) : allowedDefaultModes(currentEntitlements);
+    select.innerHTML = '';
+    modes.forEach((mode) => {
+        const option = document.createElement('option');
+        option.value = mode;
+        option.textContent = modeLabel(mode);
+        select.appendChild(option);
+    });
+    select.value = modes.includes(currentValue) ? currentValue : modes[0];
+}
+
 function saveSettings(nextSettings, callback) {
     const normalized = normalizeSettings(nextSettings);
     // Update the outer settings reference so subsequent reads see the latest state
@@ -243,15 +388,17 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(settings) {
+    const validDefaultModes = allowedDefaultModes(currentEntitlements);
+    const validRuleModes = allowedRuleModes(currentEntitlements);
     return {
         version: SETTINGS_VERSION,
-        defaultMode: VALID_DEFAULT_MODES.includes(settings.defaultMode) ? settings.defaultMode : 'followSystem',
+        defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : 'followSystem',
         siteRules: Array.isArray(settings.siteRules)
             ? settings.siteRules
                 .map((rule) => ({
                     id: rule.id || createId(),
                     pattern: normalizePattern(rule.pattern),
-                    mode: VALID_RULE_MODES.includes(rule.mode) ? rule.mode : 'followSystem',
+                    mode: validRuleModes.includes(rule.mode) ? rule.mode : 'followSystem',
                     enabled: rule.enabled !== false,
                     matchSubdomains: rule.matchSubdomains !== false
                 }))

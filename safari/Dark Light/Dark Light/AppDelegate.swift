@@ -12,7 +12,13 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard urls.contains(where: { $0.scheme == "darklight" && $0.host == "premium" }) else {
+            return
+        }
+        NotificationCenter.default.post(name: openPremiumNotification, object: nil)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

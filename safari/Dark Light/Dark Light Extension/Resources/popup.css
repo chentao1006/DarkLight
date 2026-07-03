@@ -179,6 +179,21 @@ label,
   background: var(--secondary-btn-hover);
 }
 
+.premium-panel {
+  margin-top: 12px;
+}
+
+.premium-panel strong {
+  font-size: 13px;
+}
+
+.premium-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .active-banner {
   display: flex;
   align-items: center;

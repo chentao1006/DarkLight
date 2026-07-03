@@ -82,5 +82,47 @@
   },
   "activeBannerText": {
     "message": "当前页模式"
+  },
+  "proTitle": {
+    "message": "暗光高级版"
+  },
+  "proChecking": {
+    "message": "正在检查高级版状态..."
+  },
+  "refreshPro": {
+    "message": "刷新"
+  },
+  "iCloudSync": {
+    "message": "iCloud 同步"
+  },
+  "iCloudSyncDetail": {
+    "message": "在 Safari 设备之间同步规则。"
+  },
+  "exportRules": {
+    "message": "导出规则"
+  },
+  "importRules": {
+    "message": "导入规则"
+  },
+  "buyPremium": {
+    "message": "购买高级版"
+  },
+  "proStatusICloudOn": {
+    "message": "高级版已解锁，iCloud 同步已开启。"
+  },
+  "proStatusICloudOff": {
+    "message": "高级版已解锁，iCloud 同步未开启。"
+  },
+  "proStatusLocked": {
+    "message": "免费版最多支持 5 条网站规则。请在暗光 App 中购买高级版，以解锁无限规则、导入导出和 iCloud 同步。"
+  },
+  "proRuleLimitAlert": {
+    "message": "免费版最多支持 5 条网站规则。解锁高级版可使用无限规则、导入导出和 iCloud 同步。"
+  },
+  "openPremiumFailed": {
+    "message": "请打开暗光 App 并购买高级版，以解锁此功能。"
+  },
+  "importFailed": {
+    "message": "导入失败，请选择有效的暗光 JSON 文件。"
   }
 }
