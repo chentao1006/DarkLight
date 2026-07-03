@@ -456,7 +456,7 @@ struct SetupView: View {
                             .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 10)
                             .padding(.bottom, 6)
                         #else
-                        Image(uiImage: UIImage(named: "AppIcon") ?? UIImage())
+                        Image(uiImage: UIImage(named: "AppIconImage") ?? UIImage())
                             .resizable()
                             .frame(width: 96, height: 96)
                             .clipShape(RoundedRectangle(cornerRadius: 22))
@@ -730,7 +730,11 @@ struct PremiumDetailsView: View {
             }
         }
         .padding(24)
+        #if os(macOS)
         .frame(width: 460, alignment: .leading)
+        #else
+        .frame(maxWidth: .infinity, alignment: .leading)
+        #endif
     }
 }
 
