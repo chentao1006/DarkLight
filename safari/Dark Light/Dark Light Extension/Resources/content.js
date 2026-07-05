@@ -97,6 +97,9 @@ function applyResolvedSettings(settings) {
         chrome.runtime.sendMessage({ action: 'setBadgeState', mode: configuredMode, effectiveAppearance, source: rule ? 'siteRule' : 'default' });
       } catch (e) {}
     }
+    if (effectiveAppearance === 'dark' || document.readyState !== 'loading' || configuredMode === MODE_PRESERVE_SITE) {
+      markPrepaintReady();
+    }
     return;
   }
   lastAppliedState = stateString;
@@ -113,6 +116,7 @@ function applyResolvedSettings(settings) {
         source: rule ? 'siteRule' : 'default'
       });
     } catch (e) {}
+    markPrepaintReady();
     return;
   }
 
@@ -136,6 +140,10 @@ function applyResolvedSettings(settings) {
 
 function isCurrentRun(runId) {
   return runId === appearanceRunId;
+}
+
+function markPrepaintReady() {
+  document.documentElement?.setAttribute('data-dl-ready', 'true');
 }
 
 function loadSettings(callback) {
@@ -1086,6 +1094,8 @@ function applyDarkLight(runId) {
     headObserver.observe(document.documentElement || document, { childList: true, subtree: true });
   }
 
+  markPrepaintReady();
+
   const reinforceNativeSignals = () => {
     if (!isCurrentRun(runId)) return;
     flipThemeSignalsToDark();
@@ -1116,7 +1126,7 @@ function applyLightForce(runId) {
   if (!isCurrentRun(runId)) return;
   flipThemeSignalsToLight();
 
-  const detectAndFix = () => {
+  const detectAndFix = (releasePrepaint = false) => {
     if (!isCurrentRun(runId)) return;
     flipThemeSignalsToLight();
     requestAnimationFrame(() => {
@@ -1124,16 +1134,20 @@ function applyLightForce(runId) {
       if (isPageDark()) {
         applyFilterInversion(runId);
       }
+      if (releasePrepaint) {
+        markPrepaintReady();
+      }
     });
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(detectAndFix, 50));
+    detectAndFix(false);
+    document.addEventListener('DOMContentLoaded', () => detectAndFix(true), { once: true });
   } else {
-    setTimeout(detectAndFix, 50);
+    detectAndFix(true);
   }
 
-  window.addEventListener('load', () => setTimeout(detectAndFix, 200));
+  window.addEventListener('load', () => detectAndFix(false), { once: true });
   observeThemeChanges(() => {
     if (!isCurrentRun(runId)) return;
     flipThemeSignalsToLight();

@@ -3216,6 +3216,8 @@
     }
     const bgPropsToCopy = [
         "background-clip",
+        "-webkit-background-clip",
+        "-webkit-text-fill-color",
         "background-position",
         "background-repeat",
         "background-size"

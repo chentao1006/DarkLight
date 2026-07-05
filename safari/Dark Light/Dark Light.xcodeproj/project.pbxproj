@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0C6776748DB693B78A7C2B7C /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = EA2CE68D86AF9F84BF337F08 /* i18n.js */; };
 		4F70A7B42A8C42B8AA651001 /* ProStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F70A7B32A8C42B8AA651001 /* ProStore.swift */; };
+		A28D82490CE0D8EA8186B368 /* prepaint-fallback.css in Resources */ = {isa = PBXBuildFile; fileRef = B13043FBC98FB6FC440BEA9A /* prepaint-fallback.css */; };
+		B9DC34A2AE08D63BFE311FB3 /* prepaint-follow-system.css in Resources */ = {isa = PBXBuildFile; fileRef = 8164D48CD6D85CDCE836C34A /* prepaint-follow-system.css */; };
 		C62198CF2FE3E54400899251 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62198CE2FE3E54400899251 /* AppDelegate.swift */; };
 		C62198D52FE3E54400899251 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = C62198D42FE3E54400899251 /* Icon.png */; };
 		C62198DB2FE3E54400899251 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62198DA2FE3E54400899251 /* ViewController.swift */; };
@@ -28,6 +30,9 @@
 		C621990C2FE3E54800899251 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = C62199012FE3E54800899251 /* content.js */; };
 		C621990D2FE3E54800899251 /* options.css in Resources */ = {isa = PBXBuildFile; fileRef = C62199022FE3E54800899251 /* options.css */; };
 		C621990E2FE3E54800899251 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = C621990F2FE3E54800899251 /* vendor */; };
+		DBCE491F84E57DED8D2D44B0 /* prepaint-preserve.css in Resources */ = {isa = PBXBuildFile; fileRef = F77234ADAA2BF22290C48F5E /* prepaint-preserve.css */; };
+		E41FE372A2D45C37F3EE96B2 /* prepaint-force-light.css in Resources */ = {isa = PBXBuildFile; fileRef = A85A9653295731CBA204E7B4 /* prepaint-force-light.css */; };
+		FAE9F73241D85A11FBF91359 /* prepaint-force-dark.css in Resources */ = {isa = PBXBuildFile; fileRef = CCD64221B36BF50284D123CC /* prepaint-force-dark.css */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +63,9 @@
 		4F70A7B32A8C42B8AA651001 /* ProStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStore.swift; sourceTree = "<group>"; };
 		4F70A7B52A8C42B8AA651001 /* Dark Light.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Dark Light.entitlements"; sourceTree = "<group>"; };
 		4F70A7B62A8C42B8AA651001 /* Dark Light Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Dark Light Extension.entitlements"; sourceTree = "<group>"; };
+		8164D48CD6D85CDCE836C34A /* prepaint-follow-system.css */ = {isa = PBXFileReference; includeInIndex = 1; path = "Resources/prepaint-follow-system.css"; sourceTree = "<group>"; };
+		A85A9653295731CBA204E7B4 /* prepaint-force-light.css */ = {isa = PBXFileReference; includeInIndex = 1; path = "Resources/prepaint-force-light.css"; sourceTree = "<group>"; };
+		B13043FBC98FB6FC440BEA9A /* prepaint-fallback.css */ = {isa = PBXFileReference; includeInIndex = 1; path = "Resources/prepaint-fallback.css"; sourceTree = "<group>"; };
 		C62198CB2FE3E54400899251 /* Dark Light.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dark Light.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C62198CE2FE3E54400899251 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C62198D42FE3E54400899251 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
@@ -80,7 +88,9 @@
 		C62199012FE3E54800899251 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
 		C62199022FE3E54800899251 /* options.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = options.css; path = Resources/options.css; sourceTree = "<group>"; };
 		C621990F2FE3E54800899251 /* vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vendor; path = Resources/vendor; sourceTree = "<group>"; };
+		CCD64221B36BF50284D123CC /* prepaint-force-dark.css */ = {isa = PBXFileReference; includeInIndex = 1; path = "Resources/prepaint-force-dark.css"; sourceTree = "<group>"; };
 		EA2CE68D86AF9F84BF337F08 /* i18n.js */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.javascript; name = i18n.js; path = Resources/i18n.js; sourceTree = "<group>"; };
+		F77234ADAA2BF22290C48F5E /* prepaint-preserve.css */ = {isa = PBXFileReference; includeInIndex = 1; path = "Resources/prepaint-preserve.css"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +179,11 @@
 				C62199022FE3E54800899251 /* options.css */,
 				C621990F2FE3E54800899251 /* vendor */,
 				EA2CE68D86AF9F84BF337F08 /* i18n.js */,
+				B13043FBC98FB6FC440BEA9A /* prepaint-fallback.css */,
+				CCD64221B36BF50284D123CC /* prepaint-force-dark.css */,
+				A85A9653295731CBA204E7B4 /* prepaint-force-light.css */,
+				F77234ADAA2BF22290C48F5E /* prepaint-preserve.css */,
+				8164D48CD6D85CDCE836C34A /* prepaint-follow-system.css */,
 			);
 			name = Resources;
 			path = "Dark Light Extension";
@@ -279,6 +294,11 @@
 				C621990D2FE3E54800899251 /* options.css in Resources */,
 				C62199032FE3E54800899251 /* popup.js in Resources */,
 				0C6776748DB693B78A7C2B7C /* i18n.js in Resources */,
+				A28D82490CE0D8EA8186B368 /* prepaint-fallback.css in Resources */,
+				FAE9F73241D85A11FBF91359 /* prepaint-force-dark.css in Resources */,
+				E41FE372A2D45C37F3EE96B2 /* prepaint-force-light.css in Resources */,
+				DBCE491F84E57DED8D2D44B0 /* prepaint-preserve.css in Resources */,
+				B9DC34A2AE08D63BFE311FB3 /* prepaint-follow-system.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,7 +468,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Dark Light Extension/Dark Light Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -488,7 +508,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Dark Light Extension/Dark Light Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -531,7 +551,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Dark Light/Dark Light.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -579,7 +599,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Dark Light/Dark Light.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = U2NEAJ73J2;
 				"ENABLE_APP_SANDBOX[sdk=macosx*]" = YES;
 				ENABLE_HARDENED_RUNTIME = YES;

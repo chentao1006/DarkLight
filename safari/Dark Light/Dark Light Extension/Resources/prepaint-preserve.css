@@ -1,0 +1,4 @@
+html:not([data-dl-ready])::before {
+  content: none !important;
+  display: none !important;
+}
