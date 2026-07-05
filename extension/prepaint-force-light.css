@@ -1,0 +1,26 @@
+html:not([data-dl-ready])::before {
+  content: none !important;
+  display: none !important;
+}
+
+html:not([data-dl-ready]),
+html:not([data-dl-ready]) body {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+  color-scheme: light !important;
+}
+
+html:not([data-dl-ready]) main,
+html:not([data-dl-ready]) article,
+html:not([data-dl-ready]) section,
+html:not([data-dl-ready]) aside,
+html:not([data-dl-ready]) nav,
+html:not([data-dl-ready]) header,
+html:not([data-dl-ready]) footer {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+html:not([data-dl-ready]) a {
+  color: #0969da !important;
+}

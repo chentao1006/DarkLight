@@ -1,0 +1,52 @@
+html:not([data-dl-ready])::before {
+  content: none !important;
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-dl-ready]),
+  html:not([data-dl-ready]) body {
+    background-color: #111315 !important;
+    color: #e7e9ec !important;
+    color-scheme: dark !important;
+  }
+
+  html:not([data-dl-ready]) main,
+  html:not([data-dl-ready]) article,
+  html:not([data-dl-ready]) section,
+  html:not([data-dl-ready]) aside,
+  html:not([data-dl-ready]) nav,
+  html:not([data-dl-ready]) header,
+  html:not([data-dl-ready]) footer {
+    background-color: #111315 !important;
+    color: #e7e9ec !important;
+  }
+
+  html:not([data-dl-ready]) a {
+    color: #8ab4ff !important;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-dl-ready]),
+  html:not([data-dl-ready]) body {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+    color-scheme: light !important;
+  }
+
+  html:not([data-dl-ready]) main,
+  html:not([data-dl-ready]) article,
+  html:not([data-dl-ready]) section,
+  html:not([data-dl-ready]) aside,
+  html:not([data-dl-ready]) nav,
+  html:not([data-dl-ready]) header,
+  html:not([data-dl-ready]) footer {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+
+  html:not([data-dl-ready]) a {
+    color: #0969da !important;
+  }
+}
