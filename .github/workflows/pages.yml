@@ -43,15 +43,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v5
-        continue-on-error: true
 
       - name: Retry deploy to GitHub Pages
         id: deploy_retry
-        if: steps.deploy.outcome == 'failure'
+        if: always() && steps.deploy.conclusion == 'failure'
         uses: actions/deploy-pages@v5
+        continue-on-error: true
 
       - name: Fail if retry also failed
-        if: steps.deploy.outcome == 'failure' && steps.deploy_retry.outcome == 'failure'
+        if: always() && steps.deploy.conclusion == 'failure' && steps.deploy_retry.conclusion == 'failure'
         run: |
           echo "Pages deployment failed twice."
           exit 1
