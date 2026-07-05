@@ -1,0 +1,18 @@
+@keyframes dark-light-prepaint-timeout {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+html:not([data-dl-ready])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: #ffffff !important;
+  pointer-events: none !important;
+  opacity: 1;
+  visibility: visible;
+  animation: dark-light-prepaint-timeout 1600ms step-end forwards;
+}

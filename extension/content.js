@@ -40,6 +40,7 @@ const THEME_CLASSES = [
 
 let currentSettings = null;
 let activeAppearance = null;
+let activeConfiguredMode = null;
 let themeObserver = null;
 let appearanceRunId = 0;
 let systemSchemeMediaQuery = null;
@@ -52,9 +53,8 @@ loadSettings((settings) => {
 setupSystemAppearanceListener();
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes[SETTINGS_KEY]) {
-    applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
-  }
+  if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
+  applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -66,39 +66,55 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 function applyResolvedSettings(settings) {
-  const runId = ++appearanceRunId;
   currentSettings = normalizeSettings(settings);
   const hostname = window.location.hostname;
   const rule = resolveRule(hostname, currentSettings);
   const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
+  const source = rule ? 'siteRule' : 'default';
 
-  cleanupAppearanceOverrides();
   if (configuredMode === MODE_PRESERVE_SITE) {
-    activeAppearance = null;
+    if (activeConfiguredMode !== MODE_PRESERVE_SITE || activeAppearance !== null) {
+      appearanceRunId++;
+      cleanupAppearanceOverrides();
+      activeAppearance = null;
+      activeConfiguredMode = MODE_PRESERVE_SITE;
+    }
     try {
       chrome.runtime.sendMessage({
         action: 'clearBadgeState',
-        source: rule ? 'siteRule' : 'default'
+        source
       });
     } catch (e) {
       // Ignore context invalidation during reloads.
     }
+    markPrepaintReady();
     return;
   }
 
   const effectiveAppearance = resolveEffectiveAppearance(configuredMode);
-  activeAppearance = effectiveAppearance;
 
   try {
     chrome.runtime.sendMessage({
       action: 'setBadgeState',
       mode: configuredMode,
       effectiveAppearance,
-      source: rule ? 'siteRule' : 'default'
+      source
     });
   } catch (e) {
     // Ignore context invalidation during reloads.
   }
+
+  if (activeAppearance === effectiveAppearance && activeConfiguredMode === configuredMode) {
+    if (effectiveAppearance === 'dark' || document.readyState !== 'loading') {
+      markPrepaintReady();
+    }
+    return;
+  }
+
+  const runId = ++appearanceRunId;
+  cleanupAppearanceOverrides();
+  activeAppearance = effectiveAppearance;
+  activeConfiguredMode = configuredMode;
 
   if (effectiveAppearance === 'dark') {
     applyDarkLight(runId);
@@ -109,6 +125,10 @@ function applyResolvedSettings(settings) {
 
 function isCurrentRun(runId) {
   return runId === appearanceRunId;
+}
+
+function markPrepaintReady() {
+  document.documentElement?.setAttribute('data-dl-ready', 'true');
 }
 
 function loadSettings(callback) {
@@ -933,7 +953,8 @@ function applyDarkLight(runId) {
       window.DarkReader.enable({
         brightness: 100,
         contrast: 100,
-        sepia: 0
+        sepia: 0,
+        immediateModify: true
       });
     } catch (e) {
       console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
@@ -948,6 +969,8 @@ function applyDarkLight(runId) {
     darkenVisibleLightBlocks();
     liftDarkForegrounds();
   }
+
+  markPrepaintReady();
 
   const reinforceNativeSignals = () => {
     if (!isCurrentRun(runId)) return;
@@ -972,7 +995,7 @@ function applyLightForce(runId) {
   if (!isCurrentRun(runId)) return;
   flipThemeSignalsToLight();
 
-  const detectAndFix = () => {
+  const detectAndFix = (releasePrepaint = false) => {
     if (!isCurrentRun(runId)) return;
     flipThemeSignalsToLight();
     requestAnimationFrame(() => {
@@ -980,16 +1003,20 @@ function applyLightForce(runId) {
       if (isPageDark()) {
         applyFilterInversion(runId);
       }
+      if (releasePrepaint) {
+        markPrepaintReady();
+      }
     });
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(detectAndFix, 50));
+    detectAndFix(false);
+    document.addEventListener('DOMContentLoaded', () => detectAndFix(true), { once: true });
   } else {
-    setTimeout(detectAndFix, 50);
+    detectAndFix(true);
   }
 
-  window.addEventListener('load', () => setTimeout(detectAndFix, 200));
+  window.addEventListener('load', () => detectAndFix(false), { once: true });
   observeThemeChanges(() => {
     if (!isCurrentRun(runId)) return;
     flipThemeSignalsToLight();

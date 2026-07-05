@@ -19,7 +19,11 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "web_accessible_resources": [
     {
@@ -52,6 +56,9 @@
       "js": [
         "vendor/darkreader/darkreader.js",
         "content.js"
+      ],
+      "css": [
+        "prepaint-fallback.css"
       ],
       "run_at": "document_start",
       "all_frames": true
