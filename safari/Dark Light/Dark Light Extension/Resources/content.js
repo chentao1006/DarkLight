@@ -507,18 +507,35 @@ function flipThemeSignals(target) {
   [document.documentElement, document.body].forEach((el) => {
     if (!el) return;
     captureThemeSnapshot(el);
+    const classesToRemove = [];
+    const classesToAdd = [];
+
     THEME_CLASSES.forEach((cls) => {
       if (!el.classList.contains(cls)) return;
-      el.classList.remove(cls);
+      
       if (target === 'dark' && /light|day/i.test(cls)) {
-        el.classList.add(cls.replace(/light/gi, 'dark').replace(/day/gi, 'night'));
+        classesToRemove.push(cls);
+        classesToAdd.push(cls.replace(/light/gi, 'dark').replace(/day/gi, 'night'));
       } else if (target === 'light' && /dark|night/i.test(cls)) {
-        el.classList.add(cls.replace(/dark/gi, 'light').replace(/night/gi, 'day'));
+        classesToRemove.push(cls);
+        classesToAdd.push(cls.replace(/dark/gi, 'light').replace(/night/gi, 'day'));
       }
     });
 
-    if (target === 'dark') el.classList.add('dark');
-    if (target === 'light') el.classList.add('light');
+    if (target === 'dark') classesToAdd.push('dark');
+    if (target === 'light') classesToAdd.push('light');
+
+    classesToRemove.forEach((cls) => {
+      if (!classesToAdd.includes(cls)) {
+        el.classList.remove(cls);
+      }
+    });
+    
+    classesToAdd.forEach((cls) => {
+      if (!el.classList.contains(cls)) {
+        el.classList.add(cls);
+      }
+    });
 
     MATCH_ATTRS.forEach((attr) => {
       const val = el.getAttribute(attr);
@@ -1165,17 +1182,25 @@ function observeThemeChanges(callback) {
     themeObserver.disconnect();
   }
 
+  const observerOptions = {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    attributeFilter: ['class', 'theme', 'data-theme', 'data-color-mode', 'data-color-scheme', 'style', 'data-bs-theme']
+  };
+
   themeObserver = new MutationObserver(() => {
     clearTimeout(themeObserver._timer);
-    themeObserver._timer = setTimeout(callback, 200);
+    themeObserver._timer = setTimeout(() => {
+      if (themeObserver) themeObserver.disconnect();
+      callback();
+      if (themeObserver && document.documentElement) {
+        themeObserver.observe(document.documentElement, observerOptions);
+      }
+    }, 200);
   });
 
   if (document.documentElement) {
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-      attributeFilter: ['class', 'theme', 'data-theme', 'data-color-mode', 'data-color-scheme', 'style', 'data-bs-theme']
-    });
+    themeObserver.observe(document.documentElement, observerOptions);
   }
 }
