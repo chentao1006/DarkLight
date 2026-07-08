@@ -22,8 +22,9 @@ function setBadgeState(tabId, appearance, mode) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
   const isFollowSystem = mode === 'followSystem';
-  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : '';
-  const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0f766e' : '#334155';
+  const isPreserveSite = mode === 'preserveSite';
+  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isPreserveSite ? 'O' : '';
+  const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0b5cff' : '#334155';
 
   chrome.action.setBadgeText({ text, tabId });
   chrome.action.setBadgeBackgroundColor({ color, tabId });
@@ -51,8 +52,11 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
-  if (message.action === 'setBadgeState' && typeof sender.tab?.id === 'number') {
-    setBadgeState(sender.tab.id, message.effectiveAppearance, message.mode);
+  if (message.action === 'setBadgeState') {
+    const tabId = message.tabId ?? sender.tab?.id;
+    if (typeof tabId === 'number') {
+      setBadgeState(tabId, message.effectiveAppearance, message.mode);
+    }
   }
   if (message.action === 'clearBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;

@@ -15,10 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard urls.contains(where: { $0.scheme == "darklight" && $0.host == "premium" }) else {
-            return
+        if PremiumDeepLink.handlesPremiumURL(urls) {
+            PremiumDeepLink.requestOpenPremium()
         }
-        NotificationCenter.default.post(name: openPremiumNotification, object: nil)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -41,6 +40,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window.rootViewController = ViewController()
         window.makeKeyAndVisible()
         self.window = window
+
+        if let url = launchOptions?[.url] as? URL, PremiumDeepLink.handlesPremiumURL([url]) {
+            PremiumDeepLink.requestOpenPremium()
+        }
+        return true
+    }
+
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        guard PremiumDeepLink.handlesPremiumURL([url]) else {
+            return false
+        }
+        PremiumDeepLink.requestOpenPremium()
         return true
     }
 }

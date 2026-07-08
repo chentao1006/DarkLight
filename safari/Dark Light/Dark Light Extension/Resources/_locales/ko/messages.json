@@ -53,6 +53,9 @@
   "deleteSite": {
     "message": "삭제"
   },
+  "deleteRuleConfirm": {
+    "message": "{site} 규칙을 삭제할까요?"
+  },
   "enterSiteDomain": {
     "message": "도메인 입력 (예: example.com)"
   },

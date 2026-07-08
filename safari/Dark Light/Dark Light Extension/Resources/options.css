@@ -5,7 +5,7 @@
   --text: #1f2328;
   --muted: #66707a;
   --border: #d8d2c7;
-  --accent: #0f766e;
+  --accent: #0b5cff;
   --danger: #b42318;
   --input-bg: #ffffff;
   --ghost-bg: transparent;
@@ -20,7 +20,7 @@
     --text: #e6edf3;
     --muted: #a5b1bb;
     --border: #3a444d;
-    --accent: #2fb6ab;
+    --accent: #2f6fff;
     --danger: #ff9f97;
     --input-bg: #151a1f;
     --ghost-bg: transparent;
@@ -229,6 +229,27 @@ button.ghost:hover,
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .app {
+    width: min(100% - 24px, 920px);
+  }
+
+  .pro-section .section-header,
+  .pro-header-actions {
+    display: grid;
+    width: 100%;
+  }
+
+  .pro-header-actions button {
+    width: 100%;
+    min-height: 36px;
+    height: auto;
+    white-space: normal;
+    line-height: 1.25;
+    padding-block: 9px;
+  }
 }
 
 .rule-list {

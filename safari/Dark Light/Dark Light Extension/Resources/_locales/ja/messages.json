@@ -53,6 +53,9 @@
   "deleteSite": {
     "message": "削除"
   },
+  "deleteRuleConfirm": {
+    "message": "{site} のルールを削除しますか？"
+  },
   "enterSiteDomain": {
     "message": "ドメインを入力 (例: example.com)"
   },

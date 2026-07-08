@@ -53,6 +53,9 @@
   "deleteSite": {
     "message": "删除"
   },
+  "deleteRuleConfirm": {
+    "message": "确定删除 {site} 的规则吗？"
+  },
   "enterSiteDomain": {
     "message": "输入域名 (如 example.com)"
   },

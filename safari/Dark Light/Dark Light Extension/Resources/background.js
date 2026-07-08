@@ -9,7 +9,7 @@ const MODE_FORCE_LIGHT = 'forceLight';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
 const PREPAINT_SCRIPT_PREFIX = 'dark-light-prepaint-';
-const FREE_RULE_LIMIT = 5;
+const FREE_RULE_LIMIT = 3;
 
 const PREPAINT_CSS_BY_MODE = {
   [MODE_FORCE_LIGHT]: 'prepaint-force-light.css',
@@ -37,8 +37,9 @@ function setBadgeState(tabId, appearance, mode) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
   const isFollowSystem = mode === 'followSystem';
-  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : '';
-  const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0f766e' : '#334155';
+  const isPreserveSite = mode === 'preserveSite';
+  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isPreserveSite ? 'O' : '';
+  const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0b5cff' : '#334155';
 
   chrome.action.setBadgeText({ text, tabId });
   chrome.action.setBadgeBackgroundColor({ color, tabId });
@@ -72,8 +73,11 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'setBadgeState' && typeof sender.tab?.id === 'number') {
-    setBadgeState(sender.tab.id, message.effectiveAppearance, message.mode);
+  if (message.action === 'setBadgeState') {
+    const tabId = message.tabId ?? sender.tab?.id;
+    if (typeof tabId === 'number') {
+      setBadgeState(tabId, message.effectiveAppearance, message.mode);
+    }
   }
   if (message.action === 'clearBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;
@@ -124,11 +128,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'openPremium') {
     sendNativeMessage({ action: 'openPremium' }, (response) => {
-      sendResponse(response || { ok: false, error: 'emptyResponse' });
+      if (response?.ok === true) {
+        sendResponse(response);
+        return;
+      }
+      openPremiumDeepLinkFallback((fallbackResponse) => {
+        sendResponse(fallbackResponse);
+      });
     });
     return true;
   }
 });
+
+function openPremiumDeepLinkFallback(callback) {
+  if (!chrome.tabs?.create) {
+    callback?.({ ok: false, error: 'openPremiumFailed' });
+    return;
+  }
+
+  chrome.tabs.create({ url: 'darklight://premium' }, () => {
+    if (chrome.runtime.lastError) {
+      callback?.({ ok: false, error: chrome.runtime.lastError.message });
+      return;
+    }
+    callback?.({ ok: true, source: 'tabsCreate' });
+  });
+}
 
 function defaultEntitlements() {
   return {

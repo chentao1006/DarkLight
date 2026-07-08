@@ -37,7 +37,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         os_log(.default, "Received message from browser.runtime.sendNativeMessage: %@ (profile: %@)", String(describing: message), profile?.uuidString ?? "none")
 
         Task {
-            let responseMessage = await handleMessage(message)
+            let responseMessage = await handleMessage(message, context: context)
             let response = NSExtensionItem()
             if #available(iOS 15.0, macOS 11.0, *) {
                 response.userInfo = [ SFExtensionMessageKey: responseMessage ]
@@ -49,7 +49,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
     }
 
-    private func handleMessage(_ message: Any?) async -> [String: Any] {
+    private func handleMessage(_ message: Any?, context: NSExtensionContext) async -> [String: Any] {
         guard let payload = message as? [String: Any],
               let action = payload["action"] as? String else {
             return ["ok": false, "error": "invalidMessage"]
@@ -65,7 +65,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         case "setICloudSyncEnabled":
             return await setICloudSyncEnabledResponse(payload)
         case "openPremium":
-            return openPremiumResponse()
+            return await openPremiumResponse(context: context)
         default:
             return ["ok": false, "error": "unknownAction"]
         }
@@ -149,15 +149,20 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         return NSUbiquitousKeyValueStore.default.bool(forKey: iCloudSyncEnabledKey)
     }
 
-    private func openPremiumResponse() -> [String: Any] {
-        #if os(macOS)
+    private func openPremiumResponse(context: NSExtensionContext) async -> [String: Any] {
         guard let url = URL(string: "darklight://premium") else {
             return ["ok": false, "error": "invalidURL"]
         }
+
+        #if os(macOS)
         NSWorkspace.shared.open(url)
         return ["ok": true]
         #else
-        return ["ok": false, "error": "unsupportedPlatform"]
+        return await withCheckedContinuation { continuation in
+            context.open(url) { success in
+                continuation.resume(returning: success ? ["ok": true] : ["ok": false, "error": "openURLFailed"])
+            }
+        }
         #endif
     }
 

@@ -9,6 +9,29 @@ let extensionBundleIdentifier = "com.ct106.darklight.Extension"
 let safariBundleIdentifier = "com.apple.Safari" // only used on mac
 let openPremiumNotification = Notification.Name("DarkLightOpenPremium")
 
+enum PremiumDeepLink {
+    private static var pendingOpenPremium = false
+
+    static func handlesPremiumURL(_ urls: [URL]) -> Bool {
+        urls.contains { $0.scheme == "darklight" && $0.host == "premium" }
+    }
+
+    static func requestOpenPremium() {
+        DispatchQueue.main.async {
+            pendingOpenPremium = true
+            NotificationCenter.default.post(name: openPremiumNotification, object: nil)
+        }
+    }
+
+    static func consumePendingOpenPremium() -> Bool {
+        guard pendingOpenPremium else {
+            return false
+        }
+        pendingOpenPremium = false
+        return true
+    }
+}
+
 // MARK: - Localization Strings
 let localizedStrings: [String: [String: String]] = [
     "en": [
@@ -604,6 +627,11 @@ struct SetupView: View {
         #endif
         .sheet(isPresented: $showingPremiumDetails) {
             PremiumDetailsView(viewModel: viewModel, proStore: proStore)
+        }
+        .onAppear {
+            if PremiumDeepLink.consumePendingOpenPremium() {
+                showingPremiumDetails = true
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: openPremiumNotification)) { _ in
             showingPremiumDetails = true

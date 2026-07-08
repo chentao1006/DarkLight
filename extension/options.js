@@ -93,6 +93,7 @@ function render() {
       deleteBtn.className = 'delete';
       deleteBtn.textContent = I18n.getMessage('deleteSite') || 'Delete';
       deleteBtn.addEventListener('click', () => {
+        if (!confirmDeleteRule(rule)) return;
         settings.siteRules = settings.siteRules.filter((item) => item.id !== rule.id);
         saveSettings(settings, render);
       });
@@ -106,6 +107,12 @@ function render() {
       row.appendChild(actions);
       ruleList.appendChild(row);
     });
+}
+
+function confirmDeleteRule(rule) {
+  const fallback = `Delete rule for ${rule.pattern}?`;
+  const message = (I18n.getMessage('deleteRuleConfirm') || fallback).replace('{site}', rule.pattern);
+  return window.confirm(message);
 }
 
 function openRuleForm(rule) {

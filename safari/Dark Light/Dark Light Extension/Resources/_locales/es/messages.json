@@ -53,6 +53,9 @@
   "deleteSite": {
     "message": "Eliminar"
   },
+  "deleteRuleConfirm": {
+    "message": "¿Eliminar la regla para {site}?"
+  },
   "enterSiteDomain": {
     "message": "Ingresar dominio (ej. example.com)"
   },

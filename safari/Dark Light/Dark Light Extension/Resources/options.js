@@ -1,7 +1,7 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
-const FREE_RULE_LIMIT = 5;
+const FREE_RULE_LIMIT = 3;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
 const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
 const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
@@ -11,6 +11,7 @@ let editingRuleId = null;
 let entitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
 let premiumAutoRefreshTimer = null;
 let premiumAutoRefreshStartedAt = 0;
+let premiumOpenInFlight = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await I18n.init();
@@ -130,6 +131,7 @@ function render() {
       deleteBtn.className = 'delete';
       deleteBtn.textContent = I18n.getMessage('deleteSite') || 'Delete';
       deleteBtn.addEventListener('click', () => {
+        if (!confirmDeleteRule(rule)) return;
         settings.siteRules = settings.siteRules.filter((item) => item.id !== rule.id);
         saveSettings(settings, render);
       });
@@ -143,6 +145,12 @@ function render() {
       row.appendChild(actions);
       ruleList.appendChild(row);
     });
+}
+
+function confirmDeleteRule(rule) {
+  const fallback = `Delete rule for ${rule.pattern}?`;
+  const message = (I18n.getMessage('deleteRuleConfirm') || fallback).replace('{site}', rule.pattern);
+  return window.confirm(message);
 }
 
 function openRuleForm(rule) {
@@ -224,7 +232,7 @@ function renderProControls() {
   buyPremiumButton.classList.toggle('hidden', entitlements.isPro);
   exportRulesButton.disabled = requiresProUpgrade();
   importRulesButton.disabled = requiresProUpgrade();
-  addRule.disabled = requiresProUpgrade() && settings.siteRules.length >= FREE_RULE_LIMIT;
+  addRule.disabled = false;
 }
 
 function refreshEntitlements() {
@@ -305,13 +313,15 @@ function showProRequired() {
 }
 
 function openPremium() {
+  if (premiumOpenInFlight) return;
+  premiumOpenInFlight = true;
+  startPremiumAutoRefresh();
   chrome.runtime.sendMessage({ action: 'openPremium' }, (response) => {
-    if (chrome.runtime.lastError || response?.ok !== true) {
-      alert(I18n.getMessage('openPremiumFailed') || 'Open Dark Light and buy Premium to unlock this feature.');
-      return;
-    }
-    startPremiumAutoRefresh();
+    premiumOpenInFlight = false;
   });
+  setTimeout(() => {
+    premiumOpenInFlight = false;
+  }, 2000);
 }
 
 function startPremiumAutoRefresh() {

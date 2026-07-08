@@ -320,7 +320,15 @@ function createId() {
 function notifyActiveTab() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0] && typeof tabs[0].id === 'number') {
-            chrome.runtime.sendMessage({ action: 'clearBadgeState', tabId: tabs[0].id });
+            if (currentHostname && settings) {
+                chrome.runtime.sendMessage({
+                    action: 'setBadgeState',
+                    tabId: tabs[0].id,
+                    mode: resolveEffectiveMode(currentHostname, settings)
+                });
+            } else {
+                chrome.runtime.sendMessage({ action: 'clearBadgeState', tabId: tabs[0].id });
+            }
             chrome.tabs.sendMessage(tabs[0].id, { action: 'darkLightRefresh' }, () => {
                 chrome.runtime.lastError;
             });

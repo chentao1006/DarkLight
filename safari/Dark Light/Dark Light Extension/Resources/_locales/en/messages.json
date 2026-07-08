@@ -53,6 +53,9 @@
   "deleteSite": {
     "message": "Delete"
   },
+  "deleteRuleConfirm": {
+    "message": "Delete rule for {site}?"
+  },
   "enterSiteDomain": {
     "message": "Enter domain (e.g. example.com)"
   },
@@ -114,10 +117,10 @@
     "message": "Premium unlocked. iCloud sync is off."
   },
   "proStatusLocked": {
-    "message": "Free version supports up to 5 site rules. Buy Premium in the Dark Light app to unlock unlimited rules, import/export, and iCloud sync."
+    "message": "Free version supports up to 3 site rules. Buy Premium in the Dark Light app to unlock unlimited rules, import/export, and iCloud sync."
   },
   "proRuleLimitAlert": {
-    "message": "Free version supports up to 5 site rules. Unlock Premium for unlimited rules, import/export, and iCloud sync."
+    "message": "Free version supports up to 3 site rules. Unlock Premium for unlimited rules, import/export, and iCloud sync."
   },
   "openPremiumFailed": {
     "message": "Open Dark Light and buy Premium to unlock this feature."

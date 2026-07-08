@@ -6,7 +6,7 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
-const FREE_RULE_LIMIT = 5;
+const FREE_RULE_LIMIT = 3;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
 const MODE_FORCE_LIGHT = 'forceLight';
@@ -90,7 +90,7 @@ function applyResolvedSettings(settings) {
   if (lastAppliedState === stateString) {
     if (configuredMode === MODE_PRESERVE_SITE) {
       try {
-        chrome.runtime.sendMessage({ action: 'clearBadgeState', source: rule ? 'siteRule' : 'default' });
+        chrome.runtime.sendMessage({ action: 'setBadgeState', mode: configuredMode, effectiveAppearance, source: rule ? 'siteRule' : 'default' });
       } catch (e) {}
     } else {
       try {
@@ -112,7 +112,9 @@ function applyResolvedSettings(settings) {
     activeAppearance = null;
     try {
       chrome.runtime.sendMessage({
-        action: 'clearBadgeState',
+        action: 'setBadgeState',
+        mode: configuredMode,
+        effectiveAppearance,
         source: rule ? 'siteRule' : 'default'
       });
     } catch (e) {}

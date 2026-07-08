@@ -1,7 +1,7 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
-const FREE_RULE_LIMIT = 5;
+const FREE_RULE_LIMIT = 3;
 const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
 const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
 const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentHostname = '';
     let premiumAutoRefreshTimer = null;
     let premiumAutoRefreshStartedAt = 0;
+    let premiumOpenInFlight = false;
 
     const versionEl = document.getElementById('version');
     if (versionEl && chrome.runtime.getManifest) {
@@ -200,13 +201,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function openPremium() {
+        if (premiumOpenInFlight) return;
+        premiumOpenInFlight = true;
+        startPremiumAutoRefresh();
         chrome.runtime.sendMessage({ action: 'openPremium' }, (response) => {
-            if (chrome.runtime.lastError || response?.ok !== true) {
-                alert(I18n.getMessage('openPremiumFailed') || 'Open Dark Light and buy Premium to unlock this feature.');
-                return;
-            }
-            startPremiumAutoRefresh();
+            premiumOpenInFlight = false;
         });
+        setTimeout(() => {
+            premiumOpenInFlight = false;
+        }, 2000);
     }
 
     function refreshEntitlements() {
@@ -441,7 +444,15 @@ function createId() {
 function notifyActiveTab() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0] && typeof tabs[0].id === 'number') {
-            chrome.runtime.sendMessage({ action: 'clearBadgeState', tabId: tabs[0].id });
+            if (currentHostname && settings) {
+                chrome.runtime.sendMessage({
+                    action: 'setBadgeState',
+                    tabId: tabs[0].id,
+                    mode: resolveEffectiveMode(currentHostname, settings)
+                });
+            } else {
+                chrome.runtime.sendMessage({ action: 'clearBadgeState', tabId: tabs[0].id });
+            }
             chrome.tabs.sendMessage(tabs[0].id, { action: 'darkLightRefresh' }, () => {
                 chrome.runtime.lastError;
             });

@@ -81,7 +81,8 @@ function applyResolvedSettings(settings) {
     }
     try {
       chrome.runtime.sendMessage({
-        action: 'clearBadgeState',
+        action: 'setBadgeState',
+        mode: configuredMode,
         source
       });
     } catch (e) {
