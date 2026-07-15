@@ -38,6 +38,12 @@ function bindEvents() {
   document.getElementById('saveRule').addEventListener('click', saveRuleFromForm);
 }
 
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
+  settings = normalizeSettings(changes[SETTINGS_KEY].newValue);
+  render();
+});
+
 function render() {
   renderModeOptions(document.getElementById('defaultMode'), false);
   renderModeOptions(document.getElementById('ruleMode'), true);

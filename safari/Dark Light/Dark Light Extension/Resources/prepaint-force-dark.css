@@ -16,9 +16,48 @@ html:not([data-dl-ready]) section,
 html:not([data-dl-ready]) aside,
 html:not([data-dl-ready]) nav,
 html:not([data-dl-ready]) header,
-html:not([data-dl-ready]) footer {
+html:not([data-dl-ready]) footer,
+html:not([data-dl-ready]) form,
+html:not([data-dl-ready]) center,
+html:not([data-dl-ready]) table,
+html:not([data-dl-ready]) thead,
+html:not([data-dl-ready]) tbody,
+html:not([data-dl-ready]) tr,
+html:not([data-dl-ready]) td,
+html:not([data-dl-ready]) th,
+html:not([data-dl-ready]) [bgcolor] {
   background-color: #111315 !important;
   color: #e7e9ec !important;
+}
+
+html:not([data-dl-ready]) th,
+html:not([data-dl-ready]) thead,
+html:not([data-dl-ready]) tr:first-child,
+html:not([data-dl-ready]) [class*="header"],
+html:not([data-dl-ready]) [class*="title"] {
+  background-color: #20262c !important;
+  color: #f1f5f9 !important;
+}
+
+html:not([data-dl-ready]) table,
+html:not([data-dl-ready]) thead,
+html:not([data-dl-ready]) tbody,
+html:not([data-dl-ready]) tr,
+html:not([data-dl-ready]) td,
+html:not([data-dl-ready]) th,
+html:not([data-dl-ready]) form,
+html:not([data-dl-ready]) input,
+html:not([data-dl-ready]) textarea,
+html:not([data-dl-ready]) select,
+html:not([data-dl-ready]) button {
+  border-color: #3d4650 !important;
+}
+
+html:not([data-dl-ready]) input,
+html:not([data-dl-ready]) textarea,
+html:not([data-dl-ready]) select {
+  background-color: #171b20 !important;
+  color: #f1f5f9 !important;
 }
 
 html:not([data-dl-ready]) a {

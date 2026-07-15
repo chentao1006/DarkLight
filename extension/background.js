@@ -120,8 +120,32 @@ function syncPrepaintContentScripts(settingsOverride) {
 function buildPrepaintContentScripts(settings) {
   const rules = settings.siteRules.filter((rule) => rule.enabled && PREPAINT_CSS_BY_MODE[rule.mode]);
   const usedIds = new Set();
+  const scripts = [];
+  const defaultCss = PREPAINT_CSS_BY_MODE[settings.defaultMode];
 
-  return rules
+  if (defaultCss) {
+    const defaultExcludeMatches = unique(rules
+      .filter((rule) => rule.mode !== MODE_INHERIT && rule.mode !== settings.defaultMode)
+      .flatMap(matchPatternsForRule));
+
+    const defaultScript = {
+      id: PREPAINT_SCRIPT_PREFIX + 'default',
+      matches: ['<all_urls>'],
+      css: [defaultCss],
+      runAt: 'document_start',
+      allFrames: true,
+      persistAcrossSessions: true
+    };
+
+    if (defaultExcludeMatches.length > 0) {
+      defaultScript.excludeMatches = defaultExcludeMatches;
+    }
+
+    usedIds.add(defaultScript.id);
+    scripts.push(defaultScript);
+  }
+
+  return scripts.concat(rules
     .map((rule, index) => {
       const matches = matchPatternsForRule(rule);
       if (matches.length === 0) return null;
@@ -145,7 +169,7 @@ function buildPrepaintContentScripts(settings) {
 
       return script;
     })
-    .filter(Boolean);
+    .filter(Boolean));
 }
 
 function createPrepaintScriptId(rule, index, usedIds) {

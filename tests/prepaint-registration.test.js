@@ -116,7 +116,7 @@ function testManifestDeclaresPrepaintAssets() {
 function testBackgroundRegistersFixedCssFilesFromSiteRules() {
   const settings = {
     version: 2,
-    defaultMode: 'forceLight',
+    defaultMode: 'forceDark',
     siteRules: [
       {
         id: 'root',
@@ -173,6 +173,18 @@ function testBackgroundRegistersFixedCssFilesFromSiteRules() {
     [{ ids: ['dark-light-prepaint-old'] }],
     'only previous Dark Light prepaint scripts should be unregistered'
   );
+
+  const defaultScript = byId(sandbox.calls.registered, 'dark-light-prepaint-default');
+  assert.ok(defaultScript, 'default mode should register a global prepaint script');
+  assert.deepStrictEqual(plain(defaultScript.css), ['prepaint-force-dark.css']);
+  assert.deepStrictEqual(plain(defaultScript.matches), ['<all_urls>']);
+  assert.deepStrictEqual(
+    plain(defaultScript.excludeMatches),
+    ['*://example.com/*', '*://*.example.com/*', '*://preserve.test/*', '*://*.preserve.test/*', '*://system.test/*', '*://*.system.test/*']
+  );
+  assert.strictEqual(defaultScript.runAt, 'document_start');
+  assert.strictEqual(defaultScript.allFrames, true);
+  assert.strictEqual(defaultScript.persistAcrossSessions, true);
 
   const rootScript = byId(sandbox.calls.registered, 'dark-light-prepaint-root');
   assert.ok(rootScript, 'enabled force-light site rule should be registered');

@@ -73,6 +73,11 @@ function bindEntitlementRefreshEvents() {
     entitlements = normalizeEntitlements(changes[ENTITLEMENTS_KEY].newValue);
     render();
   });
+  chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
+    settings = normalizeSettings(changes[SETTINGS_KEY].newValue);
+    render();
+  });
 }
 
 function render() {
