@@ -106,4 +106,12 @@ echo "Pushing commits and tags to remote..."
 git push
 git push --tags
 
+DOWNLOADS_DIR="$HOME/Downloads"
+if [ -d "$DOWNLOADS_DIR" ]; then
+    cp "$ZIP_NAME" "$FIREFOX_ZIP_NAME" "$DOWNLOADS_DIR/"
+    echo "Extension packages copied to $DOWNLOADS_DIR"
+else
+    echo "Downloads folder not found; packages remain in $ROOT_DIR/dist"
+fi
+
 echo "Release v$NEW_VERSION completed successfully!"
