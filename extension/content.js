@@ -903,6 +903,12 @@ function darkenPersistentLightContainers() {
     'nav',
     'header',
     'footer',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'td',
+    'th',
     '[role="main"]',
     '[role="dialog"]',
     '[class*="card"]',
@@ -974,6 +980,7 @@ function applyDarkLight(runId) {
         sepia: 0,
         immediateModify: true
       });
+      repairLightSurfaces(runId);
     } catch (e) {
       console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
       applyDarkTokenLayer();
@@ -1006,6 +1013,19 @@ function applyDarkLight(runId) {
   window.addEventListener('load', () => setTimeout(reinforceNativeSignals, 200));
   observeThemeChanges(() => {
     flipThemeSignalsToDark();
+    repairLightSurfaces(runId);
+  });
+}
+
+// Legacy forums often set a light background directly on table cells. Dark Reader
+// can leave those cells behind, so pair its result with the existing readability pass.
+function repairLightSurfaces(runId) {
+  requestAnimationFrame(() => {
+    if (!isCurrentRun(runId)) return;
+    applyDarkTokenLayer();
+    darkenPersistentLightContainers();
+    darkenVisibleLightBlocks();
+    liftDarkForegrounds();
   });
 }
 
