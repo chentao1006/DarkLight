@@ -8,9 +8,10 @@ const SETTINGS_VERSION = 2;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
 const MODE_FORCE_LIGHT = 'forceLight';
+const MODE_TIME_BASED = 'timeBased';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
-const VALID_DEFAULT_MODES = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
+const VALID_DEFAULT_MODES = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_TIME_BASED, MODE_PRESERVE_SITE];
 
 const MATCH_ATTRS = [
   'theme',
@@ -45,6 +46,7 @@ let themeObserver = null;
 let appearanceRunId = 0;
 let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
+let timeBasedRefreshTimer = null;
 const themeSnapshots = new WeakMap();
 
 loadSettings((settings) => {
@@ -92,7 +94,8 @@ function applyResolvedSettings(settings) {
     return;
   }
 
-  const effectiveAppearance = resolveEffectiveAppearance(configuredMode);
+  const effectiveAppearance = resolveEffectiveAppearance(configuredMode, currentSettings);
+  scheduleTimeBasedRefresh(configuredMode, currentSettings);
 
   try {
     chrome.runtime.sendMessage({
@@ -175,6 +178,8 @@ function normalizeSettings(settings) {
   const normalized = {
     version: SETTINGS_VERSION,
     defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : MODE_FOLLOW_SYSTEM,
+    darkTimeStart: normalizeTime(settings.darkTimeStart, '19:00'),
+    darkTimeEnd: normalizeTime(settings.darkTimeEnd, '07:00'),
     siteRules: []
   };
 
@@ -240,10 +245,36 @@ function resolveRule(hostname, settings) {
   return matches[0] || null;
 }
 
-function resolveEffectiveAppearance(configuredMode) {
+function resolveEffectiveAppearance(configuredMode, settings = currentSettings) {
   if (configuredMode === MODE_FORCE_DARK) return 'dark';
   if (configuredMode === MODE_FORCE_LIGHT) return 'light';
+  if (configuredMode === MODE_TIME_BASED) return isDarkTime(new Date(), settings?.darkTimeStart, settings?.darkTimeEnd) ? 'dark' : 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function normalizeTime(value, fallback) { return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback; }
+function timeToMinutes(value) { const [hours, minutes] = normalizeTime(value, '00:00').split(':').map(Number); return hours * 60 + minutes; }
+function isDarkTime(now, start, end) {
+  const startMinutes = timeToMinutes(normalizeTime(start, '19:00'));
+  const endMinutes = timeToMinutes(normalizeTime(end, '07:00'));
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  if (startMinutes === endMinutes) return true;
+  return startMinutes < endMinutes ? nowMinutes >= startMinutes && nowMinutes < endMinutes : nowMinutes >= startMinutes || nowMinutes < endMinutes;
+}
+function scheduleTimeBasedRefresh(configuredMode, settings) {
+  if (timeBasedRefreshTimer) clearTimeout(timeBasedRefreshTimer);
+  timeBasedRefreshTimer = null;
+  if (configuredMode !== MODE_TIME_BASED) return;
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const minutesUntilBoundary = Math.min(...[timeToMinutes(settings.darkTimeStart), timeToMinutes(settings.darkTimeEnd)].map((boundary) => {
+    const delta = (boundary - nowMinutes + 1440) % 1440;
+    return delta === 0 ? 1440 : delta;
+  }));
+  const nextBoundary = new Date(now);
+  nextBoundary.setSeconds(1, 0);
+  nextBoundary.setMinutes(nextBoundary.getMinutes() + minutesUntilBoundary);
+  timeBasedRefreshTimer = setTimeout(() => { timeBasedRefreshTimer = null; if (currentSettings) applyResolvedSettings(currentSettings); }, Math.max(1000, nextBoundary.getTime() - Date.now()));
 }
 
 function setupSystemAppearanceListener() {

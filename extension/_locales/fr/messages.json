@@ -23,6 +23,8 @@
   "forceLight": {
     "message": "Forcer le mode clair"
   },
+  "timeBased": { "message": "Changer selon l’horaire" },
+  "darkTimeRange": { "message": "Plage sombre" },
   "useDefault": {
     "message": "Utiliser par défaut"
   },

@@ -23,6 +23,13 @@
   "forceLight": {
     "message": "強制的にライト"
   },
+  "timeBased": {
+    "message": "時間帯で切り替え"
+  },
+  "darkTimeRange": {
+    "message": "ダーク時間"
+  },
+  "proBadge": { "message": "プレミアム" },
   "useDefault": {
     "message": "デフォルトを使用"
   },

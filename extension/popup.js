@@ -1,6 +1,6 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
-const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
+const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.userAgent.includes('iPhone')) {
@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     localize();
 
     const defaultMode = document.getElementById('defaultMode');
+    const darkTimeRange = document.getElementById('darkTimeRange');
+    const darkTimeStart = document.getElementById('darkTimeStart');
+    const darkTimeEnd = document.getElementById('darkTimeEnd');
     const siteMode = document.getElementById('siteMode');
     const matchSubdomains = document.getElementById('matchSubdomains');
     const currentHostnameEl = document.getElementById('currentHostname');
@@ -46,6 +49,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadSettings((loaded) => {
         settings = loaded;
         defaultMode.value = settings.defaultMode;
+        darkTimeStart.value = settings.darkTimeStart;
+        darkTimeEnd.value = settings.darkTimeEnd;
+        renderDarkTimeRange();
 
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs[0];
@@ -82,10 +88,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     defaultMode.addEventListener('change', () => {
         settings.defaultMode = defaultMode.value;
         saveSettings(settings, () => {
+            renderDarkTimeRange();
             renderSiteRule();
             notifyActiveTab();
         });
     });
+
+    [darkTimeStart, darkTimeEnd].forEach((input) => input.addEventListener('change', () => {
+        settings.darkTimeStart = normalizeTime(darkTimeStart.value, '19:00');
+        settings.darkTimeEnd = normalizeTime(darkTimeEnd.value, '07:00');
+        saveSettings(settings, notifyActiveTab);
+    }));
 
     siteMode.addEventListener('change', () => {
         if (!currentHostname) return;
@@ -117,6 +130,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (activeBanner && !activeBanner.classList.contains('hidden')) {
             updateActiveBanner(resolveEffectiveMode(currentHostname, settings));
         }
+    }
+
+    function renderDarkTimeRange() {
+        darkTimeRange.classList.toggle('hidden', settings.defaultMode !== 'timeBased');
     }
 
     function setRuleForCurrentSite(mode) {
@@ -180,6 +197,7 @@ function modeLabel(mode) {
     const key = {
         inherit: 'useDefault',
         followSystem: 'followSystem',
+        timeBased: 'timeBased',
         preserveSite: 'preserveSite',
         forceDark: 'forceDark',
         forceLight: 'forceLight'
@@ -272,6 +290,8 @@ function normalizeSettings(settings) {
     return {
         version: SETTINGS_VERSION,
         defaultMode: validDefaultModes.includes(settings.defaultMode) ? settings.defaultMode : 'followSystem',
+        darkTimeStart: normalizeTime(settings.darkTimeStart, '19:00'),
+        darkTimeEnd: normalizeTime(settings.darkTimeEnd, '07:00'),
         siteRules: Array.isArray(settings.siteRules)
             ? settings.siteRules
                 .map((rule) => ({
@@ -284,6 +304,10 @@ function normalizeSettings(settings) {
                 .filter((rule) => rule.pattern)
             : []
     };
+}
+
+function normalizeTime(value, fallback) {
+    return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback;
 }
 
 function resolveRule(hostname, settings, includeDisabled) {

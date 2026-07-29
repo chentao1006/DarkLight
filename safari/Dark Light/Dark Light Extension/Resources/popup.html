@@ -34,16 +34,6 @@
         <span id="activeBannerText" data-i18n="activeBannerText">Active on this page</span>
     </div>
 
-    <section class="panel">
-        <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
-        <select id="defaultMode" class="select-mode">
-            <option value="followSystem" data-i18n="followSystem">Follow System</option>
-            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
-            <option value="forceDark" data-i18n="forceDark">Force Dark</option>
-            <option value="forceLight" data-i18n="forceLight">Force Light</option>
-        </select>
-    </section>
-
     <section id="sitePanel" class="panel">
         <div class="site-heading">
             <span data-i18n="currentSite">Current Site</span>
@@ -54,15 +44,33 @@
         <select id="siteMode" class="select-mode">
             <option value="inherit" data-i18n="useDefault">Use Default</option>
             <option value="followSystem" data-i18n="followSystem">Follow System</option>
-            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
             <option value="forceDark" data-i18n="forceDark">Force Dark</option>
             <option value="forceLight" data-i18n="forceLight">Force Light</option>
+            <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
         </select>
 
         <label class="checkbox-row">
             <input type="checkbox" id="matchSubdomains">
             <span data-i18n="matchSubdomains">Match subdomains</span>
         </label>
+    </section>
+
+    <section class="panel">
+        <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
+        <select id="defaultMode" class="select-mode">
+            <option value="followSystem" data-i18n="followSystem">Follow System</option>
+            <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+            <option value="forceLight" data-i18n="forceLight">Force Light</option>
+            <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+            <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+        </select>
+        <div id="darkTimeRange" class="time-range hidden">
+            <span data-i18n="darkTimeRange">Dark time</span>
+            <input id="darkTimeStart" type="time" value="19:00" aria-label="Dark mode start time">
+            <span aria-hidden="true">–</span>
+            <input id="darkTimeEnd" type="time" value="07:00" aria-label="Dark mode end time">
+        </div>
     </section>
 
     <button id="openOptions" class="site-btn secondary" data-i18n="manageRules">Manage All Rules</button>

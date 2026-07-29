@@ -2,7 +2,8 @@ const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
 const FREE_RULE_LIMIT = 3;
-const VALID_DEFAULT_MODES = ['followSystem', 'preserveSite', 'forceDark', 'forceLight'];
+const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
+const PRO_MODES = new Set(['timeBased', 'preserveSite']);
 const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
 const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
 
@@ -41,8 +42,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function bindEvents() {
   document.getElementById('defaultMode').addEventListener('change', (event) => {
+    if (isLockedProMode(event.target.value)) {
+      event.target.value = settings.defaultMode;
+      showProRequired();
+      return;
+    }
     settings.defaultMode = event.target.value;
     saveSettings(settings, render);
+  });
+
+  ['darkTimeStart', 'darkTimeEnd'].forEach((id) => {
+    document.getElementById(id).addEventListener('change', () => {
+      settings.darkTimeStart = normalizeTime(document.getElementById('darkTimeStart').value, '19:00');
+      settings.darkTimeEnd = normalizeTime(document.getElementById('darkTimeEnd').value, '07:00');
+      saveSettings(settings, render);
+    });
   });
 
   document.getElementById('addRule').addEventListener('click', () => openRuleForm());
@@ -84,6 +98,9 @@ function render() {
   renderModeOptions(document.getElementById('defaultMode'), false);
   renderModeOptions(document.getElementById('ruleMode'), true);
   document.getElementById('defaultMode').value = settings.defaultMode;
+  document.getElementById('darkTimeStart').value = settings.darkTimeStart;
+  document.getElementById('darkTimeEnd').value = settings.darkTimeEnd;
+  document.getElementById('darkTimeRange').classList.toggle('hidden', settings.defaultMode !== 'timeBased');
   renderProControls();
   const ruleList = document.getElementById('ruleList');
   ruleList.innerHTML = '';
@@ -356,6 +373,7 @@ function modeLabel(mode) {
   const key = {
     inherit: 'useDefault',
     followSystem: 'followSystem',
+    timeBased: 'timeBased',
     preserveSite: 'preserveSite',
     forceDark: 'forceDark',
     forceLight: 'forceLight'
@@ -370,7 +388,7 @@ function renderModeOptions(select, includeInherit) {
   modes.forEach((mode) => {
     const option = document.createElement('option');
     option.value = mode;
-    option.textContent = modeLabel(mode);
+    option.textContent = `${modeLabel(mode)}${!includeInherit && isLockedProMode(mode) ? `（${I18n.getMessage('proBadge') || 'Premium'}）` : ''}`;
     select.appendChild(option);
   });
   select.value = modes.includes(currentValue) ? currentValue : modes[0];
@@ -431,6 +449,10 @@ function allowedDefaultModes() {
   return VALID_DEFAULT_MODES;
 }
 
+function isLockedProMode(mode) {
+  return PRO_MODES.has(mode) && requiresProUpgrade();
+}
+
 function allowedRuleModes() {
   return ['inherit', ...allowedDefaultModes()];
 }
@@ -472,7 +494,9 @@ function normalizeSettings(nextSettings) {
   const validRuleModes = allowedRuleModes();
   return {
     version: SETTINGS_VERSION,
-    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
+    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) && !isLockedProMode(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
+    darkTimeStart: normalizeTime(nextSettings.darkTimeStart, '19:00'),
+    darkTimeEnd: normalizeTime(nextSettings.darkTimeEnd, '07:00'),
     siteRules: Array.isArray(nextSettings.siteRules)
       ? nextSettings.siteRules
         .map((rule) => ({
@@ -485,6 +509,10 @@ function normalizeSettings(nextSettings) {
         .filter((rule) => rule.pattern)
       : []
   };
+}
+
+function normalizeTime(value, fallback) {
+  return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback;
 }
 
 function normalizePattern(pattern) {

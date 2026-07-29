@@ -23,6 +23,13 @@
   "forceLight": {
     "message": "Hell erzwingen"
   },
+  "timeBased": {
+    "message": "Nach Zeitplan wechseln"
+  },
+  "darkTimeRange": {
+    "message": "Dunkle Zeit"
+  },
+  "proBadge": { "message": "Premium" },
   "useDefault": {
     "message": "Standard verwenden"
   },

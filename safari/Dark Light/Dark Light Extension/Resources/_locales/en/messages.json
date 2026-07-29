@@ -23,6 +23,13 @@
   "forceLight": {
     "message": "Force Light"
   },
+  "timeBased": {
+    "message": "Change by Time"
+  },
+  "darkTimeRange": {
+    "message": "Dark time"
+  },
+  "proBadge": { "message": "Premium" },
   "useDefault": {
     "message": "Use Default"
   },

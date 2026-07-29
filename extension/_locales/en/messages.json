@@ -23,6 +23,8 @@
   "forceLight": {
     "message": "Force Light"
   },
+  "timeBased": { "message": "Change by Time" },
+  "darkTimeRange": { "message": "Dark time" },
   "useDefault": {
     "message": "Use Default"
   },

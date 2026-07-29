@@ -23,6 +23,13 @@
   "forceLight": {
     "message": "강제 라이트"
   },
+  "timeBased": {
+    "message": "시간대에 따라 변경"
+  },
+  "darkTimeRange": {
+    "message": "어두운 시간"
+  },
+  "proBadge": { "message": "프리미엄" },
   "useDefault": {
     "message": "기본값 사용"
   },

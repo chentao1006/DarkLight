@@ -23,6 +23,8 @@
   "forceLight": {
     "message": "强制浅色"
   },
+  "timeBased": { "message": "根据时间段改变" },
+  "darkTimeRange": { "message": "深色时间段" },
   "useDefault": {
     "message": "使用默认模式"
   },

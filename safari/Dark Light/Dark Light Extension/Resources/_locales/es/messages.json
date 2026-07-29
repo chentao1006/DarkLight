@@ -23,6 +23,13 @@
   "forceLight": {
     "message": "Forzar claro"
   },
+  "timeBased": {
+    "message": "Cambiar según horario"
+  },
+  "darkTimeRange": {
+    "message": "Horario oscuro"
+  },
+  "proBadge": { "message": "Premium" },
   "useDefault": {
     "message": "Usar predeterminado"
   },

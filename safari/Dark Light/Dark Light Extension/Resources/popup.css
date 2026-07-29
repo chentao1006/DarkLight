@@ -143,6 +143,26 @@ label,
   border-color: var(--accent);
 }
 
+.time-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.time-range input {
+  min-width: 0;
+  flex: 1;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 0 6px;
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;

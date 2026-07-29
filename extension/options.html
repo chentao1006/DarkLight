@@ -37,10 +37,12 @@
                 <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
                 <select id="defaultMode">
                     <option value="followSystem" data-i18n="followSystem">Follow System</option>
-                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
                     <option value="forceDark" data-i18n="forceDark">Force Dark</option>
                     <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
                 </select>
+                <div id="darkTimeRange" class="time-range hidden"><span data-i18n="darkTimeRange">Dark time</span><input id="darkTimeStart" type="time" value="19:00"><span>–</span><input id="darkTimeEnd" type="time" value="07:00"></div>
             </div>
         </section>
 
@@ -55,9 +57,10 @@
                 <select id="ruleMode">
                     <option value="inherit" data-i18n="useDefault">Use Default</option>
                     <option value="followSystem" data-i18n="followSystem">Follow System</option>
-                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
                     <option value="forceDark" data-i18n="forceDark">Force Dark</option>
                     <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
                 </select>
                 <label class="inline-check">
                     <input id="ruleSubdomains" type="checkbox" checked>

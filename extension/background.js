@@ -3,6 +3,7 @@ const SETTINGS_VERSION = 2;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
 const MODE_FORCE_LIGHT = 'forceLight';
+const MODE_TIME_BASED = 'timeBased';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
 const PREPAINT_SCRIPT_PREFIX = 'dark-light-prepaint-';
@@ -22,8 +23,9 @@ function setBadgeState(tabId, appearance, mode) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
   const isFollowSystem = mode === 'followSystem';
+  const isTimeBased = mode === MODE_TIME_BASED;
   const isPreserveSite = mode === 'preserveSite';
-  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isPreserveSite ? 'O' : '';
+  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isTimeBased ? 'T' : isPreserveSite ? 'O' : '';
   const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0b5cff' : '#334155';
 
   chrome.action.setBadgeText({ text, tabId });
@@ -159,13 +161,14 @@ function syncPrepaintContentScripts(settingsOverride) {
 }
 
 function buildPrepaintContentScripts(settings) {
-  const rules = settings.siteRules.filter((rule) => rule.enabled && PREPAINT_CSS_BY_MODE[rule.mode]);
+  const allEnabledRules = settings.siteRules.filter((rule) => rule.enabled && rule.mode !== MODE_INHERIT);
+  const rules = allEnabledRules.filter((rule) => PREPAINT_CSS_BY_MODE[rule.mode]);
   const usedIds = new Set();
   const scripts = [];
   const defaultCss = PREPAINT_CSS_BY_MODE[settings.defaultMode];
 
   if (defaultCss) {
-    const defaultExcludeMatches = unique(rules
+    const defaultExcludeMatches = unique(allEnabledRules
       .filter((rule) => rule.mode !== MODE_INHERIT && rule.mode !== settings.defaultMode)
       .flatMap(matchPatternsForRule));
 
@@ -191,7 +194,7 @@ function buildPrepaintContentScripts(settings) {
       const matches = matchPatternsForRule(rule);
       if (matches.length === 0) return null;
 
-      const excludeMatches = unique(rules
+      const excludeMatches = unique(allEnabledRules
         .filter((other) => other !== rule && isMoreSpecificCoveredRule(rule, other))
         .flatMap(matchPatternsForRule));
 
@@ -301,11 +304,13 @@ function migrateLegacySettings(result) {
 }
 
 function normalizeSettings(settings) {
-  const validDefaultModes = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_PRESERVE_SITE];
+  const validDefaultModes = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_TIME_BASED, MODE_PRESERVE_SITE];
   const validRuleModes = [...validDefaultModes, MODE_INHERIT];
   const normalized = {
     version: SETTINGS_VERSION,
     defaultMode: validDefaultModes.includes(settings?.defaultMode) ? settings.defaultMode : MODE_FOLLOW_SYSTEM,
+    darkTimeStart: normalizeTime(settings?.darkTimeStart, '19:00'),
+    darkTimeEnd: normalizeTime(settings?.darkTimeEnd, '07:00'),
     siteRules: []
   };
 
@@ -323,6 +328,8 @@ function normalizeSettings(settings) {
 
   return normalized;
 }
+
+function normalizeTime(value, fallback) { return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : fallback; }
 
 function normalizePattern(pattern) {
   if (!pattern || typeof pattern !== 'string') return '';

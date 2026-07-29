@@ -23,6 +23,8 @@
   "forceLight": {
     "message": "Forzar claro"
   },
+  "timeBased": { "message": "Cambiar según horario" },
+  "darkTimeRange": { "message": "Horario oscuro" },
   "useDefault": {
     "message": "Usar predeterminado"
   },
