@@ -20,7 +20,3 @@ html:not([data-dl-ready]) footer {
   background-color: #ffffff !important;
   color: #1a1a1a !important;
 }
-
-html:not([data-dl-ready]) a {
-  color: #0969da !important;
-}

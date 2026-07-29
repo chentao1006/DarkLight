@@ -59,7 +59,3 @@ html:not([data-dl-ready]) select {
   background-color: #171b20 !important;
   color: #f1f5f9 !important;
 }
-
-html:not([data-dl-ready]) a {
-  color: #8ab4ff !important;
-}

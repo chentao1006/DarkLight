@@ -22,9 +22,6 @@ html:not([data-dl-ready])::before {
     color: #e7e9ec !important;
   }
 
-  html:not([data-dl-ready]) a {
-    color: #8ab4ff !important;
-  }
 }
 
 @media (prefers-color-scheme: light) {
@@ -46,7 +43,4 @@ html:not([data-dl-ready])::before {
     color: #1a1a1a !important;
   }
 
-  html:not([data-dl-ready]) a {
-    color: #0969da !important;
-  }
 }

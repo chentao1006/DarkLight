@@ -51,6 +51,38 @@ function setBadgeState(tabId, appearance, mode) {
   }
 }
 
+function resolveModeForUrl(url, settings) {
+  try {
+    const hostname = normalizePattern(new URL(url).hostname);
+    const matches = settings.siteRules.filter((rule) => {
+      if (!rule.enabled) return false;
+      return hostname === rule.pattern || (rule.matchSubdomains && hostname.endsWith('.' + rule.pattern));
+    });
+    matches.sort((a, b) => b.pattern.length - a.pattern.length);
+    const rule = matches[0];
+    return rule && rule.mode !== MODE_INHERIT ? rule.mode : settings.defaultMode;
+  } catch (_) {
+    return null;
+  }
+}
+
+function refreshBadgeForTab(tabId, url) {
+  if (typeof tabId !== 'number' || !/^https?:\/\//i.test(url || '')) {
+    chrome.action.setBadgeText({ text: '', tabId });
+    return;
+  }
+  loadSettings((settings) => {
+    const mode = resolveModeForUrl(url, settings);
+    if (mode) setBadgeState(tabId, null, mode);
+  });
+}
+
+function refreshBadgeForTabId(tabId) {
+  chrome.tabs.get(tabId, (tab) => {
+    if (!chrome.runtime.lastError) refreshBadgeForTab(tabId, tab?.url);
+  });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   setBadgeOff();
   syncPrepaintContentScripts();
@@ -63,12 +95,20 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.runtime.onStartup.addListener(refreshProStateAndSync);
 chrome.tabs.onActivated.addListener(({ tabId }) => {
   refreshTabAppearance(tabId);
+  refreshBadgeForTabId(tabId);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url || changeInfo.status === 'complete') {
+    refreshBadgeForTab(tabId, changeInfo.url || tab.url);
+  }
 });
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && changes[SETTINGS_KEY]) {
     pushSettingsToICloud(changes[SETTINGS_KEY].newValue);
     syncPrepaintContentScripts(changes[SETTINGS_KEY].newValue);
+    chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
   }
 });
 
@@ -77,6 +117,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const tabId = message.tabId ?? sender.tab?.id;
     if (typeof tabId === 'number') {
       setBadgeState(tabId, message.effectiveAppearance, message.mode);
+      refreshBadgeForTabId(tabId);
     }
   }
   if (message.action === 'clearBadgeState') {

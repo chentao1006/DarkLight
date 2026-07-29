@@ -754,7 +754,6 @@ function applyDarkTokenLayer() {
       --dl-border: #343a40;
       --dl-text: #e7e9ec;
       --dl-muted: #b2bac2;
-      --dl-link: #8ab4ff;
     }
 
     html, body {
@@ -777,10 +776,6 @@ function applyDarkTokenLayer() {
     p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6,
     td, th, blockquote, pre, code {
       color: inherit;
-    }
-
-    a {
-      color: var(--dl-link) !important;
     }
 
     input, textarea, select {
