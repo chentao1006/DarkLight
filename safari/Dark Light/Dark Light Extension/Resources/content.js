@@ -404,6 +404,11 @@ function parseColor(colorStr) {
   return null;
 }
 
+function isNeutralColor(color) {
+  if (!color) return false;
+  return Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) < 24;
+}
+
 function isDarkColor(r, g, b) {
   return getLuminance(r, g, b) < 0.12;
 }
@@ -854,10 +859,6 @@ function applyDarkTokenLayer() {
 
     button, input[type="button"], input[type="submit"], input[type="reset"],
     [role="button"], [class*="button"], [class*="Button"] {
-      color: #f8fafc !important;
-      -webkit-text-fill-color: #f8fafc !important;
-      fill: #f8fafc !important;
-      stroke: #f8fafc !important;
       border-color: #59636e;
       color-scheme: dark !important;
       text-shadow: none !important;
@@ -869,12 +870,7 @@ function applyDarkTokenLayer() {
     input.gNO89b,
     input.RNmpXc,
     input[name="btnK"],
-    input[name="btnI"] {
-      color: #ffffff !important;
-      -webkit-text-fill-color: #ffffff !important;
-      fill: #ffffff !important;
-      stroke: #ffffff !important;
-    }
+    input[name="btnI"] { color-scheme: dark !important; }
 
     img, video, canvas, svg {
       opacity: 1 !important;
@@ -969,7 +965,7 @@ function liftDarkForegrounds() {
 
     const style = window.getComputedStyle(el);
     const color = parseColor(style.color);
-    if (color && getLuminance(color.r, color.g, color.b) < 0.45) {
+    if (isNeutralColor(color) && getLuminance(color.r, color.g, color.b) < 0.45) {
       setReadableForeground(el, '#f1f5f9');
     }
 
@@ -978,7 +974,9 @@ function liftDarkForegrounds() {
       const stroke = parseColor(style.stroke);
       const fillIsDark = fill && getLuminance(fill.r, fill.g, fill.b) < 0.45;
       const strokeIsDark = stroke && getLuminance(stroke.r, stroke.g, stroke.b) < 0.45;
-      if (fillIsDark || strokeIsDark || el.matches('svg, [role="img"], [aria-hidden="true"]')) {
+      // Only lift vectors whose own paint is too dark. Recolouring every SVG
+      // after load erases meaningful status and brand colours.
+      if ((fillIsDark && isNeutralColor(fill)) || (strokeIsDark && isNeutralColor(stroke))) {
         setReadableVectorForeground(el, '#f1f5f9');
       }
     }
