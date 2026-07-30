@@ -997,28 +997,38 @@ function applyDarkLight(runId) {
   if (!isCurrentRun(runId)) return;
   flipThemeSignalsToDark();
 
-  if (window.DarkReader?.enable) {
-    try {
-      window.DarkReader.setFetchMethod?.(window.fetch.bind(window));
-      window.DarkReader.enable({
-        brightness: 100,
-        contrast: 100,
-        sepia: 0,
-        immediateModify: true
-      });
-      repairLightSurfaces(runId);
-    } catch (e) {
-      console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
+  const startDarkReader = () => {
+    if (!isCurrentRun(runId)) return;
+    if (window.DarkReader?.enable) {
+      try {
+        window.DarkReader.setFetchMethod?.(window.fetch.bind(window));
+        window.DarkReader.enable({
+          brightness: 100,
+          contrast: 100,
+          sepia: 0
+        });
+        repairLightSurfaces(runId);
+      } catch (e) {
+        console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
+        applyDarkTokenLayer();
+        darkenPersistentLightContainers();
+        darkenVisibleLightBlocks();
+        liftDarkForegrounds();
+      }
+    } else {
       applyDarkTokenLayer();
       darkenPersistentLightContainers();
       darkenVisibleLightBlocks();
       liftDarkForegrounds();
     }
+  };
+
+  // Dark Reader mutates the live stylesheet tree. Starting it at document_start
+  // can race pages such as Zhihu while their head/body nodes are being replaced.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startDarkReader, { once: true });
   } else {
-    applyDarkTokenLayer();
-    darkenPersistentLightContainers();
-    darkenVisibleLightBlocks();
-    liftDarkForegrounds();
+    startDarkReader();
   }
 
   markPrepaintReady();

@@ -4111,11 +4111,12 @@
                             return;
                         }
                         const property = varNameWrapper(varName);
+                        const themeValue = getDarkThemeVariableValue(sourceValue);
                         let modifiedValue;
-                        if (isVarDependant(sourceValue)) {
-                            if (isConstructedColorVar(sourceValue)) {
+                        if (isVarDependant(themeValue)) {
+                            if (isConstructedColorVar(themeValue)) {
                                 let value = insertVarValues(
-                                    sourceValue,
+                                    themeValue,
                                     this.unstableVarValues
                                 );
                                 if (!value) {
@@ -4127,13 +4128,13 @@
                                 modifiedValue = colorModifier(value, theme);
                             } else {
                                 modifiedValue = replaceCSSVariablesNames(
-                                    sourceValue,
+                                    themeValue,
                                     (v) => varNameWrapper(v),
                                     (fallback) => colorModifier(fallback, theme)
                                 );
                             }
                         } else {
-                            modifiedValue = colorModifier(sourceValue, theme);
+                            modifiedValue = colorModifier(themeValue, theme);
                         }
                         declarations.push({
                             property,
@@ -4270,6 +4271,10 @@
                 return (theme) => {
                     const unknownVars = new Set();
                     const modify = () => {
+                        const defaultFallback =
+                            property === "background"
+                                ? tryModifyBgColor("#ffffff", theme)
+                                : undefined;
                         const variableReplaced = replaceCSSVariablesNames(
                             sourceValue,
                             (v) => {
@@ -4282,7 +4287,8 @@
                                 unknownVars.add(v);
                                 return v;
                             },
-                            (fallback) => tryModifyBgColor(fallback, theme)
+                            (fallback) => tryModifyBgColor(fallback, theme),
+                            defaultFallback
                         );
                         if (property === "box-shadow") {
                             const shadowModifier =
@@ -4634,6 +4640,15 @@
             fallback = "";
         }
         return {name, fallback};
+    }
+    function getDarkThemeVariableValue(value) {
+        const matches = getVariablesMatches(value);
+        if (matches.length !== 2 || value.slice(matches[0].end, matches[1].start).trim() !== "") {
+            return value;
+        }
+        const light = getVariableNameAndFallback(matches[0].value);
+        const dark = getVariableNameAndFallback(matches[1].value);
+        return light.name === "--flag-light" && dark.name === "--flag-dark" ? matches[1].value : value;
     }
     function replaceCSSVariablesNames(
         value,
@@ -7673,6 +7688,9 @@
         document.addEventListener("__darkreader__isDefined", handleIsDefined);
         collectUndefinedElements(document);
         addDOMReadyListener(() => {
+            if (document.body == null) {
+                return;
+            }
             forEach(document.body.children, (el) => {
                 if (el.shadowRoot && !observedRoots.has(el)) {
                     subscribeForShadowRootChanges(el);

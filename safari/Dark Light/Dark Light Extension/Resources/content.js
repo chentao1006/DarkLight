@@ -1152,16 +1152,12 @@ function applyDarkLight(runId) {
     }
   };
 
-  if (document.head) {
-    startDarkReader();
+  // Dark Reader mutates the live stylesheet tree. Starting it at document_start
+  // can race pages such as Zhihu while their head/body nodes are being replaced.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startDarkReader, { once: true });
   } else {
-    const headObserver = new MutationObserver(() => {
-      if (document.head) {
-        headObserver.disconnect();
-        startDarkReader();
-      }
-    });
-    headObserver.observe(document.documentElement || document, { childList: true, subtree: true });
+    startDarkReader();
   }
 
   markPrepaintReady();
