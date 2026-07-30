@@ -51,6 +51,7 @@ let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
 let timeBasedRefreshTimer = null;
 const themeSnapshots = new WeakMap();
+const lightSurfaceForegroundSnapshots = new WeakMap();
 
 loadEntitlements((entitlements) => {
   currentEntitlements = entitlements;
@@ -705,6 +706,22 @@ function cleanupAppearanceOverrides() {
     el.removeAttribute('data-dl-foreground');
   });
 
+  document.querySelectorAll('[data-dl-preserved-foreground]').forEach((el) => {
+    const snapshot = lightSurfaceForegroundSnapshots.get(el);
+    ['color', '-webkit-text-fill-color'].forEach((property) => {
+      el.style.removeProperty(property);
+      const original = snapshot?.[property];
+      if (original?.value) el.style.setProperty(property, original.value, original.priority);
+    });
+    el.removeAttribute('data-dl-preserved-foreground');
+  });
+
+  document.querySelectorAll('[data-dl-light-control-foreground]').forEach((el) => {
+    el.style.removeProperty('color');
+    el.style.removeProperty('-webkit-text-fill-color');
+    el.removeAttribute('data-dl-light-control-foreground');
+  });
+
   document.querySelectorAll('[data-dl-illuminated]').forEach((el) => {
     el.style.removeProperty('filter');
     el.querySelectorAll('img, video, canvas, svg, [style*="background-image"]').forEach((media) => {
@@ -917,6 +934,65 @@ function getReadableBackground(el) {
   return { r: 17, g: 19, b: 21, a: 1 };
 }
 
+function captureLightSurfaceForegrounds() {
+  if (!document.body) return;
+  const captured = new Set();
+  document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]').forEach((surface) => {
+    const background = getEffectiveBackground(surface);
+    if (!background || !isLightColor(background.r, background.g, background.b)) return;
+    [surface, ...surface.querySelectorAll('*')].forEach((el) => {
+      if (captured.has(el)) return;
+      captured.add(el);
+    lightSurfaceForegroundSnapshots.set(el, {
+      color: { value: el.style.getPropertyValue('color'), priority: el.style.getPropertyPriority('color') },
+      '-webkit-text-fill-color': { value: el.style.getPropertyValue('-webkit-text-fill-color'), priority: el.style.getPropertyPriority('-webkit-text-fill-color') },
+      computedColor: window.getComputedStyle(el).color,
+      computedTextFillColor: window.getComputedStyle(el).webkitTextFillColor
+    });
+    });
+  });
+}
+
+function restoreLightSurfaceForegrounds() {
+  document.querySelectorAll('[data-dl-preserved-foreground]').forEach((el) => {
+    const snapshot = lightSurfaceForegroundSnapshots.get(el);
+    if (!snapshot) return;
+    el.setAttribute('data-dl-preserved-foreground', 'true');
+    el.style.setProperty('color', snapshot.computedColor, 'important');
+    if (snapshot.computedTextFillColor && snapshot.computedTextFillColor !== snapshot.computedColor) {
+      el.style.setProperty('-webkit-text-fill-color', snapshot.computedTextFillColor, 'important');
+    }
+  });
+
+  document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]').forEach((surface) => {
+    [surface, ...surface.querySelectorAll('*')].forEach((el) => {
+      const snapshot = lightSurfaceForegroundSnapshots.get(el);
+      if (!snapshot) return;
+      el.setAttribute('data-dl-preserved-foreground', 'true');
+      el.style.setProperty('color', snapshot.computedColor, 'important');
+      if (snapshot.computedTextFillColor && snapshot.computedTextFillColor !== snapshot.computedColor) {
+        el.style.setProperty('-webkit-text-fill-color', snapshot.computedTextFillColor, 'important');
+      }
+    });
+  });
+}
+
+function repairLightControlForegrounds() {
+  document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]').forEach((el) => {
+    const background = getEffectiveBackground(el);
+    if (!background || !isLightColor(background.r, background.g, background.b)) return;
+
+    const snapshot = lightSurfaceForegroundSnapshots.get(el);
+    const preserved = parseColor(snapshot?.computedColor);
+    const color = preserved && getLuminance(preserved.r, preserved.g, preserved.b) < 0.5
+      ? snapshot.computedColor
+      : '#1f2328';
+    el.setAttribute('data-dl-light-control-foreground', 'true');
+    el.style.setProperty('color', color, 'important');
+    el.style.setProperty('-webkit-text-fill-color', color, 'important');
+  });
+}
+
 function setReadableForeground(el, color) {
   el.setAttribute('data-dl-foreground', 'true');
   el.style.setProperty('color', color, 'important');
@@ -1071,6 +1147,15 @@ function applyDarkLight(runId) {
 
   const startDarkReader = () => {
     if (!isCurrentRun(runId)) return;
+    captureLightSurfaceForegrounds();
+    [100, 500, 1500].forEach((delay) => {
+      setTimeout(() => {
+        if (isCurrentRun(runId)) {
+          restoreLightSurfaceForegrounds();
+          repairLightControlForegrounds();
+        }
+      }, delay);
+    });
     if (window.DarkReader?.enable) {
       try {
         window.DarkReader.setFetchMethod?.(async (url) => {
@@ -1190,6 +1275,8 @@ function repairLightSurfaces(runId) {
     darkenPersistentLightContainers();
     darkenVisibleLightBlocks();
     liftDarkForegrounds();
+    restoreLightSurfaceForegrounds();
+    repairLightControlForegrounds();
   });
 }
 
