@@ -1152,11 +1152,9 @@ function repairLightSurfaces(runId) {
 
 function applyLightForce(runId) {
   if (!isCurrentRun(runId)) return;
-  flipThemeSignalsToLight();
 
   const detectAndFix = (releasePrepaint = false) => {
     if (!isCurrentRun(runId)) return;
-    flipThemeSignalsToLight();
     requestAnimationFrame(() => {
       if (!isCurrentRun(runId)) return;
       if (isPageDark()) {
@@ -1178,7 +1176,6 @@ function applyLightForce(runId) {
   window.addEventListener('load', () => detectAndFix(false), { once: true });
   observeThemeChanges(() => {
     if (!isCurrentRun(runId)) return;
-    flipThemeSignalsToLight();
     if (!document.getElementById('dark-light-invert')) {
       requestAnimationFrame(() => {
         if (!isCurrentRun(runId)) return;
