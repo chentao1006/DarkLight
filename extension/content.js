@@ -43,6 +43,8 @@ let currentSettings = null;
 let activeAppearance = null;
 let activeConfiguredMode = null;
 let themeObserver = null;
+let darkReadabilityScrollHandler = null;
+let darkReadabilityScrollFrame = null;
 let appearanceRunId = 0;
 let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
@@ -600,6 +602,15 @@ function injectStyle(id, css) {
 }
 
 function cleanupAppearanceOverrides() {
+  if (darkReadabilityScrollHandler) {
+    window.removeEventListener('scroll', darkReadabilityScrollHandler);
+    darkReadabilityScrollHandler = null;
+  }
+  if (darkReadabilityScrollFrame !== null) {
+    cancelAnimationFrame(darkReadabilityScrollFrame);
+    darkReadabilityScrollFrame = null;
+  }
+
   if (window.DarkReader?.isEnabled?.()) {
     window.DarkReader.disable();
   }
@@ -1073,6 +1084,7 @@ function darkenVisibleLightBlocks() {
 function applyDarkLight(runId) {
   if (!isCurrentRun(runId)) return;
   flipThemeSignalsToDark();
+  setupDarkReadabilityScrollRepair(runId);
 
   const startDarkReader = () => {
     if (!isCurrentRun(runId)) return;
@@ -1137,6 +1149,25 @@ function applyDarkLight(runId) {
     flipThemeSignalsToDark();
     repairLightSurfaces(runId);
   });
+}
+
+// The fallback readability pass intentionally works on visible elements only.
+// Some long, server-rendered pages therefore need the same pass when already
+// present rows enter the viewport; this is not a DOM-insertion/lazy-load path.
+function setupDarkReadabilityScrollRepair(runId) {
+  if (darkReadabilityScrollHandler) {
+    window.removeEventListener('scroll', darkReadabilityScrollHandler);
+  }
+
+  darkReadabilityScrollHandler = () => {
+    if (darkReadabilityScrollFrame !== null) return;
+    darkReadabilityScrollFrame = requestAnimationFrame(() => {
+      darkReadabilityScrollFrame = null;
+      if (!isCurrentRun(runId) || activeAppearance !== 'dark') return;
+      repairLightSurfaces(runId);
+    });
+  };
+  window.addEventListener('scroll', darkReadabilityScrollHandler, { passive: true });
 }
 
 // Legacy forums often set a light background directly on table cells. Dark Reader
