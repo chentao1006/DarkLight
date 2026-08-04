@@ -50,6 +50,7 @@ let appearanceRunId = 0;
 let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
 let timeBasedRefreshTimer = null;
+let darkReaderResumeRestartTimer = null;
 const themeSnapshots = new WeakMap();
 const lightSurfaceForegroundSnapshots = new WeakMap();
 
@@ -76,7 +77,14 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'darkLightRefresh') {
     loadSettings((settings) => {
+      const stateBeforeRefresh = lastAppliedState;
       applyResolvedSettings(settings);
+      // Safari sends this when a tab is activated. If the page was suspended
+      // while Dark Reader was applying styles, merely re-reading unchanged
+      // settings cannot complete that interrupted dynamic-theme pass.
+      if (stateBeforeRefresh === lastAppliedState) {
+        restartDarkReaderAfterTabActivation();
+      }
     });
   }
 });
@@ -146,6 +154,32 @@ function applyResolvedSettings(settings) {
 
 function isCurrentRun(runId) {
   return runId === appearanceRunId;
+}
+
+function restartDarkReaderAfterTabActivation() {
+  const runId = appearanceRunId;
+  if (activeAppearance !== 'dark' || !isCurrentRun(runId)) return;
+  if (!window.DarkReader?.disable || !window.DarkReader?.enable) return;
+
+  clearTimeout(darkReaderResumeRestartTimer);
+  darkReaderResumeRestartTimer = setTimeout(() => {
+    if (!isCurrentRun(runId) || document.visibilityState === 'hidden') return;
+    try {
+      // This is deliberately a clean Dynamic Theme restart, matching the
+      // successful reload path instead of trying to recolour stale output.
+      window.DarkReader.disable();
+      window.DarkReader.enable({ brightness: 100, contrast: 100, sepia: 0 });
+      [100, 500, 1500].forEach((delay) => {
+        setTimeout(() => {
+          if (isCurrentRun(runId) && document.visibilityState !== 'hidden') {
+            repairLightSurfaces(runId);
+          }
+        }, delay);
+      });
+    } catch (e) {
+      console.warn('[Dark Light] Could not restart Dark Reader after tab activation.', e);
+    }
+  }, 0);
 }
 
 function markPrepaintReady() {
@@ -849,6 +883,18 @@ function applyDarkTokenLayer() {
       border-color: var(--dl-border) !important;
     }
 
+    /* Compact navigation cards often keep their own light CSS variable after
+       a suspended Dynamic Theme pass. Give those surfaces a stable fallback. */
+    [class*="card"], [class*="panel"] {
+      background-color: var(--dl-surface) !important;
+      color: var(--dl-text) !important;
+    }
+
+    [class*="card"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i),
+    [class*="panel"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i) {
+      color: inherit !important;
+    }
+
     p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6,
     td, th, blockquote, pre, code {
       color: inherit;
@@ -1041,6 +1087,9 @@ function liftDarkForegrounds() {
 
     const style = window.getComputedStyle(el);
     const color = parseColor(style.color);
+    // A dark blue or dark brand colour is no more readable than dark grey on
+    // a dark surface.  Preserve colours only when their actual contrast is
+    // sufficient; hue must not exempt an unreadable foreground.
     if (isNeutralColor(color) && getLuminance(color.r, color.g, color.b) < 0.45) {
       setReadableForeground(el, '#f1f5f9');
     }
@@ -1151,8 +1200,12 @@ function applyDarkLight(runId) {
     [100, 500, 1500].forEach((delay) => {
       setTimeout(() => {
         if (isCurrentRun(runId)) {
-          restoreLightSurfaceForegrounds();
-          repairLightControlForegrounds();
+          repairLightSurfaces(runId);
+          // Do not reveal the page until Dark Reader has completed its final
+          // dynamic-style pass. Background tabs suspend these timers, which
+          // keeps the prepaint layer in place instead of exposing half-applied
+          // original colours.
+          if (delay === 1500) markPrepaintReady();
         }
       }, delay);
     });
@@ -1226,12 +1279,14 @@ function applyDarkLight(runId) {
         darkenPersistentLightContainers();
         darkenVisibleLightBlocks();
         liftDarkForegrounds();
+        markPrepaintReady();
       }
     } else {
       applyDarkTokenLayer();
       darkenPersistentLightContainers();
       darkenVisibleLightBlocks();
       liftDarkForegrounds();
+      markPrepaintReady();
     }
   };
 
@@ -1242,8 +1297,6 @@ function applyDarkLight(runId) {
   } else {
     startDarkReader();
   }
-
-  markPrepaintReady();
 
   const reinforceNativeSignals = () => {
     if (!isCurrentRun(runId)) return;

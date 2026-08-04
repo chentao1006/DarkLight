@@ -974,6 +974,9 @@ function liftDarkForegrounds() {
 
     const style = window.getComputedStyle(el);
     const color = parseColor(style.color);
+    // A dark blue or dark brand colour is no more readable than dark grey on
+    // a dark surface.  Preserve colours only when their actual contrast is
+    // sufficient; hue must not exempt an unreadable foreground.
     if (isNeutralColor(color) && getLuminance(color.r, color.g, color.b) < 0.45) {
       setReadableForeground(el, '#f1f5f9');
     }

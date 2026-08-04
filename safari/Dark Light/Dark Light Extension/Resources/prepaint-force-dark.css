@@ -30,6 +30,19 @@ html:not([data-dl-ready]) [bgcolor] {
   color: #e7e9ec !important;
 }
 
+/* Keep compact cards readable too while the dynamic theme is being built. */
+html:not([data-dl-ready]) [class*="card"],
+html:not([data-dl-ready]) [class*="panel"] {
+  background-color: #1a1f24 !important;
+  color: #f1f5f9 !important;
+  border-color: #343a40 !important;
+}
+
+html:not([data-dl-ready]) [class*="card"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i),
+html:not([data-dl-ready]) [class*="panel"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i) {
+  color: #f1f5f9 !important;
+}
+
 html:not([data-dl-ready]) th,
 html:not([data-dl-ready]) thead,
 html:not([data-dl-ready]) tr:first-child,
