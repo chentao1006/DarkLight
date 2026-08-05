@@ -10,7 +10,10 @@ function loadManifest() {
   return JSON.parse(fs.readFileSync(path.join(extensionRoot, 'manifest.json'), 'utf8'));
 }
 
-function createBackgroundSandbox(settings) {
+function createBackgroundSandbox(settings, registeredScripts = [
+  { id: 'dark-light-prepaint-old' },
+  { id: 'unrelated-script' }
+]) {
   let startupListener = null;
   let installedListener = null;
   let storageChangeListener = null;
@@ -40,6 +43,12 @@ function createBackgroundSandbox(settings) {
         onMessage: { addListener() {} },
         lastError: null
       },
+      tabs: {
+        onActivated: { addListener() {} },
+        onUpdated: { addListener() {} },
+        get() {},
+        query() {}
+      },
       storage: {
         onChanged: {
           addListener(listener) {
@@ -58,10 +67,7 @@ function createBackgroundSandbox(settings) {
       },
       scripting: {
         getRegisteredContentScripts(_filter, callback) {
-          callback([
-            { id: 'dark-light-prepaint-old' },
-            { id: 'unrelated-script' }
-          ]);
+          callback(registeredScripts);
         },
         unregisterContentScripts(options, callback) {
           calls.unregistered.push(options);
@@ -83,6 +89,29 @@ function createBackgroundSandbox(settings) {
   }, 'sync');
   sandbox.calls = calls;
   return sandbox;
+}
+
+function testBackgroundKeepsMatchingPersistentScripts() {
+  const settings = {
+    version: 2,
+    defaultMode: 'forceDark',
+    siteRules: []
+  };
+  const matchingScript = {
+    id: 'dark-light-prepaint-default',
+    matches: ['<all_urls>'],
+    css: ['prepaint-force-dark.css'],
+    runAt: 'document_start',
+    allFrames: true,
+    persistAcrossSessions: true
+  };
+  const sandbox = createBackgroundSandbox(settings, [matchingScript]);
+  const source = fs.readFileSync(path.join(extensionRoot, 'background.js'), 'utf8');
+  vm.runInNewContext(source, sandbox, { filename: 'background.js' });
+  sandbox.runStartup();
+
+  assert.deepStrictEqual(plain(sandbox.calls.unregistered), [], 'matching persistent prepaint CSS must not be removed during worker startup');
+  assert.deepStrictEqual(plain(sandbox.calls.registered), [], 'matching persistent prepaint CSS must not be registered again');
 }
 
 function byId(scripts, id) {
@@ -215,5 +244,6 @@ function testBackgroundRegistersFixedCssFilesFromSiteRules() {
 
 testManifestDeclaresPrepaintAssets();
 testBackgroundRegistersFixedCssFilesFromSiteRules();
+testBackgroundKeepsMatchingPersistentScripts();
 
 console.log('prepaint registration tests passed');

@@ -56,11 +56,16 @@ let darkReaderResumeRestartTimer = null;
 const themeSnapshots = new WeakMap();
 const lightSurfaceForegroundSnapshots = new WeakMap();
 
+loadSettings((settings) => {
+  applyResolvedSettings(settings);
+});
 loadEntitlements((entitlements) => {
+  const wasRestricted = requiresProUpgrade();
   currentEntitlements = entitlements;
-  loadSettings((settings) => {
-    applyResolvedSettings(settings);
-  });
+  if (currentSettings && wasRestricted !== requiresProUpgrade()) {
+    lastAppliedState = null;
+    applyResolvedSettings(currentSettings);
+  }
 });
 setupSystemAppearanceListener();
 
@@ -69,8 +74,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
   }
   if (namespace === 'local' && changes[ENTITLEMENTS_KEY]) {
+    const wasRestricted = requiresProUpgrade();
     currentEntitlements = normalizeEntitlements(changes[ENTITLEMENTS_KEY].newValue);
-    if (currentSettings) {
+    if (currentSettings && wasRestricted !== requiresProUpgrade()) {
+      lastAppliedState = null;
       applyResolvedSettings(currentSettings);
     }
   }
@@ -1209,82 +1216,16 @@ function applyDarkLight(runId) {
   const startDarkReader = () => {
     if (!isCurrentRun(runId)) return;
     captureLightSurfaceForegrounds();
-    [100, 500, 1500].forEach((delay) => {
-      setTimeout(() => {
-        if (isCurrentRun(runId)) {
-          repairLightSurfaces(runId);
-          // Do not reveal the page until Dark Reader has completed its final
-          // dynamic-style pass. Background tabs suspend these timers, which
-          // keeps the prepaint layer in place instead of exposing half-applied
-          // original colours.
-          if (delay === 1500) markPrepaintReady();
-        }
-      }, delay);
-    });
     if (window.DarkReader?.enable) {
       try {
-        window.DarkReader.setFetchMethod?.(async (url) => {
-          return new Promise((resolve, reject) => {
-            const tryFetch = (retries = 15) => {
-              let handled = false;
-              const timeoutId = setTimeout(() => {
-                if (handled) return;
-                handled = true;
-                if (retries > 0) {
-                  tryFetch(retries - 1);
-                } else {
-                  window.fetch(url).then(resolve).catch(reject);
-                }
-              }, 500);
-
-              try {
-                chrome.runtime.sendMessage({ action: 'dl_fetch', url }, (response) => {
-                  if (handled) return;
-                  handled = true;
-                  clearTimeout(timeoutId);
-
-                  if (chrome.runtime.lastError) {
-                    if (retries > 0) {
-                      setTimeout(() => tryFetch(retries - 1), 200);
-                      return;
-                    }
-                    window.fetch(url).then(resolve).catch(reject);
-                    return;
-                  }
-                  if (!response || response.error || typeof response.text !== 'string') {
-                    window.fetch(url).then(resolve).catch(reject);
-                    return;
-                  }
-                  resolve(new Response(response.text, {
-                    status: 200,
-                    headers: { 'Content-Type': 'text/css' }
-                  }));
-                });
-              } catch (e) {
-                if (handled) return;
-                handled = true;
-                clearTimeout(timeoutId);
-                if (retries > 0) {
-                  setTimeout(() => tryFetch(retries - 1), 200);
-                } else {
-                  window.fetch(url).then(resolve).catch(reject);
-                }
-              }
-            };
-            tryFetch();
-          });
-        });
+        window.DarkReader.setFetchMethod?.(window.fetch.bind(window));
         window.DarkReader.enable({
           brightness: 100,
           contrast: 100,
-          sepia: 0
+          sepia: 0,
+          immediateModify: true
         });
         repairLightSurfaces(runId);
-
-        setTimeout(() => {
-          if (!isCurrentRun(runId)) return;
-          repairLightSurfaces(runId);
-        }, 1500);
       } catch (e) {
         console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
         applyDarkTokenLayer();
@@ -1302,12 +1243,41 @@ function applyDarkLight(runId) {
     }
   };
 
-  // Dark Reader mutates the live stylesheet tree. Starting it at document_start
-  // can race pages such as Zhihu while their head/body nodes are being replaced.
+  // Start from the same document_start path for both address-bar navigation
+  // and reload. Dark Reader watches styles added while the document is parsed.
+  startDarkReader();
+
+  const hasDynamicStyleOutput = () => {
+    const authorSheets = Array.from(document.styleSheets).filter((sheet) => {
+      return !sheet.ownerNode?.classList?.contains('darkreader');
+    });
+    if (authorSheets.length === 0) return true;
+
+    return Array.from(document.querySelectorAll('style.darkreader--sync')).some((style) => {
+      try {
+        return (style.sheet?.cssRules?.length || 0) > 0;
+      } catch (_) {
+        return false;
+      }
+    });
+  };
+
+  const revealFinalAppearance = () => {
+    if (!isCurrentRun(runId)) return;
+    if (!hasDynamicStyleOutput()) {
+      requestAnimationFrame(revealFinalAppearance);
+      return;
+    }
+    requestAnimationFrame(() => {
+      if (!isCurrentRun(runId)) return;
+      repairLightSurfaces(runId);
+      markPrepaintReady();
+    });
+  };
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startDarkReader, { once: true });
+    document.addEventListener('DOMContentLoaded', revealFinalAppearance, { once: true });
   } else {
-    startDarkReader();
+    revealFinalAppearance();
   }
 
   const reinforceNativeSignals = () => {

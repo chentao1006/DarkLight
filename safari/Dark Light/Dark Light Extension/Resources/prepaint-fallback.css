@@ -1,18 +1,19 @@
-@keyframes dark-light-prepaint-timeout {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 html:not([data-dl-ready])::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 2147483647;
-  background: #ffffff !important;
+  /* Use a dark canvas before settings are resolved, so a forced-dark page
+     cannot expose a white first frame while the worker wakes up. */
+  background: #111315 !important;
   pointer-events: none !important;
   opacity: 1;
   visibility: visible;
-  animation: dark-light-prepaint-timeout 1600ms step-end forwards;
+}
+
+html:not([data-dl-ready]),
+html:not([data-dl-ready]) body {
+  background-color: #111315 !important;
+  color: #e7e9ec !important;
+  color-scheme: dark !important;
 }

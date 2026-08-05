@@ -127,6 +127,14 @@ function syncPrepaintContentScripts(settingsOverride) {
         .map((script) => script.id)
         .filter((id) => typeof id === 'string' && id.startsWith(PREPAINT_SCRIPT_PREFIX));
 
+      // Registered content scripts persist across browser restarts.  Do not
+      // briefly remove a correct document_start stylesheet whenever the MV3
+      // worker wakes up: a navigation in that gap starts on the page's white
+      // canvas before the replacement stylesheet can be injected.
+      if (hasMatchingPrepaintScripts(registeredScripts || [], scripts)) {
+        return;
+      }
+
       const registerNext = () => {
         if (scripts.length === 0) return;
 
@@ -158,6 +166,31 @@ function syncPrepaintContentScripts(settingsOverride) {
   }
 
   loadSettings(applySettings);
+}
+
+function hasMatchingPrepaintScripts(registeredScripts, expectedScripts) {
+  const registered = (registeredScripts || [])
+    .filter((script) => typeof script.id === 'string' && script.id.startsWith(PREPAINT_SCRIPT_PREFIX))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const expected = (expectedScripts || []).slice().sort((a, b) => a.id.localeCompare(b.id));
+
+  return registered.length === expected.length && expected.every((script, index) => {
+    const existing = registered[index];
+    return existing.id === script.id &&
+      sameStringArrays(existing.matches, script.matches) &&
+      sameStringArrays(existing.excludeMatches, script.excludeMatches) &&
+      sameStringArrays(existing.css, script.css) &&
+      existing.runAt === script.runAt &&
+      existing.allFrames === script.allFrames &&
+      existing.persistAcrossSessions === script.persistAcrossSessions;
+  });
+}
+
+function sameStringArrays(left, right) {
+  const normalizedLeft = (left || []).slice().sort();
+  const normalizedRight = (right || []).slice().sort();
+  return normalizedLeft.length === normalizedRight.length &&
+    normalizedLeft.every((value, index) => value === normalizedRight[index]);
 }
 
 function buildPrepaintContentScripts(settings) {

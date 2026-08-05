@@ -133,11 +133,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'getProState') {
     getStoredEntitlements((entitlements) => {
-      if (!entitlements.checkedAt) {
-        refreshProStateAndSync((refreshed) => sendResponse(refreshed));
-        return;
-      }
+      // This reply is on the first-paint path of every content script.  Do
+      // not hold it behind StoreKit: Safari can leave a new address-bar page
+      // showing only the document_start prepaint layer while that query is
+      // pending.  Return the cached/default state now; storage.onChanged in
+      // the content script applies the authoritative result when it arrives.
       sendResponse(entitlements);
+      if (!entitlements.checkedAt) {
+        refreshProStateAndSync();
+      }
     });
     return true;
   }
@@ -307,6 +311,11 @@ function syncPrepaintContentScripts(settingsOverride) {
           .map((script) => script.id)
           .filter((id) => typeof id === 'string' && id.startsWith(PREPAINT_SCRIPT_PREFIX));
 
+        // Keep a correct persistent document_start stylesheet in place while
+        // the background worker wakes up; unregistering it creates a white
+        // first-frame window before a replacement can be registered.
+        if (hasMatchingPrepaintScripts(registeredScripts || [], scripts)) return;
+
         const registerNext = () => {
           if (scripts.length === 0) return;
           chrome.scripting.registerContentScripts(scripts, () => {});
@@ -330,6 +339,30 @@ function syncPrepaintContentScripts(settingsOverride) {
     return;
   }
   loadSettings(applySettings);
+}
+
+function hasMatchingPrepaintScripts(registeredScripts, expectedScripts) {
+  const registered = (registeredScripts || [])
+    .filter((script) => typeof script.id === 'string' && script.id.startsWith(PREPAINT_SCRIPT_PREFIX))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const expected = (expectedScripts || []).slice().sort((a, b) => a.id.localeCompare(b.id));
+
+  return registered.length === expected.length && expected.every((script, index) => {
+    const existing = registered[index];
+    return existing.id === script.id &&
+      sameStringArrays(existing.matches, script.matches) &&
+      sameStringArrays(existing.excludeMatches, script.excludeMatches) &&
+      sameStringArrays(existing.css, script.css) &&
+      existing.runAt === script.runAt &&
+      existing.allFrames === script.allFrames &&
+      existing.persistAcrossSessions === script.persistAcrossSessions;
+  });
+}
+
+function sameStringArrays(left, right) {
+  const normalizedLeft = (left || []).slice().sort();
+  const normalizedRight = (right || []).slice().sort();
+  return normalizedLeft.length === normalizedRight.length && normalizedLeft.every((value, index) => value === normalizedRight[index]);
 }
 
 function buildPrepaintContentScripts(settings) {

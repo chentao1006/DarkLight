@@ -1094,6 +1094,10 @@ function applyDarkLight(runId) {
         if (isCurrentRun(runId)) {
           restoreLightSurfaceForegrounds();
           repairLightControlForegrounds();
+          // Keep the static dark canvas until the final Dark Reader repair.
+          // This also protects the first visit after an extension install,
+          // before the persistent document_start stylesheet exists.
+          if (delay === 1500) markPrepaintReady();
         }
       }, delay);
     });
@@ -1128,8 +1132,6 @@ function applyDarkLight(runId) {
   } else {
     startDarkReader();
   }
-
-  markPrepaintReady();
 
   const reinforceNativeSignals = () => {
     if (!isCurrentRun(runId)) return;
