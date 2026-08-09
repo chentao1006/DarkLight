@@ -49,13 +49,26 @@ let appearanceRunId = 0;
 let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
 let timeBasedRefreshTimer = null;
+let systemAppearanceSettleTimers = [];
 const themeSnapshots = new WeakMap();
 const lightSurfaceForegroundSnapshots = new WeakMap();
 
 loadSettings((settings) => {
   applyResolvedSettings(settings);
+  scheduleSystemAppearanceSettlement();
 });
 setupSystemAppearanceListener();
+setupSystemAppearanceRecoveryListeners();
+
+// A restored tab can receive persisted document_start CSS before Chrome has
+// dispatched the MV3 worker's startup event. Wake that worker from the live
+// page as well, so a pre-restart force-dark registration is reconciled with
+// the current Follow System settings.
+try {
+  chrome.runtime.sendMessage({ action: 'syncPrepaintContentScripts' });
+} catch (e) {
+  // Ignore context invalidation during extension reloads.
+}
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
@@ -301,6 +314,42 @@ function setupSystemAppearanceListener() {
   addMediaQueryListener(mediaQuery, onSystemAppearanceChanged);
   systemSchemeMediaQuery = mediaQuery;
   systemSchemeChangeHandler = onSystemAppearanceChanged;
+}
+
+// Chrome can restore a renderer before its prefers-color-scheme value catches
+// up with macOS after a full browser restart. In that window matchMedia can
+// still report the scheme from the previous Chrome session and, importantly,
+// no change event is guaranteed afterwards. Re-read it during startup
+// settlement instead of leaving a Follow System page on that stale value.
+function scheduleSystemAppearanceSettlement() {
+  systemAppearanceSettleTimers.forEach((timer) => clearTimeout(timer));
+  // The browser process can take noticeably longer than the first renderer
+  // task to publish the current macOS appearance after restoring a session.
+  // Keep checking through that bootstrap period; this is deliberately bounded
+  // and only changes pages configured to Follow System.
+  systemAppearanceSettleTimers = [200, 1000, 3000, 10000, 30000].map((delay) => setTimeout(() => {
+    refreshFollowSystemAppearance();
+  }, delay));
+}
+
+function setupSystemAppearanceRecoveryListeners() {
+  const refreshWhenVisible = () => {
+    if (!document.hidden) refreshFollowSystemAppearance();
+  };
+
+  document.addEventListener('visibilitychange', refreshWhenVisible);
+  window.addEventListener('pageshow', refreshFollowSystemAppearance);
+  window.addEventListener('focus', refreshFollowSystemAppearance);
+}
+
+function refreshFollowSystemAppearance() {
+  if (!currentSettings) return;
+
+  const rule = resolveRule(window.location.hostname, currentSettings);
+  const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
+  if (configuredMode === MODE_FOLLOW_SYSTEM) {
+    applyResolvedSettings(currentSettings);
+  }
 }
 
 function addMediaQueryListener(mediaQuery, handler) {
@@ -1189,36 +1238,64 @@ function repairLightSurfaces(runId) {
 function applyLightForce(runId) {
   if (!isCurrentRun(runId)) return;
 
-  const detectAndFix = (releasePrepaint = false) => {
+  const syncLightInversion = () => {
     if (!isCurrentRun(runId)) return;
     requestAnimationFrame(() => {
       if (!isCurrentRun(runId)) return;
-      if (isPageDark()) {
+      const pageIsDark = isUnderlyingPageDark();
+      const hasInversion = Boolean(document.getElementById('dark-light-invert'));
+      if (pageIsDark && !hasInversion) {
         applyFilterInversion(runId);
-      }
-      if (releasePrepaint) {
-        markPrepaintReady();
+      } else if (!pageIsDark && hasInversion) {
+        cleanupAppearanceOverrides();
       }
     });
   };
 
+  // The static document_start fallback may itself be dark while the page is
+  // still loading. Looking at computed colours in that interval mistakes our
+  // own prepaint layer for a dark website and permanently inverts an otherwise
+  // light page (notably Google and Douban). Remove the fallback first, then
+  // inspect the site's real rendered colours on the next frame.
+  const releasePrepaintThenDetect = () => {
+    if (!isCurrentRun(runId)) return;
+    markPrepaintReady();
+  };
+
   if (document.readyState === 'loading') {
-    detectAndFix(false);
-    document.addEventListener('DOMContentLoaded', () => detectAndFix(true), { once: true });
+    document.addEventListener('DOMContentLoaded', releasePrepaintThenDetect, { once: true });
   } else {
-    detectAndFix(true);
+    releasePrepaintThenDetect();
   }
 
-  window.addEventListener('load', () => detectAndFix(false), { once: true });
+  const detectAfterNativeThemeSettles = () => {
+    syncLightInversion();
+    setTimeout(syncLightInversion, 250);
+    setTimeout(syncLightInversion, 1000);
+  };
+
+  if (document.readyState === 'complete') {
+    detectAfterNativeThemeSettles();
+  } else {
+    window.addEventListener('load', detectAfterNativeThemeSettles, { once: true });
+  }
+
   observeThemeChanges(() => {
     if (!isCurrentRun(runId)) return;
-    if (!document.getElementById('dark-light-invert')) {
-      requestAnimationFrame(() => {
-        if (!isCurrentRun(runId)) return;
-        if (isPageDark()) applyFilterInversion(runId);
-      });
-    }
+    syncLightInversion();
   });
+}
+
+function isUnderlyingPageDark() {
+  const inversionStyle = document.getElementById('dark-light-invert');
+  if (!inversionStyle?.sheet) return isPageDark();
+
+  inversionStyle.sheet.disabled = true;
+  try {
+    return isPageDark();
+  } finally {
+    inversionStyle.sheet.disabled = false;
+  }
 }
 
 function observeThemeChanges(callback) {

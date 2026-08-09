@@ -142,6 +142,21 @@ function testManifestDeclaresPrepaintAssets() {
   );
 }
 
+function testStaticFallbackDoesNotForceDarkSystemSignal() {
+  const fallbackCss = fs.readFileSync(path.join(extensionRoot, 'prepaint-fallback.css'), 'utf8');
+
+  assert.match(
+    fallbackCss,
+    /@media \(prefers-color-scheme: dark\)[\s\S]*color-scheme: dark !important/,
+    'the static fallback may use dark only when the system media query is dark'
+  );
+  assert.match(
+    fallbackCss,
+    /color-scheme: light !important/,
+    'the static fallback must not publish an unconditional dark color-scheme to early-loading sites'
+  );
+}
+
 function testBackgroundRegistersFixedCssFilesFromSiteRules() {
   const settings = {
     version: 2,
@@ -243,6 +258,7 @@ function testBackgroundRegistersFixedCssFilesFromSiteRules() {
 }
 
 testManifestDeclaresPrepaintAssets();
+testStaticFallbackDoesNotForceDarkSystemSignal();
 testBackgroundRegistersFixedCssFilesFromSiteRules();
 testBackgroundKeepsMatchingPersistentScripts();
 

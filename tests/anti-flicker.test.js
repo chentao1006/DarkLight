@@ -66,7 +66,7 @@ class FakeElement {
   }
 }
 
-function createContentSandbox(settings) {
+function createContentSandbox(settings, initialSystemDark = false) {
   const documentListeners = new Map();
   const document = {
     readyState: 'loading',
@@ -100,6 +100,11 @@ function createContentSandbox(settings) {
   document.body = new FakeElement('body', document);
   document.head = new FakeElement('head', document);
 
+  const mediaQuery = {
+    matches: initialSystemDark,
+    addEventListener() {},
+    removeEventListener() {}
+  };
   const sandbox = {
     chrome: {
       runtime: {
@@ -123,11 +128,7 @@ function createContentSandbox(settings) {
     window: {
       location: { hostname: 'example.com' },
       matchMedia() {
-        return {
-          matches: false,
-          addEventListener() {},
-          removeEventListener() {}
-        };
+        return mediaQuery;
       },
       addEventListener() {},
       getComputedStyle() {
@@ -158,6 +159,7 @@ function createContentSandbox(settings) {
   };
   sandbox.window.window = sandbox.window;
   sandbox.window.document = document;
+  sandbox.setSystemDark = (value) => { mediaQuery.matches = value; };
   sandbox.globalThis = sandbox;
   return sandbox;
 }
@@ -209,6 +211,49 @@ function testForceLightReleasesPrepaintAfterDOMContentLoaded() {
     sandbox.document.documentElement.getAttribute('data-dl-ready'),
     'true',
     'force-light fallback prepaint should be released after the first DOMContentLoaded appearance check'
+  );
+}
+
+function testForceLightDoesNotInspectFallbackDuringLoading() {
+  const settings = {
+    version: 2,
+    defaultMode: 'forceLight',
+    siteRules: []
+  };
+  const sandbox = createContentSandbox(settings);
+  const source = fs.readFileSync(path.join(extensionRoot, 'content.js'), 'utf8');
+  vm.runInNewContext(source, sandbox, { filename: 'content.js' });
+
+  assert.strictEqual(
+    sandbox.document.getElementById('dark-light-invert'),
+    null,
+    'force-light must not inspect the extension prepaint fallback while the document is loading'
+  );
+}
+
+function testFollowSystemRecoversFromStaleStartupScheme() {
+  const settings = {
+    version: 2,
+    defaultMode: 'followSystem',
+    siteRules: []
+  };
+  const sandbox = createContentSandbox(settings, true);
+  const source = fs.readFileSync(path.join(extensionRoot, 'content.js'), 'utf8');
+  vm.runInNewContext(source, sandbox, { filename: 'content.js' });
+
+  assert.strictEqual(
+    sandbox.resolveEffectiveAppearance('followSystem', settings),
+    'dark',
+    'startup may initially see Chrome\'s stale dark scheme'
+  );
+
+  sandbox.setSystemDark(false);
+  sandbox.refreshFollowSystemAppearance();
+
+  assert.strictEqual(
+    sandbox.resolveEffectiveAppearance('followSystem', settings),
+    'light',
+    'Follow System should re-resolve after the browser settles on the current system scheme'
   );
 }
 
@@ -282,6 +327,8 @@ function testTabActivationDoesNotRefreshContentScript() {
 
 testContentRefreshIsIdempotent();
 testForceLightReleasesPrepaintAfterDOMContentLoaded();
+testForceLightDoesNotInspectFallbackDuringLoading();
+testFollowSystemRecoversFromStaleStartupScheme();
 testTabActivationDoesNotRefreshContentScript();
 
 console.log('anti-flicker tests passed');

@@ -94,6 +94,11 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.action === 'syncPrepaintContentScripts') {
+    syncPrepaintContentScripts();
+    return;
+  }
+
   if (message.action === 'setBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;
     if (typeof tabId === 'number') {
