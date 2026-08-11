@@ -3,9 +3,10 @@ html:not([data-dl-ready])::before {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
-  /* Use a dark canvas before settings are resolved, so a forced-dark page
-     cannot expose a white first frame while the worker wakes up. */
-  background: #111315 !important;
+  /* This is the only stylesheet guaranteed to exist on a brand-new page.
+     Keep it non-blocking; the system-aware rules below establish the initial
+     canvas until the resolved mode has installed its own layer. */
+  background: #ffffff !important;
   pointer-events: none !important;
   opacity: 1;
   visibility: visible;
@@ -13,7 +14,24 @@ html:not([data-dl-ready])::before {
 
 html:not([data-dl-ready]),
 html:not([data-dl-ready]) body {
-  background-color: #111315 !important;
-  color: #e7e9ec !important;
-  color-scheme: dark !important;
+  /* This stylesheet is present before the content script can resolve the
+     saved policy. Do not advertise a hard-coded dark color-scheme here:
+     after Safari is reopened, macOS may now be light even though it was dark
+     when the old browsing session was closed. */
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+  color-scheme: light !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-dl-ready])::before {
+    background: #111315 !important;
+  }
+
+  html:not([data-dl-ready]),
+  html:not([data-dl-ready]) body {
+    background-color: #111315 !important;
+    color: #e7e9ec !important;
+    color-scheme: dark !important;
+  }
 }

@@ -6,7 +6,7 @@ html:not([data-dl-ready])::before {
   /* This is the only stylesheet guaranteed to exist on a brand-new page.
      Keep it non-blocking; the system-aware rules below establish the initial
      canvas until the resolved mode has installed its own layer. */
-  background: #111315 !important;
+  background: #ffffff !important;
   pointer-events: none !important;
   opacity: 1;
   visibility: visible;
@@ -24,6 +24,10 @@ html:not([data-dl-ready]) body {
 }
 
 @media (prefers-color-scheme: dark) {
+  html:not([data-dl-ready])::before {
+    background: #111315 !important;
+  }
+
   html:not([data-dl-ready]),
   html:not([data-dl-ready]) body {
     background-color: #111315 !important;

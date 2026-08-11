@@ -7864,7 +7864,10 @@
             fixes && fixes.disableCustomElementRegistryProxy
         );
         document.dispatchEvent(new CustomEvent("__darkreader__cleanUp"));
-        {
+        // Strict CSP pages can reject this inline bridge. It is an optional
+        // optimization; allowing that rejection to escape aborts all dynamic
+        // stylesheet processing and leaves the page only half darkened.
+        if (canOptimizeUsingProxy) {
             const proxyScript = createOrUpdateScript("darkreader--proxy");
             proxyScript.append(
                 `(${injectProxy})(${enableStyleSheetsProxy}, ${enableCustomElementRegistryProxy})`

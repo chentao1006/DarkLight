@@ -50,6 +50,7 @@ let systemSchemeMediaQuery = null;
 let systemSchemeChangeHandler = null;
 let timeBasedRefreshTimer = null;
 let systemAppearanceSettleTimers = [];
+let darkReaderSystemAppearanceRestartTimer = null;
 const themeSnapshots = new WeakMap();
 const lightSurfaceForegroundSnapshots = new WeakMap();
 
@@ -305,6 +306,9 @@ function setupSystemAppearanceListener() {
     if (configuredMode !== MODE_FOLLOW_SYSTEM) return;
 
     applyResolvedSettings(currentSettings);
+    if (activeAppearance === 'dark') {
+      restartDarkReaderAfterSystemAppearanceChange(appearanceRunId);
+    }
   };
 
   if (systemSchemeMediaQuery && systemSchemeChangeHandler) {
@@ -314,6 +318,32 @@ function setupSystemAppearanceListener() {
   addMediaQueryListener(mediaQuery, onSystemAppearanceChanged);
   systemSchemeMediaQuery = mediaQuery;
   systemSchemeChangeHandler = onSystemAppearanceChanged;
+}
+
+// A page's own prefers-color-scheme listener can still be changing its
+// stylesheet tree when Chrome notifies the extension. Rebuild Dark Reader just
+// after that native transition, then run the existing repairs through the
+// dynamic stylesheet settling window instead of retaining partial foregrounds.
+function restartDarkReaderAfterSystemAppearanceChange(runId) {
+  clearTimeout(darkReaderSystemAppearanceRestartTimer);
+  darkReaderSystemAppearanceRestartTimer = setTimeout(() => {
+    if (!isCurrentRun(runId) || activeAppearance !== 'dark') return;
+    if (!window.DarkReader?.disable || !window.DarkReader?.enable) return;
+
+    try {
+      window.DarkReader.disable();
+      window.DarkReader.enable({ brightness: 100, contrast: 100, sepia: 0 });
+      [100, 500, 1500].forEach((delay) => {
+        setTimeout(() => {
+          if (isCurrentRun(runId) && activeAppearance === 'dark') {
+            repairLightSurfaces(runId);
+          }
+        }, delay);
+      });
+    } catch (e) {
+      console.warn('[Dark Light] Could not restart Dark Reader after a system appearance change.', e);
+    }
+  }, 50);
 }
 
 // Chrome can restore a renderer before its prefers-color-scheme value catches
@@ -950,6 +980,11 @@ function restoreLightSurfaceForegrounds() {
   document.querySelectorAll('[data-dl-preserved-foreground]').forEach((el) => {
     const snapshot = lightSurfaceForegroundSnapshots.get(el);
     if (!snapshot) return;
+    const surface = el.closest('a, button, [role="button"], input[type="button"], input[type="submit"]') || el;
+    if (!isLightSurface(surface)) {
+      restorePreservedForeground(el, snapshot);
+      return;
+    }
     el.setAttribute('data-dl-preserved-foreground', 'true');
     el.style.setProperty('color', snapshot.computedColor, 'important');
     if (snapshot.computedTextFillColor && snapshot.computedTextFillColor !== snapshot.computedColor) {
@@ -958,6 +993,7 @@ function restoreLightSurfaceForegrounds() {
   });
 
   document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]').forEach((surface) => {
+    if (!isLightSurface(surface)) return;
     [surface, ...surface.querySelectorAll('*')].forEach((el) => {
       const snapshot = lightSurfaceForegroundSnapshots.get(el);
       if (!snapshot) return;
@@ -968,6 +1004,20 @@ function restoreLightSurfaceForegrounds() {
       }
     });
   });
+}
+
+function isLightSurface(surface) {
+  const background = getReadableBackground(surface);
+  return background && isLightColor(background.r, background.g, background.b);
+}
+
+function restorePreservedForeground(el, snapshot) {
+  ['color', '-webkit-text-fill-color'].forEach((property) => {
+    el.style.removeProperty(property);
+    const original = snapshot[property];
+    if (original?.value) el.style.setProperty(property, original.value, original.priority);
+  });
+  el.removeAttribute('data-dl-preserved-foreground');
 }
 
 function repairLightControlForegrounds() {

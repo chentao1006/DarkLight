@@ -143,18 +143,30 @@ function testManifestDeclaresPrepaintAssets() {
 }
 
 function testStaticFallbackDoesNotForceDarkSystemSignal() {
-  const fallbackCss = fs.readFileSync(path.join(extensionRoot, 'prepaint-fallback.css'), 'utf8');
+  const roots = [
+    extensionRoot,
+    path.join(root, 'safari', 'Dark Light', 'Dark Light Extension', 'Resources')
+  ];
 
-  assert.match(
-    fallbackCss,
-    /@media \(prefers-color-scheme: dark\)[\s\S]*color-scheme: dark !important/,
-    'the static fallback may use dark only when the system media query is dark'
-  );
-  assert.match(
-    fallbackCss,
-    /color-scheme: light !important/,
-    'the static fallback must not publish an unconditional dark color-scheme to early-loading sites'
-  );
+  roots.forEach((assetsRoot) => {
+    const fallbackCss = fs.readFileSync(path.join(assetsRoot, 'prepaint-fallback.css'), 'utf8');
+
+    assert.match(
+      fallbackCss,
+      /@media \(prefers-color-scheme: dark\)[\s\S]*color-scheme: dark !important/,
+      `${assetsRoot}: the static fallback may use dark only when the system media query is dark`
+    );
+    assert.match(
+      fallbackCss,
+      /@media \(prefers-color-scheme: dark\)[\s\S]*::before\s*\{[\s\S]*background: #111315 !important/,
+      `${assetsRoot}: the first-frame overlay must use dark only when the system media query is dark`
+    );
+    assert.match(
+      fallbackCss,
+      /color-scheme: light !important/,
+      `${assetsRoot}: the static fallback must not publish an unconditional dark color-scheme to early-loading sites`
+    );
+  });
 }
 
 function testBackgroundRegistersFixedCssFilesFromSiteRules() {
