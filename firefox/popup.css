@@ -1,0 +1,223 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --panel: #ffffff;
+  --text: #1f2328;
+  --muted: #66707a;
+  --border: #d8d2c7;
+  --accent: #0b5cff;
+  --accent-dark: #0847c4;
+  --input-bg: #ffffff;
+  --secondary-btn: #2f3a40;
+  --secondary-btn-hover: #1f272b;
+  --banner-bg: #e8f0ff;
+  --banner-border: #b8cbff;
+  --banner-text: #0b3d91;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161a1d;
+    --panel: #22272b;
+    --text: #e6edf3;
+    --muted: #9ba7b2;
+    --border: #3a434a;
+    --accent: #2f6fff;
+    --accent-dark: #1f5be0;
+    --input-bg: #15191d;
+    --secondary-btn: #3a434a;
+    --secondary-btn-hover: #4a555e;
+    --banner-bg: #111f3f;
+    --banner-border: #274a9f;
+    --banner-text: #a9c7ff;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  margin: 0;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.version {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.lang-switcher-container {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.lang-switcher {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 24px 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-switcher, select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f2328' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lang-switcher, select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e6edf3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  }
+}
+.lang-switcher:hover {
+  background-color: var(--bg);
+}
+
+.panel {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+label,
+.site-heading span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.site-heading {
+  display: grid;
+  gap: 3px;
+}
+
+.site-heading strong {
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.select-mode {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--input-bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  padding: 0 24px 0 9px;
+}
+
+.select-mode:focus {
+  border-color: var(--accent);
+}
+
+.time-range { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.time-range input { min-width: 0; flex: 1; height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); padding: 0 6px; }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.checkbox-row input {
+  margin: 0;
+}
+
+.site-btn {
+  width: 100%;
+  height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.site-btn:hover {
+  background: var(--accent-dark);
+}
+
+.site-btn.secondary {
+  background: var(--secondary-btn);
+}
+
+.site-btn.secondary:hover {
+  background: var(--secondary-btn-hover);
+}
+
+.premium-panel {
+  margin-top: 12px;
+}
+
+.premium-panel strong {
+  font-size: 13px;
+}
+
+.premium-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.active-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 9px 10px;
+  background: var(--banner-bg);
+  border: 1px solid var(--banner-border);
+  border-radius: 8px;
+  color: var(--banner-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.hidden {
+  display: none !important;
+}

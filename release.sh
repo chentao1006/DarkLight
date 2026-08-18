@@ -63,8 +63,6 @@ else
     echo "Version unchanged (build number still incremented)."
 fi
 
-FIREFOX_MANIFEST_PATH="firefox/manifest.json"
-
 # Package Chrome extension
 mkdir -p dist
 echo "Cleaning up old package files..."
@@ -78,20 +76,13 @@ zip -r "../$ZIP_NAME" . -x "*/.*" -x ".*" > /dev/null
 cd ..
 echo "Chrome extension packaged successfully."
 
-# Package Firefox extension (same source, overlay Firefox manifest)
+# Package Firefox extension (standalone source tree, may diverge from extension/)
 FIREFOX_ZIP_NAME="dist/dark-light-firefox-v$NEW_VERSION.xpi"
 echo "Packaging Firefox extension to $FIREFOX_ZIP_NAME..."
 rm -f "$FIREFOX_ZIP_NAME"
-FIREFOX_TMP="$(mktemp -d)"
-cp -r extension/. "$FIREFOX_TMP/"
-# Overlay Firefox-specific manifest (adds gecko ID, replaces service_worker with scripts)
-cp "$FIREFOX_MANIFEST_PATH" "$FIREFOX_TMP/manifest.json"
-# Update version in Firefox manifest to match release version
-perl -i -pe "s/\"version\"\s*:\s*\"[^\"]+\"/\"version\": \"$NEW_VERSION\"/" "$FIREFOX_TMP/manifest.json"
-cd "$FIREFOX_TMP"
+cd firefox
 zip -r "$ROOT_DIR/$FIREFOX_ZIP_NAME" . -x "*/.*" -x ".*" > /dev/null
 cd "$ROOT_DIR"
-rm -rf "$FIREFOX_TMP"
 echo "Firefox extension packaged successfully."
 
 # Git commit and push
