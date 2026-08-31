@@ -16,6 +16,8 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     private let proProductIdentifier = "darklight.pro"
     private let settingsKey = "darkLightSettings"
     private let iCloudSyncEnabledKey = "darkLightICloudSyncEnabled"
+    private let interfaceLanguageKey = "darkLightInterfaceLanguage"
+    private let interfaceLanguageRevisionKey = "darkLightInterfaceLanguageRevision"
 
     func beginRequest(with context: NSExtensionContext) {
         let request = context.inputItems.first as? NSExtensionItem
@@ -56,6 +58,10 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
 
         switch action {
+        case "getInterfaceLanguage":
+            return interfaceLanguageResponse()
+        case "setInterfaceLanguage":
+            return setInterfaceLanguageResponse(payload)
         case "getProState":
             return await proStateResponse()
         case "getCloudSettings":
@@ -69,6 +75,30 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         default:
             return ["ok": false, "error": "unknownAction"]
         }
+    }
+
+    private func interfaceLanguageResponse() -> [String: Any] {
+        let store = NSUbiquitousKeyValueStore.default
+        store.synchronize()
+        return [
+            "ok": true,
+            "language": store.string(forKey: interfaceLanguageKey) ?? NSNull(),
+            "revision": store.double(forKey: interfaceLanguageRevisionKey)
+        ]
+    }
+
+    private func setInterfaceLanguageResponse(_ payload: [String: Any]) -> [String: Any] {
+        guard let language = payload["language"] as? String,
+              ["en", "zh", "ja", "ko", "es", "fr", "de"].contains(language) else {
+            return ["ok": false, "error": "invalidLanguage"]
+        }
+
+        let store = NSUbiquitousKeyValueStore.default
+        let revision = Date().timeIntervalSince1970
+        store.set(language, forKey: interfaceLanguageKey)
+        store.set(revision, forKey: interfaceLanguageRevisionKey)
+        store.synchronize()
+        return ["ok": true, "language": language, "revision": revision]
     }
 
     private func proStateResponse() async -> [String: Any] {

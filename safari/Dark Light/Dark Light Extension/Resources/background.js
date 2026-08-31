@@ -115,6 +115,29 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'getInterfaceLanguage') {
+    sendNativeMessage({ action: 'getInterfaceLanguage' }, (response) => {
+      const language = typeof response?.language === 'string' ? response.language : null;
+      const revision = typeof response?.revision === 'number' ? response.revision : 0;
+      sendResponse({ language, revision });
+    });
+    return true;
+  }
+
+  if (message.action === 'setInterfaceLanguage') {
+    sendNativeMessage({ action: 'setInterfaceLanguage', language: message.language }, (response) => {
+      if (response?.ok !== true) {
+        sendResponse(response || { ok: false });
+        return;
+      }
+      chrome.storage.local.set({
+        userLanguage: response.language,
+        hostInterfaceLanguageRevision: response.revision
+      }, () => sendResponse(response));
+    });
+    return true;
+  }
+
   if (message.action === 'setBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;
     if (typeof tabId === 'number') {

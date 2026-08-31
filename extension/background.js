@@ -93,7 +93,24 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'getInterfaceLanguage') {
+    chrome.storage.local.get(['userLanguage', 'hostInterfaceLanguageRevision'], (result) => {
+      sendResponse({
+        language: result.userLanguage || null,
+        revision: result.hostInterfaceLanguageRevision || 0
+      });
+    });
+    return true;
+  }
+
+  if (message.action === 'setInterfaceLanguage') {
+    chrome.storage.local.set({ userLanguage: message.language }, () => {
+      sendResponse({ ok: true, language: message.language });
+    });
+    return true;
+  }
+
   if (message.action === 'syncPrepaintContentScripts') {
     syncPrepaintContentScripts();
     return;

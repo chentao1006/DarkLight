@@ -8,6 +8,8 @@ import WebKit
 let extensionBundleIdentifier = "com.ct106.darklight.Extension"
 let safariBundleIdentifier = "com.apple.Safari" // only used on mac
 let openPremiumNotification = Notification.Name("DarkLightOpenPremium")
+let interfaceLanguageDidChangeNotification = Notification.Name("DarkLightInterfaceLanguageDidChange")
+let interfaceLanguageDefaultsKey = "DarkLight.interfaceLanguage"
 
 enum PremiumDeepLink {
     private static var pendingOpenPremium = false
@@ -57,8 +59,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark Light is enabled and ready to use in Safari.",
         "statusOffMac": "Dark Light is currently disabled in Safari. You can turn it on in Preferences.",
         "proTitle": "Dark Light Premium",
-        "proIntro": "Upgrade to unlock unlimited site rules, import and export, and iCloud sync.",
-        "premiumFeatureRules": "Unlimited per-site rules",
+        "proIntro": "Upgrade to unlock unlimited website and app theme rules, import and export, and iCloud sync.",
+        "premiumFeatureRules": "Unlimited website and app theme rules",
         "premiumFeatureImportExport": "Import and export rule backups",
         "premiumFeatureICloud": "iCloud sync across Safari devices",
         "proUnlocked": "Premium is unlocked.",
@@ -98,8 +100,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "暗光已在 Safari 中启用，可以直接使用。",
         "statusOffMac": "暗光当前处于关闭状态。你可以在偏好设置中启用它。",
         "proTitle": "暗光高级版",
-        "proIntro": "升级后可解锁无限网站规则、导入导出和 iCloud 同步。",
-        "premiumFeatureRules": "无限网站规则",
+        "proIntro": "升级后可解锁无限网站和应用主题规则、导入导出和 iCloud 同步。",
+        "premiumFeatureRules": "无限网站和应用主题规则",
         "premiumFeatureImportExport": "导入和导出规则备份",
         "premiumFeatureICloud": "通过 iCloud 在 Safari 设备之间同步",
         "proUnlocked": "高级版已解锁。",
@@ -139,8 +141,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark LightはSafariで有効になっており、すぐに使用できます。",
         "statusOffMac": "Dark Lightは現在Safariで無効になっています。環境設定で有効にすることができます。",
         "proTitle": "Dark Light Premium",
-        "proIntro": "アップグレードすると、無制限のサイトルール、インポートとエクスポート、iCloud同期を利用できます。",
-        "premiumFeatureRules": "無制限のサイトルール",
+        "proIntro": "アップグレードすると、無制限のサイトルールとアプリテーマ、インポートとエクスポート、iCloud同期を利用できます。",
+        "premiumFeatureRules": "無制限のサイトルールとアプリテーマ",
         "premiumFeatureImportExport": "ルールバックアップのインポートとエクスポート",
         "premiumFeatureICloud": "Safariデバイス間のiCloud同期",
         "proUnlocked": "Premiumはロック解除済みです。",
@@ -177,8 +179,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark Light가 Safari에서 활성화되어 바로 사용할 수 있습니다.",
         "statusOffMac": "Dark Light가 현재 Safari에서 비활성화되어 있습니다. 환경설정에서 켤 수 있습니다.",
         "proTitle": "Dark Light Premium",
-        "proIntro": "업그레이드하면 무제한 사이트 규칙, 가져오기와 내보내기, iCloud 동기화를 사용할 수 있습니다.",
-        "premiumFeatureRules": "무제한 사이트 규칙",
+        "proIntro": "업그레이드하면 무제한 사이트 규칙과 앱 테마, 가져오기와 내보내기, iCloud 동기화를 사용할 수 있습니다.",
+        "premiumFeatureRules": "무제한 사이트 규칙과 앱 테마",
         "premiumFeatureImportExport": "규칙 백업 가져오기 및 내보내기",
         "premiumFeatureICloud": "Safari 기기 간 iCloud 동기화",
         "proUnlocked": "Premium이 잠금 해제되었습니다.",
@@ -215,8 +217,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark Light está habilitado y listo para usarse en Safari.",
         "statusOffMac": "Dark Light está actualmente deshabilitado en Safari. Puedes activarlo en Preferencias.",
         "proTitle": "Dark Light Premium",
-        "proIntro": "Actualiza para desbloquear reglas ilimitadas por sitio, importación y exportación y sincronización con iCloud.",
-        "premiumFeatureRules": "Reglas ilimitadas por sitio",
+        "proIntro": "Actualiza para desbloquear reglas ilimitadas para sitios y temas de apps, importación y exportación y sincronización con iCloud.",
+        "premiumFeatureRules": "Reglas ilimitadas para sitios y temas de apps",
         "premiumFeatureImportExport": "Importar y exportar copias de seguridad de reglas",
         "premiumFeatureICloud": "Sincronización de iCloud entre dispositivos Safari",
         "proUnlocked": "Premium está desbloqueado.",
@@ -253,8 +255,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark Light est activé et prêt à être utilisé dans Safari.",
         "statusOffMac": "Dark Light est actuellement désactivé dans Safari. Vous pouvez l\'activer dans les Préférences.",
         "proTitle": "Dark Light Premium",
-        "proIntro": "Passez à Premium pour débloquer des règles de site illimitées, l'importation et l'exportation, et la synchronisation iCloud.",
-        "premiumFeatureRules": "Règles de site illimitées",
+        "proIntro": "Passez à Premium pour débloquer des règles de site et des thèmes d’app illimités, l'importation et l'exportation, et la synchronisation iCloud.",
+        "premiumFeatureRules": "Règles de site et thèmes d’app illimités",
         "premiumFeatureImportExport": "Importation et exportation des sauvegardes de règles",
         "premiumFeatureICloud": "Synchronisation iCloud entre appareils Safari",
         "proUnlocked": "Premium est débloqué.",
@@ -291,8 +293,8 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnPreferences": "Dark Light ist in Safari aktiviert und einsatzbereit.",
         "statusOffMac": "Dark Light ist derzeit in Safari deaktiviert. Sie können es in den Einstellungen einschalten.",
         "proTitle": "Dark Light Premium",
-        "proIntro": "Mit dem Upgrade schalten Sie unbegrenzte Website-Regeln, Import und Export sowie iCloud-Sync frei.",
-        "premiumFeatureRules": "Unbegrenzte Website-Regeln",
+        "proIntro": "Mit dem Upgrade schalten Sie unbegrenzte Website-Regeln und App-Themen, Import und Export sowie iCloud-Sync frei.",
+        "premiumFeatureRules": "Unbegrenzte Website-Regeln und App-Themen",
         "premiumFeatureImportExport": "Regelsicherungen importieren und exportieren",
         "premiumFeatureICloud": "iCloud-Sync zwischen Safari-Geräten",
         "proUnlocked": "Premium ist freigeschaltet.",
@@ -314,11 +316,17 @@ class SetupViewModel: ObservableObject {
     @Published var preferencesMessage: String? = nil
     
     init() {
-        let locale = Locale.current.languageCode ?? "en"
-        if localizedStrings.keys.contains(locale) {
-            currentLanguage = locale
-        } else if locale.starts(with: "zh") {
-            currentLanguage = "zh"
+        if let savedLanguage = UserDefaults.standard.string(forKey: interfaceLanguageDefaultsKey),
+           localizedStrings.keys.contains(savedLanguage) {
+            currentLanguage = savedLanguage
+        } else {
+            let locale = Locale.current.languageCode ?? "en"
+            if localizedStrings.keys.contains(locale) {
+                currentLanguage = locale
+            } else if locale.starts(with: "zh") {
+                currentLanguage = "zh"
+            }
+            UserDefaults.standard.set(currentLanguage, forKey: interfaceLanguageDefaultsKey)
         }
         refreshExtensionState()
         
@@ -412,7 +420,11 @@ class SetupViewModel: ObservableObject {
         #if os(macOS)
         activateSafari {
             DispatchQueue.main.async {
-                NSApplication.shared.terminate(nil)
+                // Hide instead of closing: closing the last window may invoke
+                // the app delegate's normal termination policy.
+                NSApplication.shared.windows
+                    .first(where: { $0.contentViewController is ViewController })?
+                    .orderOut(nil)
             }
         }
         #else
@@ -446,6 +458,53 @@ struct SetupView: View {
     @StateObject var proStore = ProStore()
     @State private var showingPremiumDetails = false
     @Environment(\.colorScheme) var colorScheme
+
+    #if os(macOS)
+    private func updateMainWindowTitle() {
+        NSApplication.shared.windows
+            .first(where: { $0.contentViewController is ViewController })?
+            .title = viewModel.t("pageTitle")
+    }
+    #endif
+
+    #if os(macOS)
+
+    private var appThemeControlTitle: String {
+        switch viewModel.currentLanguage {
+        case "zh": return "应用主题控制"
+        case "ja": return "アプリテーマ管理"
+        case "ko": return "앱 테마 제어"
+        case "es": return "Control de tema de apps"
+        case "fr": return "Contrôle du thème des apps"
+        case "de": return "App-Themensteuerung"
+        default: return "App Theme Control"
+        }
+    }
+
+    private var appThemeControlDetail: String {
+        switch viewModel.currentLanguage {
+        case "zh": return "为 Mac 应用设置跟随系统、深色或浅色外观"
+        case "ja": return "Macアプリをシステム連動・ダーク・ライトに設定"
+        case "ko": return "Mac 앱을 시스템 설정, 다크 또는 라이트로 지정"
+        case "es": return "Configura apps de Mac para seguir el sistema, oscuro o claro"
+        case "fr": return "Réglez les apps Mac sur système, sombre ou clair"
+        case "de": return "Mac-Apps auf System, Dunkel oder Hell einstellen"
+        default: return "Set Mac apps to follow the system, dark, or light"
+        }
+    }
+
+    private var appThemeControlExperimentalLabel: String {
+        switch viewModel.currentLanguage {
+        case "zh": return "实验性功能"
+        case "ja": return "実験的機能"
+        case "ko": return "실험적 기능"
+        case "es": return "Función experimental"
+        case "fr": return "Fonction expérimentale"
+        case "de": return "Experimentelle Funktion"
+        default: return "Experimental"
+        }
+    }
+    #endif
     
     var body: some View {
         ZStack {
@@ -491,6 +550,53 @@ struct SetupView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                     }
+
+                    #if os(macOS)
+                    Button(action: {
+                        (NSApplication.shared.delegate as? AppDelegate)?.showAppThemeControl()
+                    }) {
+                        HStack(spacing: 14) {
+                            Image(systemName: "macwindow.and.pointer.arrow")
+                                .font(.title2.weight(.semibold))
+                                .foregroundStyle(Color.accentColor)
+                                .frame(width: 46, height: 46)
+                                .background(Color.accentColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 12))
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 8) {
+                                    Text(appThemeControlTitle)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text(appThemeControlExperimentalLabel)
+                                        .font(.caption2.weight(.medium))
+                                        .foregroundStyle(Color.accentColor)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 3)
+                                        .background(Color.accentColor.opacity(0.14), in: Capsule())
+                                }
+                                Text(appThemeControlDetail)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.leading)
+                            }
+
+                            Spacer(minLength: 8)
+
+                            Image(systemName: "chevron.right")
+                                .font(.headline.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.windowBackgroundColor).opacity(0.62))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.accentColor.opacity(0.28), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    #endif
                     
                     // Usage Card
                     VStack(alignment: .leading, spacing: 12) {
@@ -629,12 +735,32 @@ struct SetupView: View {
             PremiumDetailsView(viewModel: viewModel, proStore: proStore)
         }
         .onAppear {
+            #if os(macOS)
+            updateMainWindowTitle()
+            (NSApplication.shared.delegate as? AppDelegate)?
+                .updateInterfaceLanguage(viewModel.currentLanguage)
+            #endif
             if PremiumDeepLink.consumePendingOpenPremium() {
                 showingPremiumDetails = true
             }
         }
+        .onChange(of: viewModel.currentLanguage) { language in
+            UserDefaults.standard.set(language, forKey: interfaceLanguageDefaultsKey)
+            #if os(macOS)
+            updateMainWindowTitle()
+            (NSApplication.shared.delegate as? AppDelegate)?.updateInterfaceLanguage(language)
+            #endif
+        }
         .onReceive(NotificationCenter.default.publisher(for: openPremiumNotification)) { _ in
             showingPremiumDetails = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: interfaceLanguageDidChangeNotification)) { notification in
+            guard let language = notification.userInfo?["language"] as? String,
+                  localizedStrings.keys.contains(language),
+                  viewModel.currentLanguage != language else {
+                return
+            }
+            viewModel.currentLanguage = language
         }
     }
     

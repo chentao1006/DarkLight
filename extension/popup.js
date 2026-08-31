@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (extLangSwitcher) {
         extLangSwitcher.value = I18n.currentLang;
         extLangSwitcher.addEventListener('change', async (e) => {
-            await new Promise(resolve => chrome.storage.local.set({ userLanguage: e.target.value }, resolve));
+            await new Promise(resolve => chrome.runtime.sendMessage({
+                action: 'setInterfaceLanguage',
+                language: e.target.value
+            }, resolve));
             await I18n.init();
             localize();
             renderModeOptions(defaultMode, false);
