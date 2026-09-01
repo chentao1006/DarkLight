@@ -40,7 +40,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Dark Light Icon",
         "heroTitle": "Dark Light",
-        "heroIntro": "Dark Light lets you decide how each website should \"look\": follow system, preserve site design, force dark, or force light.",
+        "heroIntro": "Dark Light lets you control website appearance: Follow System, Preserve Site Design, Force Dark, or Force Light. On macOS, experimental App Theme Control helps selected apps without automatic light and dark themes.",
         "macUsageTitle": "How to enable on Mac",
         "macStep1": "Open Safari.",
         "macStep2": "Enable Dark Light in Safari Extensions Preferences.",
@@ -81,7 +81,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "暗光",
         "appIconAlt": "暗光图标",
         "heroTitle": "暗光",
-        "heroIntro": "暗光让你决定每个网站该如何显示：跟随系统外观、维持网站设计、强制深色或强制浅色。",
+        "heroIntro": "暗光让你掌控网页外观：跟随系统外观、维持网站设计、强制深色或强制浅色。macOS 上的应用主题控制作为实验性功能，面向没有自动适配深浅色主题的选定应用。",
         "macUsageTitle": "在 Mac 上如何开启",
         "macStep1": "打开 Safari。",
         "macStep2": "在 Safari 的扩展偏好设置中勾选暗光。",
@@ -122,7 +122,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Dark Light アイコン",
         "heroTitle": "Dark Light",
-        "heroIntro": "Dark Lightでは、各ウェブサイトの表示方法（システムに従う、サイトのデザインを維持する、強制的にダーク、強制的にライト）を決定できます。",
+        "heroIntro": "Dark Light ではウェブサイトの外観を管理できます。システムに従う、サイトデザインを維持、強制ダーク、強制ライトを選択できます。macOS では、ライト／ダーク表示に自動対応しないアプリ向けの実験的なアプリテーマ管理も利用できます。",
         "macUsageTitle": "Macでの有効化方法",
         "macStep1": "Safariを開きます。",
         "macStep2": "Safariの機能拡張環境設定でDark Lightを有効にします。",
@@ -160,7 +160,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Dark Light 아이콘",
         "heroTitle": "Dark Light",
-        "heroIntro": "Dark Light를 사용하면 각 웹사이트의 표시 방법(시스템 따르기, 사이트 디자인 유지, 강제 다크, 강제 라이트)을 결정할 수 있습니다.",
+        "heroIntro": "Dark Light는 웹사이트의 모양을 관리합니다. 시스템 따르기, 사이트 디자인 유지, 다크 강제 또는 라이트 강제를 선택할 수 있습니다. macOS에서는 밝은색과 어두운색 테마에 자동으로 맞춰 전환되지 않는 앱을 위한 실험 기능인 앱 테마 제어도 사용할 수 있습니다.",
         "macUsageTitle": "Mac에서 활성화하는 방법",
         "macStep1": "Safari를 엽니다.",
         "macStep2": "Safari 확장 프로그램 환경설정에서 Dark Light를 활성화합니다.",
@@ -198,7 +198,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Icono de Dark Light",
         "heroTitle": "Dark Light",
-        "heroIntro": "Dark Light te permite decidir cómo debe verse cada sitio \"web\": seguir el sistema, conservar el diseño del sitio, forzar oscuro o forzar claro.",
+        "heroIntro": "Dark Light controla la apariencia de los sitios web: seguir el sistema, conservar el diseño, forzar oscuro o forzar claro. En macOS, el control experimental de tema de apps ayuda a las apps seleccionadas que no se adaptan automáticamente a los temas claro y oscuro.",
         "macUsageTitle": "Cómo habilitar en Mac",
         "macStep1": "Abre Safari.",
         "macStep2": "Habilita Dark Light en las Preferencias de Extensiones de Safari.",
@@ -236,7 +236,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Icône Dark Light",
         "heroTitle": "Dark Light",
-        "heroIntro": "Dark Light vous permet de décider de l\'apparence de chaque site Web : suivre le système, conserver la conception du site, forcer le mode sombre ou forcer le mode clair.",
+        "heroIntro": "Dark Light gère l’apparence des sites web : Suivre le système, Conserver le design, Forcer sombre ou Forcer clair. Sur macOS, le contrôle expérimental du thème des apps aide les apps sélectionnées qui ne s’adaptent pas automatiquement aux thèmes clair et sombre.",
         "macUsageTitle": "Comment activer sur Mac",
         "macStep1": "Ouvrez Safari.",
         "macStep2": "Activez Dark Light dans les Préférences des extensions Safari.",
@@ -274,7 +274,7 @@ let localizedStrings: [String: [String: String]] = [
         "pageTitle": "Dark Light",
         "appIconAlt": "Dark Light Symbol",
         "heroTitle": "Dark Light",
-        "heroIntro": "Mit Dark Light können Sie entscheiden, wie jede Website aussehen \"soll\": System folgen, Site-Design beibehalten, Dunkel erzwingen oder Hell erzwingen.",
+        "heroIntro": "Dark Light verwaltet das Erscheinungsbild von Websites: System folgen, Website-Design beibehalten, Dunkel erzwingen oder Hell erzwingen. Unter macOS hilft die experimentelle App-Themensteuerung ausgewählten Apps, die sich nicht automatisch an helle und dunkle Themes anpassen.",
         "macUsageTitle": "Wie man es auf dem Mac aktiviert",
         "macStep1": "Öffnen Sie Safari.",
         "macStep2": "Aktivieren Sie Dark Light in den Safari-Erweiterungseinstellungen.",
@@ -483,13 +483,13 @@ struct SetupView: View {
 
     private var appThemeControlDetail: String {
         switch viewModel.currentLanguage {
-        case "zh": return "为 Mac 应用设置跟随系统、深色或浅色外观"
-        case "ja": return "Macアプリをシステム連動・ダーク・ライトに設定"
-        case "ko": return "Mac 앱을 시스템 설정, 다크 또는 라이트로 지정"
-        case "es": return "Configura apps de Mac para seguir el sistema, oscuro o claro"
-        case "fr": return "Réglez les apps Mac sur système, sombre ou clair"
-        case "de": return "Mac-Apps auf System, Dunkel oder Hell einstellen"
-        default: return "Set Mac apps to follow the system, dark, or light"
+        case "zh": return "为没有自动适配深浅色主题的 Mac 应用设置显示主题"
+        case "ja": return "ライト／ダーク表示に自動対応しない Mac アプリのテーマを設定"
+        case "ko": return "밝은색과 어두운색 테마에 자동으로 맞춰 전환되지 않는 Mac 앱의 테마 설정"
+        case "es": return "Configura el tema de apps Mac sin adaptación automática a claro y oscuro"
+        case "fr": return "Réglez le thème des apps Mac sans adaptation automatique au clair et sombre"
+        case "de": return "Thema für Mac-Apps ohne automatische Hell-Dunkel-Anpassung festlegen"
+        default: return "Set a theme for Mac apps without automatic light and dark themes"
         }
     }
 

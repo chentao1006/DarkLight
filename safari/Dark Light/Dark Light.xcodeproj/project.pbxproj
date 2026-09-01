@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0C6776748DB693B78A7C2B7C /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = EA2CE68D86AF9F84BF337F08 /* i18n.js */; };
 		A4F1D2213A8B400100000001 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F1D2203A8B400100000001 /* AppAppearance.swift */; };
+		A4F1D2513A8B400100000001 /* AptabaseAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F1D2503A8B400100000001 /* AptabaseAnalytics.swift */; };
 		A4F1D2313A8B400100000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F1D2333A8B400100000001 /* AppDelegate.swift */; };
 		A4F1D2323A8B400100000001 /* Dark Light Login Item.app in Copy Login Item */ = {isa = PBXBuildFile; fileRef = A4F1D2363A8B400100000001 /* Dark Light Login Item.app */; platformFilters = (macos, ); settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		4F70A7B42A8C42B8AA651001 /* ProStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F70A7B32A8C42B8AA651001 /* ProStore.swift */; };
@@ -83,6 +84,7 @@
 /* Begin PBXFileReference section */
 		4F70A7B32A8C42B8AA651001 /* ProStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStore.swift; sourceTree = "<group>"; };
 		A4F1D2203A8B400100000001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		A4F1D2503A8B400100000001 /* AptabaseAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AptabaseAnalytics.swift; sourceTree = "<group>"; };
 		A4F1D2333A8B400100000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A4F1D2343A8B400100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4F1D2353A8B400100000001 /* Dark Light Login Item.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Dark Light Login Item.entitlements"; sourceTree = "<group>"; };
@@ -168,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				C62198CE2FE3E54400899251 /* AppDelegate.swift */,
+				A4F1D2503A8B400100000001 /* AptabaseAnalytics.swift */,
 				A4F1D2203A8B400100000001 /* AppAppearance.swift */,
 				4F70A7B32A8C42B8AA651001 /* ProStore.swift */,
 				C62198DA2FE3E54400899251 /* ViewController.swift */,
@@ -374,6 +377,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4F1D2513A8B400100000001 /* AptabaseAnalytics.swift in Sources */,
 				A4F1D2213A8B400100000001 /* AppAppearance.swift in Sources */,
 				C62198DB2FE3E54400899251 /* ViewController.swift in Sources */,
 				4F70A7B42A8C42B8AA651001 /* ProStore.swift in Sources */,

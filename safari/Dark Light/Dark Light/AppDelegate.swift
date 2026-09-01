@@ -18,6 +18,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var launchedAsLoginItem = false
     private var selectedInterfaceLanguage: String?
 
+    private enum AppThemeControlRecommendation {
+        static let hasBeenPresentedDefaultsKey = "DarkLight.appThemeControlRecommendationHasBeenPresented"
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         launchedAsLoginItem = Self.isLaunchedAsLoginItem
         let iCloudStore = NSUbiquitousKeyValueStore.default
@@ -39,6 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if launchedAsLoginItem {
             NSApplication.shared.setActivationPolicy(.accessory)
         }
+        DailyCheckInScheduler.shared.start()
         AppAppearanceController.shared.start()
         NotificationCenter.default.addObserver(
             self,
@@ -49,6 +54,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         installStatusItem()
         if launchedAsLoginItem {
             NSApplication.shared.windows.forEach { $0.orderOut(nil) }
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.presentAppThemeControlRecommendationIfNeeded()
+            }
         }
     }
 
@@ -162,6 +171,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
     }
+
+    private func presentAppThemeControlRecommendationIfNeeded() {
+        guard #available(macOS 12.3, *),
+              !launchedAsLoginItem,
+              !UserDefaults.standard.bool(forKey: AppThemeControlRecommendation.hasBeenPresentedDefaultsKey),
+              let window = NSApplication.shared.windows.first(where: { $0.contentViewController is ViewController }) else {
+            return
+        }
+
+    let alert = NSAlert()
+        alert.messageText = appThemeControlRecommendationText("title")
+        alert.informativeText = appThemeControlRecommendationText("message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: appThemeControlRecommendationText("tryNow"))
+        alert.addButton(withTitle: appThemeControlRecommendationText("dontRemind"))
+    alert.beginSheetModal(for: window) { [weak self] response in
+        switch response {
+        case .alertFirstButtonReturn:
+            UserDefaults.standard.set(true, forKey: AppThemeControlRecommendation.hasBeenPresentedDefaultsKey)
+            self?.showAppThemeControl()
+        case .alertSecondButtonReturn:
+            UserDefaults.standard.set(true, forKey: AppThemeControlRecommendation.hasBeenPresentedDefaultsKey)
+        default:
+            break
+        }
+    }
+}
 
     func updateInterfaceLanguage(_ language: String) {
         selectedInterfaceLanguage = language
@@ -308,6 +344,55 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return String(format: text, appName)
     }
 
+    private func appThemeControlRecommendationText(_ key: String) -> String {
+        let texts: [String: [String: String]] = [
+            "zh": [
+                "title": "试试应用主题控制",
+                "message": "这是实验性功能，适合没有自动适配深浅色主题的 Mac 应用。",
+                "tryNow": "立即尝试",
+                "dontRemind": "不再提示"
+            ],
+            "ja": [
+                "title": "アプリテーマ管理を試す",
+                "message": "実験的機能です。ライト／ダーク表示に自動対応しない Mac アプリ向けです。",
+                "tryNow": "今すぐ試す",
+                "dontRemind": "今後表示しない"
+            ],
+            "ko": [
+                "title": "앱 테마 제어 사용해 보기",
+                "message": "밝은색과 어두운색 테마에 자동으로 맞춰 전환되지 않는 Mac 앱을 위한 실험 기능입니다.",
+                "tryNow": "지금 사용해 보기",
+                "dontRemind": "다시 표시 안 함"
+            ],
+            "es": [
+                "title": "Prueba el control de tema de apps",
+                "message": "Esta función experimental está pensada para apps Mac que no se adaptan automáticamente a los temas claro y oscuro.",
+                "tryNow": "Probar ahora",
+                "dontRemind": "No volver a mostrar"
+            ],
+            "fr": [
+                "title": "Essayer le contrôle du thème des apps",
+                "message": "Cette fonction expérimentale est conçue pour les apps Mac qui ne s’adaptent pas automatiquement aux thèmes clair et sombre.",
+                "tryNow": "Essayer maintenant",
+                "dontRemind": "Ne plus afficher"
+            ],
+            "de": [
+                "title": "App-Themensteuerung ausprobieren",
+                "message": "Diese experimentelle Funktion ist für Mac-Apps gedacht, die sich nicht automatisch an helle und dunkle Themes anpassen.",
+                "tryNow": "Jetzt ausprobieren",
+                "dontRemind": "Nicht mehr anzeigen"
+            ],
+            "en": [
+                "title": "Try App Theme Control",
+                "message": "This experimental feature is for Mac apps that do not automatically adapt to light and dark themes.",
+                "tryNow": "Try it now",
+                "dontRemind": "Don't remind me again"
+            ]
+        ]
+
+        return texts[menuLanguage]?[key] ?? texts["en"]?[key] ?? ""
+    }
+
     private var menuLanguage: String {
         if let selectedInterfaceLanguage {
             return selectedInterfaceLanguage
@@ -375,6 +460,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        DailyCheckInScheduler.shared.start()
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = ViewController()
         window.makeKeyAndVisible()

@@ -1,29 +1,29 @@
 # Dark Light
 
-**You control website appearance: dark mode and light mode in one extension.**
+**Website appearance at its core, with experimental themes for Mac apps without automatic light and dark themes.**
 
 **English** | [简体中文](./README_CN.md)
 
 ---
 
-Dark Light is a lightweight browser extension that gives you bidirectional control over website appearance. Unlike typical dark-mode extensions, Dark Light provides both Force Dark mode for bright pages and a reliable Force Light mode to turn dark sites back to light, letting you customize your reading environment exactly how you want.
+Dark Light is a lightweight browser extension that lets you choose how each website looks. Set websites to Follow System, Preserve Site Design, Force Dark, or Force Light. On macOS, experimental App Theme Control also lets you set a display theme for selected apps without automatic light and dark themes.
 
-## Why Use Dark Light?
+## Why Dark Light?
 
-* **True Bidirectional Control:** Force dark mode on bright websites, or force light mode on dark websites to match your reading environment.
-* **Follow your real preference:** Choose Follow System, Preserve Site Design, Force Dark, or Force Light as the default behavior.
-* **Per-site rules:** Set a different mode for any domain, with optional subdomain matching.
-* **Better dark mode:** Turn light-heavy websites into comfortable dark reading spaces.
-* **Reliable light mode:** Turn dark websites back to light when you want daytime readability.
-* **Local and private:** Settings and style changes stay in your browser.
+* **Designed for websites:** Control the appearance of every website without changing its underlying content.
+* **Use the mode that fits:** Choose Follow System, Preserve Site Design, Force Dark, or Force Light globally or for each website.
+* **Per-site rules:** Give each website its own rule, with optional subdomain matching.
+* **Dark and light both matter:** Make bright websites more comfortable at night or bring dark websites back to a clear daytime appearance.
+* **Experimental macOS expansion:** App Theme Control can set a display theme for selected Mac apps without automatic light and dark themes.
+* **Local and private:** Rules and display processing stay on your device. Dark Light does not collect browsing data or save screen contents.
 
 ## Features
 
-* **Global default mode:** Follow System, Preserve Site Design, Force Dark, or Force Light.
-* **Current-site popup controls:** Change the current domain in seconds.
-* **Rules manager:** Add, edit, disable, and remove all site rules from the options page.
-* **Visual badge:** The toolbar badge shows mode at a glance: `A` (Follow System), `🌙` (Force Dark), `☀️` (Force Light), empty for Preserve Site.
-* **Safari app included:** A native macOS host app and Safari Web Extension project are included under `safari/`.
+* **Website appearance rules:** Choose a global default or set Follow System, Preserve Site Design, Force Dark, or Force Light for each website.
+* **Quick web controls:** Change the current website in seconds, or manage all website rules from one place.
+* **App Theme Control (macOS, experimental):** Give selected Mac apps without automatic light and dark themes a display theme: follow the system, force dark or light, or switch automatically by time.
+* **Native Safari app:** The macOS host app includes Safari Web Extension setup and experimental App Theme Control under `safari/`.
+* **Private by design:** The toolbar badge shows web mode at a glance; settings and display processing remain local to your device.
 
 ## Installation
 
@@ -72,14 +72,20 @@ Dark Light is a lightweight browser extension that gives you bidirectional contr
 
 1. Open `safari/Dark Light/Dark Light.xcodeproj` in Xcode.
 2. Select the `Dark Light` scheme and run it on `My Mac`, or select `Dark Light iOS` to run it on iPhone or iPad (iOS 15+).
-3. The host app opens a simple introduction window with buttons to launch Safari and open Safari's extension settings.
-4. Enable `Dark Light` in Safari, then use the Safari toolbar popup as usual.
+3. The host app provides Safari extension setup and, on macOS, App Theme Control for apps without automatic light and dark themes.
+4. Enable `Dark Light` in Safari to use website controls, or open **App Theme Control** to configure selected Mac apps without automatic light and dark themes.
+
+### App Theme Control (macOS, Experimental)
+
+The included macOS app can apply a display theme to selected applications that do not automatically adapt to light and dark appearance. Open **App Theme Control** from Dark Light, grant macOS Screen Recording permission, then add an app and choose **Follow System**, **Force Dark**, **Force Light**, or a time-based schedule. The rule automatically applies to all visible windows of that app.
+
+This feature requires macOS 12.3 or later. Dark Light uses the permission only to transform the selected app's on-screen appearance; it does not save or upload screen contents.
 
 The userscript distribution is no longer maintained.
 
 ## Technical Details
 
-Dark Light stores settings in `chrome.storage.sync` under `darkLightSettings`.
+Dark Light stores website settings in `chrome.storage.sync` under `darkLightSettings`. The macOS host app stores selected app rules and schedules locally in `UserDefaults`.
 
 Force Dark is powered by the vendored `darkreader` package (`extension/vendor/darkreader/`), which is MIT licensed.
 
@@ -113,4 +119,4 @@ Permissions used:
 
 ## Privacy
 
-Dark Light does not collect, track, or transmit personal data, browsing history, keystrokes, or page content. All processing happens locally in your browser.
+Dark Light does not collect or transmit personal data, browsing history, keystrokes, page content, or screen contents. It sends anonymous launch and host-app daily check-in events to Aptabase, limited to locale, platform, OS, app version, and debug status.

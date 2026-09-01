@@ -7,6 +7,9 @@ const MODE_TIME_BASED = 'timeBased';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
 const PREPAINT_SCRIPT_PREFIX = 'dark-light-prepaint-';
+const APTABASE_APP_KEY = 'A-US-3733627961';
+const APTABASE_EVENTS_URL = 'https://us.aptabase.com/api/v0/events';
+const APTABASE_SESSION_ID = `${Math.floor(Date.now() / 1000)}${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`;
 
 const PREPAINT_CSS_BY_MODE = {
   [MODE_FORCE_LIGHT]: 'prepaint-force-light.css',
@@ -17,6 +20,34 @@ const PREPAINT_CSS_BY_MODE = {
 
 function setBadgeOff() {
   chrome.action.setBadgeText({ text: '' });
+}
+
+function trackAptabaseEvent(eventName) {
+  const manifest = chrome.runtime.getManifest();
+  const event = {
+    timestamp: new Date().toISOString(),
+    sessionId: APTABASE_SESSION_ID,
+    eventName,
+    systemProps: {
+      locale: navigator.language || 'unknown',
+      osName: navigator.platform || 'browser',
+      osVersion: 'unknown',
+      deviceModel: 'browser-extension',
+      isDebug: false,
+      appVersion: manifest.version,
+      sdkVersion: `dark-light-extension@${manifest.version}`
+    }
+  };
+
+  void fetch(APTABASE_EVENTS_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'App-Key': APTABASE_APP_KEY
+    },
+    credentials: 'omit',
+    body: JSON.stringify([event])
+  }).catch(() => {});
 }
 
 function setBadgeState(tabId, appearance, mode) {
@@ -76,6 +107,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onStartup.addListener(() => {
+  trackAptabaseEvent('extension_started');
   setBadgeOff();
   syncPrepaintContentScripts();
 });

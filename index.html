@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dark Light - Browser Extension</title>
+  <title>Dark Light - Web & App Appearance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -396,19 +396,18 @@
     }
 
     .features {
-      display: flex;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 30px;
-      padding: 120px 50px;
+      padding: 120px max(24px, calc((100vw - 1280px) / 2));
       background-color: var(--bg-alt);
-      flex-wrap: wrap;
     }
 
     .feature-card {
       background: var(--card-bg);
       padding: 48px 36px;
       border-radius: 24px;
-      width: 320px;
+      width: 100%;
       text-align: left;
       border: 1px solid rgba(0, 0, 0, 0.04);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
@@ -438,6 +437,27 @@
       font-weight: 800;
       color: var(--text);
       letter-spacing: -0.5px;
+    }
+
+    .feature-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .feature-title-row h3 { margin: 0; }
+
+    .feature-label {
+      flex-shrink: 0;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(0, 123, 255, 0.1);
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .feature-card p {
@@ -473,11 +493,17 @@
       gap: 32px;
     }
 
+    @media (max-width: 1180px) {
+      .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 768px) {
       header { padding: 15px 24px; }
       nav a:not(:last-child) { display: none; }
-      .features { padding: 80px 24px; }
-      .feature-card { width: 100%; }
+      .features {
+        grid-template-columns: 1fr;
+        padding: 80px 24px;
+      }
       .hero { padding-top: 120px; }
     }
   </style>
@@ -492,26 +518,20 @@
     </a>
     <nav>
       <a href="#features" data-i18n="nav_features">Features</a>
-      <a href="#install" style="color: var(--primary);" data-i18n="nav_get_extension">Get Extension</a>
+      <a href="#install" style="color: var(--primary);" data-i18n="nav_get_extension">Get Dark Light</a>
       
       <select id="langSelect" class="lang-switcher" onchange="setLang(this.value)" aria-label="Language">
         <option value="en">English</option>
         <option value="zh">中文</option>
-        <option value="ja">日本語</option>
-        <option value="ko">한국어</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-        <option value="de">Deutsch</option>
-        <option value="pt">Português</option>
       </select>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <h1 data-i18n="hero_h1">You Decide: Dark or Light</h1>
-      <p class="hero-subtitle" data-i18n="hero_subtitle">Dark Light is a lightweight browser extension where you decide how each website looks.</p>
-      <p class="hero-description" data-i18n="hero_p">Unlike typical dark-mode extensions, Dark Light also gives you a reliable light mode. Darken bright sites, or turn dark sites back to light when you need it.</p>
+      <h1 data-i18n="hero_h1">Appearance, Your Way</h1>
+      <p class="hero-subtitle" data-i18n="hero_subtitle">Choose the light or dark theme for every website and Mac apps.</p>
+      <p class="hero-description" data-i18n="hero_p">Set Follow System, Preserve Site Design, Force Dark, or Force Light for every website. On macOS, experimental App Theme Control helps apps without automatic light and dark themes.</p>
       <div class="hero-badges">
         <span class="hero-badge hero-badge-dark">
           <span>☀️ ➔ 🌙</span>
@@ -540,8 +560,8 @@
     </section>
 
     <section class="showcase">
-      <h2 data-i18n="showcase_h2">Bidirectional Control: Dark & Light</h2>
-      <p style="color: var(--text-muted); margin-bottom: 30px;" data-i18n="showcase_p">Force dark mode on bright websites, or turn dark websites back to light.</p>
+      <h2 data-i18n="showcase_h2">Web and Apps, One Appearance Strategy</h2>
+      <p style="color: var(--text-muted); margin-bottom: 30px;" data-i18n="showcase_p">Create detailed website rules. On macOS, experimental App Theme Control fills the gap for apps without automatic light and dark themes.</p>
 
       <div class="carousel-wrap" id="screenshotCarousel">
         <div class="carousel-viewport">
@@ -559,23 +579,31 @@
     <section id="features" class="features">
       <div class="feature-card">
         <div class="feature-icon">👁️</div>
-        <h3 data-i18n="feature1_h3">Four Modes</h3>
-        <p data-i18n="feature1_p">Follow System, Preserve Site Design, Force Dark, and Force Light are available as global defaults and per-site overrides.</p>
+        <h3 data-i18n="feature1_h3">Website Rules</h3>
+        <p data-i18n="feature1_p">Set Follow System, Preserve Site Design, Force Dark, or Force Light for each website, or use one global default.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔒</div>
-        <h3 data-i18n="feature2_h3">Lightweight & Private</h3>
-        <p data-i18n="feature2_p">Settings and styles are processed locally in your browser. No data leaves your device.</p>
+        <h3 data-i18n="feature2_h3">Private by Design</h3>
+        <p data-i18n="feature2_p">Settings and style changes stay on your device. Dark Light does not collect your browsing data.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
-        <h3 data-i18n="feature3_h3">Not Just Dark Mode</h3>
-        <p data-i18n="feature3_p">Most extensions stop at dark mode. Dark Light also includes Force Light, so dark websites can be switched back to light.</p>
+        <h3 data-i18n="feature3_h3">Dark and Light, Both Ways</h3>
+        <p data-i18n="feature3_p">Make bright websites easier at night, or bring dark websites back to a clear light appearance during the day.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖥️</div>
+        <div class="feature-title-row">
+          <h3 data-i18n="feature4_h3">App Theme Control</h3>
+          <span class="feature-label" data-i18n="feature4_badge">Experimental</span>
+        </div>
+        <p data-i18n="feature4_p">On macOS 12.3+, set a theme for selected apps without automatic light and dark themes.</p>
       </div>
     </section>
 
     <section id="install" class="cta-bottom" style="text-align: center; padding: 100px 20px; background: #fff;">
-      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 32px;" data-i18n="cta_bottom_h2">Take Back Website Appearance</h2>
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 32px;" data-i18n="cta_bottom_h2">Shape Every Screen Your Way</h2>
       <div class="cta-group">
         <a href="https://apps.apple.com/us/app/dark-light-for-webpages/id6781749180" class="store-badge" target="_blank" rel="noopener" aria-label="Download on the App Store">
           <img src="assets/app_store.png" alt="Download on the App Store">
@@ -606,20 +634,23 @@
     const translations = {
       en: {
         nav_features: "Features",
-        nav_get_extension: "Get Extension",
-        hero_h1: "You Decide: Dark or Light",
-        hero_subtitle: "Dark Light is a lightweight browser extension where you decide how each website looks.",
-        hero_p: "Unlike typical dark-mode extensions, Dark Light also gives you a reliable light mode. Darken bright sites, or turn dark sites back to light when you need it.",
+        nav_get_extension: "Get Dark Light",
+        hero_h1: "Dark or Light, This is Your Way",
+        hero_subtitle: "Choose the light or dark theme for every website and Mac apps.",
+        hero_p: "Set Follow System, Preserve Site Design, Force Dark, or Force Light for every website. On macOS, experimental App Theme Control helps apps without automatic light and dark themes.",
         store_firefox_label: "Get the Add-on for",
-        cta_bottom_h2: "Take Back Website Appearance",
-        showcase_h2: "Bidirectional Control: Dark & Light",
-        showcase_p: "Force dark mode on bright websites, or turn dark websites back to light.",
-        feature1_h3: "Four Modes",
-        feature1_p: "Follow System, Preserve Site Design, Force Dark, and Force Light are available as global defaults and per-site overrides.",
-        feature2_h3: "Lightweight & Private",
-        feature2_p: "Settings and styles are processed locally in your browser. No data leaves your device.",
-        feature3_h3: "Not Just Dark Mode",
-        feature3_p: "Most extensions stop at dark mode. Dark Light also includes Force Light, so dark websites can be switched back to light.",
+        cta_bottom_h2: "Shape Every Screen Your Way",
+        showcase_h2: "Web and Apps, One Appearance Strategy",
+        showcase_p: "Create detailed website rules. On macOS, experimental App Theme Control fills the gap for apps without automatic light and dark themes.",
+        feature1_h3: "Website Rules",
+        feature1_p: "Set Follow System, Preserve Site Design, Force Dark, or Force Light for each website, or use one global default.",
+        feature2_h3: "Private by Design",
+        feature2_p: "Settings and style changes stay on your device. Dark Light does not collect your browsing data.",
+        feature3_h3: "Dark and Light, Both Ways",
+        feature3_p: "Make bright websites easier at night, or bring dark websites back to a clear light appearance during the day.",
+        feature4_h3: "App Theme Control",
+        feature4_badge: "Experimental",
+        feature4_p: "On macOS 12.3+, set a theme for selected apps without automatic light and dark themes.",
         footer_copy: "© 2026 Dark Light.",
         footer_author: "Author",
         footer_privacy: "Privacy Policy",
@@ -629,21 +660,24 @@
       },
       zh: {
         nav_features: "功能",
-        nav_get_extension: "获取扩展",
+        nav_get_extension: "获取暗光",
         logo_title: "暗光",
-        hero_h1: "黑暗还是光明，由你决定",
-        hero_subtitle: "暗光是一个轻量浏览器扩展，由你来决定每个网站显示成什么外观。",
-        hero_p: "和常见只支持深色模式的插件不同，暗光还提供可靠的强制浅色模式。浅色网站可变深，深色网站也可变浅。",
+        hero_h1: "黑暗或光明，你的抉择",
+        hero_subtitle: "由你选择每个网页和 Mac 应用的深浅主题。",
+        hero_p: "可为每个网站选择跟随系统、维持网站设计、强制深色或强制浅色。macOS 上的应用主题控制作为实验性功能，面向没有自动适配深浅色主题的应用。",
         store_firefox_label: "获取附加组件：",
-        cta_bottom_h2: "夺回网站外观控制权",
-        showcase_h2: "双向外观控制：亮变暗，暗变亮",
-        showcase_p: "不仅能将刺眼的亮色网站变深，更能让深色网站恢复舒适的浅色外观。",
-        feature1_h3: "四种模式",
-        feature1_p: "跟随系统外观、维持网站设计、强制深色、强制浅色都可以作为全局默认或单站规则。",
-        feature2_h3: "本地与隐私安全",
-        feature2_p: "所有设置和样式处理均在浏览器本地完成，不收集任何用户数据，安全可靠。",
-        feature3_h3: "不只是深色模式",
-        feature3_p: "很多插件只到深色为止，暗光还内置强制浅色，让深色站点也能切回浅色。",
+        cta_bottom_h2: "让每一块屏幕都合你心意",
+        showcase_h2: "网页与应用，一套外观策略",
+        showcase_p: "为网页建立细致规则；macOS 上的实验性应用主题控制则补足没有自动适配深浅色主题的应用。",
+        feature1_h3: "网页外观规则",
+        feature1_p: "为每个网站设置跟随系统、维持网站设计、强制深色或强制浅色；也可使用全局默认设置。",
+        feature2_h3: "从设计上保护隐私",
+        feature2_p: "设置和样式处理都留在你的设备上。暗光不收集你的浏览数据。",
+        feature3_h3: "深色与浅色，双向掌控",
+        feature3_p: "夜间让亮色网页更舒适，白天也能让深色网页恢复清晰的浅色外观。",
+        feature4_h3: "应用主题控制",
+        feature4_badge: "实验性功能",
+        feature4_p: "在 macOS 12.3 及以上版本，为没有自动适配深浅色主题的选定应用设置显示主题。",
         footer_copy: "© 2026 暗光.",
         footer_author: "作者主页",
         footer_privacy: "隐私政策",
@@ -651,171 +685,21 @@
         badge_force_dark: "强制深色模式",
         badge_force_light: "强制浅色模式"
       },
-      ja: {
-        nav_features: "機能",
-        nav_get_extension: "拡張機能を入手",
-        logo_title: "DARK LIGHT",
-        hero_h1: "ダークかライトか、あなたが決める",
-        hero_subtitle: "Dark Light は、各ウェブサイトの見た目をあなたが決める軽量ブラウザ拡張機能です。",
-        hero_p: "一般的なダークモード拡張と異なり、Dark Light は信頼性の高いライトモードも提供します。明るいサイトを暗くするか、暗いサイトを明るく戻すか、お好みに合わせて切り替えられます。",
-        store_firefox_label: "Firefox アドオンを入手",
-        cta_bottom_h2: "ウェブサイトの外観を取り戻そう",
-        showcase_h2: "双方向の外観制御：ダークとライトの両方に対応",
-        showcase_p: "明るいサイトを暗くするだけでなく、暗いサイトを明るいライトモードに戻すこともできます。",
-        feature1_h3: "4つのモード",
-        feature1_p: "システムに従う、サイトデザインを維持、強制ダーク、強制ライトをグローバルデフォルトまたはサイトごとのオーバーライドとして利用できます。",
-        feature2_h3: "軽量＆プライベート",
-        feature2_p: "設定とスタイルはブラウザ内でローカルに処理されます。データがデバイスから送信されることはありません。",
-        feature3_h3: "ダークモードだけじゃない",
-        feature3_p: "多くの拡張機能はダークモードのみですが、Dark Light は強制ライトも含め、暗いウェブサイトを明るく戻せます。",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "著者",
-        footer_privacy: "プライバシーポリシー",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "強制ダークモード",
-        badge_force_light: "強制ライトモード"
-      },
-      ko: {
-        nav_features: "기능",
-        nav_get_extension: "확장 프로그램 가져오기",
-        logo_title: "DARK LIGHT",
-        hero_h1: "다크 또는 라이트는 당신이 결정합니다",
-        hero_subtitle: "Dark Light는 각 웹사이트의 모습을 당신이 결정하는 가벼운 브라우저 확장프로그램입니다.",
-        hero_p: "일반적인 다크 모드 확장과 달리, Dark Light는 신뢰할 수 있는 라이트 모드도 제공합니다. 밝은 사이트를 어둡게 하거나, 어두운 사이트를 다시 밝게 할 수 있습니다.",
-        store_firefox_label: "Firefox 애드온 설치:",
-        cta_bottom_h2: "웹사이트 외관을 되찾으세요",
-        showcase_h2: "양방향 외관 제어: 다크 및 라이트 모드 모두 지원",
-        showcase_p: "밝은 사이트를 어둡게 만드는 것은 물론, 어두운 사이트를 다시 밝게 되돌릴 수도 있습니다.",
-        feature1_h3: "네 가지 모드",
-        feature1_p: "시스템 따르기, 사이트 디자인 유지, 다크 강제, 라이트 강제를 전역 기본값과 사이트별 설정으로 사용할 수 있습니다.",
-        feature2_h3: "가볍고 안전함",
-        feature2_p: "모든 설정과 스타일 처리는 브라우저 로컬에서 수행되며, 어떠한 데이터도 외부로 전송되지 않습니다.",
-        feature3_h3: "다크 모드만이 아닙니다",
-        feature3_p: "대부분의 확장은 다크 모드에서 멈추지만, Dark Light는 라이트 강제도 포함하여 어두운 웹사이트를 다시 밝게 할 수 있습니다.",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "작성자",
-        footer_privacy: "개인정보 처리방침",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "강제 다크 모드",
-        badge_force_light: "강제 라이트 모드"
-      },
-      es: {
-        nav_features: "Funciones",
-        nav_get_extension: "Obtener extensión",
-        logo_title: "DARK LIGHT",
-        hero_h1: "Tú decides: oscuro o claro",
-        hero_subtitle: "Dark Light es una extensión ligera donde tú decides cómo se ve cada sitio web.",
-        hero_p: "A diferencia de las extensiones de modo oscuro típicas, Dark Light también ofrece un modo claro confiable. Oscurece sitios brillantes o devuelve la apariencia clara cuando la necesitas.",
-        store_firefox_label: "Obtener el complemento para",
-        cta_bottom_h2: "Recupera la apariencia de los sitios",
-        showcase_h2: "Control bidireccional: oscuro y claro",
-        showcase_p: "Fuerza el modo oscuro en sitios brillantes o devuelve los sitios oscuros al modo claro.",
-        feature1_h3: "Cuatro modos",
-        feature1_p: "Seguir sistema, conservar diseño del sitio, forzar oscuro y forzar claro están disponibles como valores predeterminados y por sitio.",
-        feature2_h3: "Ligero y privado",
-        feature2_p: "La configuración y los estilos se procesan localmente en tu navegador. Ningún dato sale de tu dispositivo.",
-        feature3_h3: "No solo modo oscuro",
-        feature3_p: "La mayoría de extensiones se limitan al modo oscuro. Dark Light también incluye forzar claro para que los sitios oscuros puedan volver a la apariencia clara.",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "Autor",
-        footer_privacy: "Política de privacidad",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "Forzar modo oscuro",
-        badge_force_light: "Forzar modo claro"
-      },
-      fr: {
-        nav_features: "Fonctionnalités",
-        nav_get_extension: "Obtenir l’extension",
-        logo_title: "DARK LIGHT",
-        hero_h1: "Vous choisissez : sombre ou clair",
-        hero_subtitle: "Dark Light est une extension légère qui vous laisse décider de l’apparence de chaque site web.",
-        hero_p: "Contrairement aux extensions de mode sombre classiques, Dark Light propose aussi un mode clair fiable. Assombrissez les sites lumineux ou repassez en clair quand vous en avez besoin.",
-        store_firefox_label: "Obtenir l’extension pour",
-        cta_bottom_h2: "Reprenez le contrôle de l’apparence",
-        showcase_h2: "Contrôle bidirectionnel : sombre et clair",
-        showcase_p: "Forcez le mode sombre sur les sites lumineux, ou redonnez aux sites sombres leur apparence claire.",
-        feature1_h3: "Quatre modes",
-        feature1_p: "Suivre le système, conserver le design du site, forcer sombre et forcer clair sont disponibles en tant que valeurs par défaut et règles par site.",
-        feature2_h3: "Léger et privé",
-        feature2_p: "Les paramètres et les styles sont traités localement dans votre navigateur. Aucune donnée ne quitte votre appareil.",
-        feature3_h3: "Pas seulement le mode sombre",
-        feature3_p: "La plupart des extensions s’arrêtent au mode sombre. Dark Light inclut aussi forcer clair pour remettre les sites sombres en version claire.",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "Auteur",
-        footer_privacy: "Politique de confidentialité",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "Forcer le mode sombre",
-        badge_force_light: "Forcer le mode clair"
-      },
-      de: {
-        nav_features: "Funktionen",
-        nav_get_extension: "Erweiterung holen",
-        logo_title: "DARK LIGHT",
-        hero_h1: "Du entscheidest: Dunkel oder Hell",
-        hero_subtitle: "Dark Light ist eine leichte Browser-Erweiterung, mit der du entscheidest, wie jede Website aussieht.",
-        hero_p: "Im Gegensatz zu typischen Dunkelmodus-Erweiterungen bietet Dark Light auch einen zuverlässigen Hellmodus. Dunkle helle Seiten oder mache dunkle Seiten wieder hell, wenn du es brauchst.",
-        store_firefox_label: "Add-on für Firefox",
-        cta_bottom_h2: "Übernimm die Kontrolle über das Aussehen",
-        showcase_h2: "Bidirektionale Steuerung: Dunkel & Hell",
-        showcase_p: "Erzwinge den Dunkelmodus auf hellen Websites oder mache dunkle Websites wieder hell.",
-        feature1_h3: "Vier Modi",
-        feature1_p: "System folgen, Website-Design beibehalten, Dunkel erzwingen und Hell erzwingen sind als globale Standards und website-spezifische Einstellungen verfügbar.",
-        feature2_h3: "Leicht & Privat",
-        feature2_p: "Einstellungen und Stile werden lokal in Ihrem Browser verarbeitet. Es werden keine Daten übertragen.",
-        feature3_h3: "Nicht nur Dunkelmodus",
-        feature3_p: "Die meisten Erweiterungen hören beim Dunkelmodus auf. Dark Light enthält auch Hell erzwingen, damit dunkle Websites wieder hell werden können.",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "Autor",
-        footer_privacy: "Datenschutzrichtlinie",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "Dunkelmodus erzwingen",
-        badge_force_light: "Hellmodus erzwingen"
-      },
-      pt: {
-        nav_features: "Funcionalidades",
-        nav_get_extension: "Obter extensão",
-        logo_title: "DARK LIGHT",
-        hero_h1: "Você decide: escuro ou claro",
-        hero_subtitle: "Dark Light é uma extensão leve de navegador onde você decide como cada site aparece.",
-        hero_p: "Ao contrário das extensões de modo escuro típicas, o Dark Light também oferece um modo claro confiável. Esceça sites brilhantes ou volte ao modo claro quando precisar.",
-        store_firefox_label: "Obter o complemento para",
-        cta_bottom_h2: "Recupere o controle da aparência",
-        showcase_h2: "Controle bidirecional: escuro e claro",
-        showcase_p: "Force o modo escuro em sites brilhantes ou mude sites escuros de volta para o modo claro.",
-        feature1_h3: "Quatro modos",
-        feature1_p: "Seguir sistema, preservar design do site, forçar escuro e forçar claro estão disponíveis como padrões globais e substituições por site.",
-        feature2_h3: "Regras de domínio",
-        feature2_p: "Dê a cada site seu próprio modo de aparência, com correspondência opcional de subdomínios.",
-        feature3_h3: "Não é apenas modo escuro",
-        feature3_p: "A maioria das extensões para no modo escuro. O Dark Light também inclui forçar claro, para que sites escuros possam voltar ao modo claro.",
-        footer_copy: "© 2026 Dark Light.",
-        footer_author: "Autor",
-        footer_privacy: "Política de Privacidade",
-        logo_title: "DARK LIGHT",
-        badge_force_dark: "Forçar modo escuro",
-        badge_force_light: "Forçar modo claro"
-      }
     };
 
     const PAGE_TITLES = {
-      zh: '\u6697\u5149 - \u6d4f\u89c8\u5668\u6269\u5c55',
-      ja: 'Dark Light - \u30d6\u30e9\u30a6\u30b6\u62e1\u5f35',
-      ko: 'Dark Light - \ube0c\ub77c\uc6b0\uc800 \ud655\uc7a5'
+      en: 'Dark Light - Web & App Appearance',
+      zh: '暗光 - 网页与应用外观控制'
     };
 
     function detectSystemLang() {
       const l = (navigator.language || (navigator.languages && navigator.languages[0]) || 'en').toLowerCase();
       if (l.startsWith('zh')) return 'zh';
-      if (l.startsWith('ja')) return 'ja';
-      if (l.startsWith('ko')) return 'ko';
-      if (l.startsWith('es')) return 'es';
-      if (l.startsWith('fr')) return 'fr';
-      if (l.startsWith('de')) return 'de';
-      if (l.startsWith('pt')) return 'pt';
       return 'en';
     }
 
-    let currentLang = localStorage.getItem('lang') || detectSystemLang();
+    const savedLang = localStorage.getItem('lang');
+    let currentLang = savedLang === 'en' || savedLang === 'zh' ? savedLang : detectSystemLang();
 
     function applyLang(lang) {
       const t = translations[lang] || translations.en;
@@ -826,7 +710,7 @@
       const sel = document.getElementById('langSelect');
       if (sel) sel.value = lang;
       document.documentElement.lang = lang;
-      document.title = PAGE_TITLES[lang] || 'Dark Light - Browser Extension';
+      document.title = PAGE_TITLES[lang] || PAGE_TITLES.en;
     }
 
     function setLang(lang) {
