@@ -1,4 +1,23 @@
-html:not([data-dl-ready])::before {
+/*
+ * prepaint-fallback.css is always injected (all modes) and forces the same
+ * html:not([data-dl-ready]) selector with !important. Safari does not
+ * guarantee this dynamically-registered stylesheet loads after that static
+ * one, so an equal-specificity override only wins the cascade by luck.
+ * Repeating the :not() clause raises specificity above the fallback's
+ * single :not() so this file wins deterministically regardless of
+ * injection order.
+ *
+ * This file must NOT try to cancel the fallback's background-color/color/
+ * color-scheme with `revert`: revert does not mean "undo just this rule
+ * and let the page's own CSS win" — it skips the entire author origin for
+ * that property (this stylesheet AND the page's own CSS) and falls back to
+ * the user-agent default. On a page whose own stylesheet sets e.g.
+ * `body { background: var(--paper) }`, `revert` silently discards that
+ * rule too, leaving body transparent instead of the page's real color.
+ * Only cancel the ::before overlay box here; nothing else in this file can
+ * safely compete with the page's own background/color rules.
+ */
+html:not([data-dl-ready]):not([data-dl-ready])::before {
   content: none !important;
   display: none !important;
 }

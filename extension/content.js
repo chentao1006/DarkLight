@@ -3,6 +3,27 @@
 // strategy to the current page. Chrome and Safari wrappers can keep this file
 // as the shared content engine.
 
+(function () {
+// A browser can re-inject this document_start script into a JS realm that
+// survived a soft navigation (e.g. an SPA route change or a bfcache
+// restore) instead of a genuinely fresh page. Re-running the top-level
+// `let`/`const` declarations below in that surviving realm throws
+// "Can't create duplicate variable" and aborts the whole script before
+// markPrepaintReady() ever runs, leaving the anti-flicker overlay stuck
+// forever. Bail out instead of crashing.
+if (window.__darkLightContentScriptLoaded) return;
+window.__darkLightContentScriptLoaded = true;
+
+// Exposed on the global object (matching this file's pre-IIFE behaviour as
+// a plain top-level script, where these were already global bindings) so
+// tests/anti-flicker.test.js can drive them directly after loading this
+// file into a sandbox. Note: this is globalThis, not the mocked `window`
+// object content.js uses elsewhere for DOM APIs — in a real page the two
+// are the same object.
+globalThis.applyResolvedSettings = applyResolvedSettings;
+globalThis.resolveEffectiveAppearance = resolveEffectiveAppearance;
+globalThis.refreshFollowSystemAppearance = refreshFollowSystemAppearance;
+
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
@@ -1375,3 +1396,4 @@ function observeThemeChanges(callback) {
     themeObserver.observe(document.documentElement, observerOptions);
   }
 }
+})();

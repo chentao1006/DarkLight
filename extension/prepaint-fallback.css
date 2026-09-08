@@ -12,14 +12,19 @@ html:not([data-dl-ready])::before {
   visibility: visible;
 }
 
-html:not([data-dl-ready]),
-html:not([data-dl-ready]) body {
+html:not([data-dl-ready]) {
   /* This stylesheet is present before the content script can resolve the
      saved policy. Do not advertise a hard-coded dark color-scheme here:
      Google reads that startup signal once and keeps its own UI dark even
-     after this fallback has been removed. */
-  background-color: #ffffff !important;
-  color: #1a1a1a !important;
+     after this fallback has been removed.
+     Only color-scheme is set here (a rendering hint for native form
+     controls/scrollbars, not a painted color) — never background-color or
+     color. The ::before overlay above already covers the whole viewport
+     opaquely, so painting the real html/body isn't needed for the visual
+     flash to be hidden, and doing it anyway collides with the page's own
+     CSS (e.g. a page-defined `body { background: var(--x) }` gets
+     silently painted over, and can stay stuck if the resolved mode never
+     removes this rule). */
   color-scheme: light !important;
 }
 
@@ -28,10 +33,7 @@ html:not([data-dl-ready]) body {
     background: #111315 !important;
   }
 
-  html:not([data-dl-ready]),
-  html:not([data-dl-ready]) body {
-    background-color: #111315 !important;
-    color: #e7e9ec !important;
+  html:not([data-dl-ready]) {
     color-scheme: dark !important;
   }
 }
