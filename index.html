@@ -18,6 +18,29 @@
       --text-muted: #6c757d;
       --card-bg: #ffffff;
       --header-blur: rgba(255, 255, 255, 0.8);
+      --border-color: rgba(0, 0, 0, 0.05);
+      --border-color-light: rgba(0, 0, 0, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.02);
+      --shadow-color-strong: rgba(0, 0, 0, 0.08);
+      --hero-glow: rgba(0, 123, 255, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #4da3ff;
+        --primary-glow: rgba(77, 163, 255, 0.4);
+        --bg: #0b0d10;
+        --bg-alt: #14171a;
+        --text: #e8e9ea;
+        --text-muted: #9aa0a6;
+        --card-bg: #1b1f23;
+        --header-blur: rgba(11, 13, 16, 0.8);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --border-color-light: rgba(255, 255, 255, 0.06);
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --shadow-color-strong: rgba(0, 0, 0, 0.5);
+        --hero-glow: rgba(77, 163, 255, 0.12);
+      }
     }
 
     * {
@@ -47,7 +70,7 @@
       z-index: 1000;
       backdrop-filter: blur(10px);
       background: var(--header-blur);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--border-color);
     }
 
     .logo {
@@ -88,7 +111,7 @@
       appearance: none;
       -webkit-appearance: none;
       background: var(--bg-alt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236c757d'/%3E%3C/svg%3E") no-repeat right 10px center;
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border-color);
       padding: 6px 28px 6px 12px;
       border-radius: 20px;
       cursor: pointer;
@@ -101,7 +124,7 @@
 
     .lang-switcher:hover {
       border-color: var(--primary);
-      background-color: #fff;
+      background-color: var(--card-bg);
     }
 
     .lang-switcher:focus {
@@ -116,7 +139,8 @@
       justify-content: center;
       text-align: center;
       padding: 160px 20px 80px;
-      background: radial-gradient(circle at 50% 30%, rgba(0, 123, 255, 0.08) 0%, rgba(255, 255, 255, 1) 70%);
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 30%, var(--hero-glow) 0%, transparent 70%);
     }
 
     .hero h1 {
@@ -165,13 +189,13 @@
       font-size: 0.95rem;
       font-weight: 600;
       background: var(--bg-alt);
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .hero-badge:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px var(--shadow-color-strong);
     }
 
     .hero-badge-dark {
@@ -268,7 +292,7 @@
     .showcase {
       padding: 60px 20px 100px;
       text-align: center;
-      background: #fff;
+      background: var(--bg);
     }
 
     .showcase h2 {
@@ -409,13 +433,13 @@
       border-radius: 24px;
       width: 100%;
       text-align: left;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border-color-light);
+      box-shadow: 0 4px 20px var(--shadow-color);
     }
 
     .feature-card:hover {
       transform: translateY(-12px);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 30px 60px var(--shadow-color-strong);
       border-color: var(--primary-glow);
     }
 
@@ -471,7 +495,7 @@
       text-align: center;
       padding: 100px 40px;
       background: var(--bg);
-      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      border-top: 1px solid var(--border-color);
       color: var(--text-muted);
       font-size: 0.95rem;
     }
@@ -602,7 +626,7 @@
       </div>
     </section>
 
-    <section id="install" class="cta-bottom" style="text-align: center; padding: 100px 20px; background: #fff;">
+    <section id="install" class="cta-bottom" style="text-align: center; padding: 100px 20px; background: var(--bg);">
       <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 32px;" data-i18n="cta_bottom_h2">Shape Every Screen Your Way</h2>
       <div class="cta-group">
         <a href="https://apps.apple.com/us/app/dark-light-for-webpages/id6781749180" class="store-badge" target="_blank" rel="noopener" aria-label="Download on the App Store">

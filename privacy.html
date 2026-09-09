@@ -18,6 +18,21 @@
       --text-muted: #6c757d;
       --card-bg: #ffffff;
       --header-blur: rgba(255, 255, 255, 0.8);
+      --border-color: rgba(0, 0, 0, 0.05);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #4da3ff;
+        --primary-glow: rgba(77, 163, 255, 0.4);
+        --bg: #0b0d10;
+        --bg-alt: #14171a;
+        --text: #e8e9ea;
+        --text-muted: #9aa0a6;
+        --card-bg: #1b1f23;
+        --header-blur: rgba(11, 13, 16, 0.8);
+        --border-color: rgba(255, 255, 255, 0.08);
+      }
     }
 
     * {
@@ -47,7 +62,7 @@
       z-index: 1000;
       backdrop-filter: blur(10px);
       background: var(--header-blur);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--border-color);
     }
 
     .logo {
@@ -86,7 +101,7 @@
 
     .lang-switcher {
       background: var(--bg-alt);
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border-color);
       padding: 6px 14px;
       border-radius: 20px;
       cursor: pointer;
@@ -100,7 +115,7 @@
 
     .lang-switcher:hover {
       border-color: var(--primary);
-      background: #fff;
+      background: var(--card-bg);
       transform: scale(1.05);
     }
 
@@ -137,7 +152,7 @@
       text-align: center;
       padding: 60px 40px;
       background: var(--bg);
-      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      border-top: 1px solid var(--border-color);
       color: var(--text-muted);
       font-size: 0.95rem;
     }
