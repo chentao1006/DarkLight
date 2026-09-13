@@ -459,6 +459,10 @@ struct SetupView: View {
     @State private var showingPremiumDetails = false
     @Environment(\.colorScheme) var colorScheme
 
+    private var appVersion: String? {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+    }
+
     #if os(macOS)
     private func updateMainWindowTitle() {
         NSApplication.shared.windows
@@ -549,6 +553,11 @@ struct SetupView: View {
                         Text(viewModel.t("heroTitle"))
                             .font(.title2)
                             .fontWeight(.bold)
+                        if let appVersion, !appVersion.isEmpty {
+                            Text("v\(appVersion)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
 
                     #if os(macOS)

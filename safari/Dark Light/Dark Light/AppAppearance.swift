@@ -237,7 +237,11 @@ final class AppAppearanceController: NSObject, ObservableObject {
         super.init()
         loadRules()
         loadSchedule()
-        refreshScreenCapturePermission()
+        // Cheap, side-effect-free read only. Do not call refreshScreenCapturePermission()
+        // here: its SCShareableContent fallback triggers the system Screen Recording
+        // prompt as a side effect, which must never fire before the user has actually
+        // opted into App Theme Control.
+        hasScreenCapturePermission = CGPreflightScreenCaptureAccess()
     }
 
     deinit {
@@ -299,11 +303,13 @@ final class AppAppearanceController: NSObject, ObservableObject {
     }
 
     func refreshNow() {
-        refreshScreenCapturePermission()
         guard hasActiveFilterRules else {
             stopFiltering(message: nil)
             return
         }
+        // Only probe permission (which can trigger the system prompt as a side
+        // effect) once there is actually something to filter.
+        refreshScreenCapturePermission()
         guard hasScreenCapturePermission else {
             stopFiltering(message: screenCapturePermissionMessage)
             return
@@ -354,6 +360,10 @@ final class AppAppearanceController: NSObject, ObservableObject {
         let requestWasAccepted = CGRequestScreenCaptureAccess()
         if !requestWasAccepted {
             statusMessage = screenCaptureRequestPendingMessage
+            // TCC only presents the system consent prompt once. After a prior
+            // denial, the user must change the permission in System Settings.
+            openScreenRecordingSettings()
+            return
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
             self?.refreshScreenCapturePermission(force: true)
@@ -789,8 +799,8 @@ final class AppAppearanceController: NSObject, ObservableObject {
 
     private var screenCaptureRequestPendingMessage: String {
         usesChinese
-            ? "正在等待 macOS 确认授权。若没有弹出系统提示，请在系统设置中确认“暗光”已勾选，然后完全退出并重新打开暗光。"
-            : "Waiting for macOS to confirm the request. If no system prompt appears, confirm that Dark Light is enabled in System Settings, then fully quit and reopen it."
+            ? "macOS 未再次显示授权提示。请在已打开的系统设置中允许“暗光”，然后完全退出并重新打开暗光。"
+            : "macOS did not show the permission prompt again. Allow Dark Light in the opened System Settings pane, then fully quit and reopen Dark Light."
     }
 
     private func screenCaptureProbeFailureMessage(_ error: Error) -> String {
@@ -833,6 +843,7 @@ private final class WindowCaptureSession: NSObject, WindowCaptureSessionProtocol
     private var isSourceFrontmost: Bool
     private var pendingGeometryCorrection: DispatchWorkItem?
     private var stopped = false
+    private var isFilterNeeded = false
     private var onFailure: ((Error?) -> Void)?
 
     // The system's window-capture affordance is attached to the top-leading
@@ -882,10 +893,16 @@ private final class WindowCaptureSession: NSObject, WindowCaptureSessionProtocol
         contentContainer.addSubview(renderer.view)
         panel.contentView = contentContainer
         updatePanelGeometry(for: frame)
-        // Wait for a captured frame before covering the real window. This
-        // prevents a black flash when a rule first becomes active.
-        renderer.onFirstFrame = { [weak panel] in
-            panel?.order(.above, relativeTo: Int(window.windowID))
+        // Leave an already-matching app window untouched. Only show the
+        // mirror after a captured frame proves that inversion is needed.
+        renderer.onFilterNeededChange = { [weak self] isNeeded in
+            guard let self, !self.stopped else { return }
+            self.isFilterNeeded = isNeeded
+            if isNeeded {
+                self.panel.order(.above, relativeTo: Int(window.windowID))
+            } else {
+                self.panel.orderOut(nil)
+            }
         }
     }
 
@@ -961,7 +978,9 @@ private final class WindowCaptureSession: NSObject, WindowCaptureSessionProtocol
         // Activating the source application can reorder it above this panel
         // without changing its frame. Reasserting the relative order here is
         // intentionally cheap and makes the overlay survive focus changes.
-        panel.order(.above, relativeTo: Int(sourceWindow.windowID))
+        if isFilterNeeded {
+            panel.order(.above, relativeTo: Int(sourceWindow.windowID))
+        }
         guard frameRate != currentFrameRate else { return }
         currentFrameRate = frameRate
         guard let stream else { return }
@@ -1021,7 +1040,9 @@ private final class WindowCaptureSession: NSObject, WindowCaptureSessionProtocol
                 return
             }
             self.updatePanelGeometry(for: expectedFrame)
-            self.panel.order(.above, relativeTo: Int(self.sourceWindow.windowID))
+            if self.isFilterNeeded {
+                self.panel.order(.above, relativeTo: Int(self.sourceWindow.windowID))
+            }
         }
         pendingGeometryCorrection = correction
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18, execute: correction)
@@ -1080,6 +1101,7 @@ private final class WindowFilterRenderer: NSObject, MTKViewDelegate {
     var mode: AppAppearanceMode {
         didSet {
             lock.lock()
+            if desiredMode != mode { needsAppearanceCheck = true }
             desiredMode = mode
             lock.unlock()
         }
@@ -1096,8 +1118,9 @@ private final class WindowFilterRenderer: NSObject, MTKViewDelegate {
     private var sourceUVRect = SIMD4<Float>(0, 0, 1, 1)
     private var frameCount = 0
     private var drawScheduled = false
-    private var hasReceivedFirstFrame = false
-    var onFirstFrame: (() -> Void)?
+    private var needsAppearanceCheck = true
+    private var presentedFilterState: Bool?
+    var onFilterNeededChange: ((Bool) -> Void)?
 
     init(mode: AppAppearanceMode) {
         guard let device = MTLCreateSystemDefaultDevice(),
@@ -1153,7 +1176,8 @@ private final class WindowFilterRenderer: NSObject, MTKViewDelegate {
         latestPixelBuffer = pixelBuffer
         sourceUVRect = sourceRect
         frameCount += 1
-        if frameCount == 1 || frameCount % 60 == 0 {
+        if needsAppearanceCheck || frameCount % 60 == 0 {
+            needsAppearanceCheck = false
             let luminance = estimateLuminance(pixelBuffer)
             switch desiredMode {
             case .forceDark:
@@ -1170,17 +1194,21 @@ private final class WindowFilterRenderer: NSObject, MTKViewDelegate {
         }
         let shouldScheduleDraw = !drawScheduled
         drawScheduled = true
-        let isFirstFrame = !hasReceivedFirstFrame
-        hasReceivedFirstFrame = true
         lock.unlock()
 
         guard shouldScheduleDraw else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            if isFirstFrame {
-                self.onFirstFrame?()
+            self.lock.lock()
+            let isFilterNeeded = self.invertAmount > 0
+            self.lock.unlock()
+            if isFilterNeeded {
+                self.view.draw()
             }
-            self.view.draw()
+            if self.presentedFilterState != isFilterNeeded {
+                self.presentedFilterState = isFilterNeeded
+                self.onFilterNeededChange?(isFilterNeeded)
+            }
             self.lock.lock()
             self.drawScheduled = false
             self.lock.unlock()

@@ -190,6 +190,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         switch response {
         case .alertFirstButtonReturn:
             UserDefaults.standard.set(true, forKey: AppThemeControlRecommendation.hasBeenPresentedDefaultsKey)
+            AppAppearanceController.shared.requestScreenCapturePermission()
             self?.showAppThemeControl()
         case .alertSecondButtonReturn:
             UserDefaults.standard.set(true, forKey: AppThemeControlRecommendation.hasBeenPresentedDefaultsKey)
@@ -413,21 +414,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func statusBarImage() -> NSImage {
-        guard let symbol = NSImage(
+        if let symbol = NSImage(
             systemSymbolName: "sun.righthalf.filled",
             accessibilityDescription: "Dark Light"
-        )?.withSymbolConfiguration(.init(pointSize: 18, weight: .medium)) else {
-            return NSImage()
+        )?.withSymbolConfiguration(.init(pointSize: 18, weight: .medium)) {
+            let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
+                guard let context = NSGraphicsContext.current else { return false }
+                context.saveGraphicsState()
+                context.cgContext.translateBy(x: rect.midX, y: rect.midY)
+                context.cgContext.rotate(by: -.pi / 4)
+                context.cgContext.translateBy(x: -rect.midX, y: -rect.midY)
+                symbol.draw(in: rect)
+                context.restoreGraphicsState()
+                return true
+            }
+            image.isTemplate = true
+            return image
         }
 
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
-            guard let context = NSGraphicsContext.current else { return false }
-            context.saveGraphicsState()
-            context.cgContext.translateBy(x: rect.midX, y: rect.midY)
-            context.cgContext.rotate(by: -.pi / 4)
-            context.cgContext.translateBy(x: -rect.midX, y: -rect.midY)
-            symbol.draw(in: rect)
-            context.restoreGraphicsState()
+            let circle = NSRect(x: rect.midX - 6, y: rect.midY - 6, width: 12, height: 12)
+            NSColor.black.setStroke()
+            NSColor.black.setFill()
+
+            let half = NSBezierPath()
+            half.move(to: NSPoint(x: circle.midX, y: circle.maxY))
+            half.appendArc(withCenter: NSPoint(x: circle.midX, y: circle.midY),
+                           radius: circle.width / 2, startAngle: 90, endAngle: 270)
+            half.close()
+            half.fill()
+
+            let outline = NSBezierPath(ovalIn: circle)
+            outline.lineWidth = 1.5
+            outline.stroke()
             return true
         }
         image.isTemplate = true
