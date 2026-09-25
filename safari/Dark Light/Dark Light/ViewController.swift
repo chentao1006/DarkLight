@@ -56,6 +56,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark Light is enabled and ready to use in Safari.",
         "statusOffIOS": "Dark Light is currently disabled in Safari. You can turn it on in Settings.",
         "statusUnknownPreferences": "Dark Light is ready to be enabled.",
+        "enableInSafariSettingsMac": "Open Safari > Settings > Extensions and turn on Dark Light.",
         "statusOnPreferences": "Dark Light is enabled and ready to use in Safari.",
         "statusOffMac": "Dark Light is currently disabled in Safari. You can turn it on in Preferences.",
         "proTitle": "Dark Light Premium",
@@ -97,6 +98,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "暗光已在 Safari 中启用，可以直接使用。",
         "statusOffIOS": "暗光当前处于关闭状态。你可以在设置中启用它。",
         "statusUnknownPreferences": "暗光已准备好开启。",
+        "enableInSafariSettingsMac": "请在 Safari 浏览器 > 设置 > 扩展中勾选“暗光”。",
         "statusOnPreferences": "暗光已在 Safari 中启用，可以直接使用。",
         "statusOffMac": "暗光当前处于关闭状态。你可以在偏好设置中启用它。",
         "proTitle": "暗光高级版",
@@ -138,6 +140,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark LightはSafariで有効になっており、すぐに使用できます。",
         "statusOffIOS": "Dark Lightは現在Safariで無効になっています。設定で有効にすることができます。",
         "statusUnknownPreferences": "Dark Lightを有効にする準備ができました。",
+        "enableInSafariSettingsMac": "Safari > 設定 > 機能拡張 で Dark Light をオンにしてください。",
         "statusOnPreferences": "Dark LightはSafariで有効になっており、すぐに使用できます。",
         "statusOffMac": "Dark Lightは現在Safariで無効になっています。環境設定で有効にすることができます。",
         "proTitle": "Dark Light Premium",
@@ -176,6 +179,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark Light가 Safari에서 활성화되어 바로 사용할 수 있습니다.",
         "statusOffIOS": "Dark Light가 현재 Safari에서 비활성화되어 있습니다. 설정에서 켤 수 있습니다.",
         "statusUnknownPreferences": "Dark Light를 활성화할 준비가 되었습니다.",
+        "enableInSafariSettingsMac": "Safari > 설정 > 확장 프로그램에서 Dark Light를 켜세요.",
         "statusOnPreferences": "Dark Light가 Safari에서 활성화되어 바로 사용할 수 있습니다.",
         "statusOffMac": "Dark Light가 현재 Safari에서 비활성화되어 있습니다. 환경설정에서 켤 수 있습니다.",
         "proTitle": "Dark Light Premium",
@@ -214,6 +218,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark Light está habilitado y listo para usarse en Safari.",
         "statusOffIOS": "Dark Light está actualmente deshabilitado en Safari. Puedes activarlo en Configuración.",
         "statusUnknownPreferences": "Dark Light está listo para ser habilitado.",
+        "enableInSafariSettingsMac": "Abre Safari > Ajustes > Extensiones y activa Dark Light.",
         "statusOnPreferences": "Dark Light está habilitado y listo para usarse en Safari.",
         "statusOffMac": "Dark Light está actualmente deshabilitado en Safari. Puedes activarlo en Preferencias.",
         "proTitle": "Dark Light Premium",
@@ -252,6 +257,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark Light est activé et prêt à être utilisé dans Safari.",
         "statusOffIOS": "Dark Light est actuellement désactivé dans Safari. Vous pouvez l\'activer dans les Réglages.",
         "statusUnknownPreferences": "Dark Light est prêt à être activé.",
+        "enableInSafariSettingsMac": "Ouvrez Safari > Réglages > Extensions et activez Dark Light.",
         "statusOnPreferences": "Dark Light est activé et prêt à être utilisé dans Safari.",
         "statusOffMac": "Dark Light est actuellement désactivé dans Safari. Vous pouvez l\'activer dans les Préférences.",
         "proTitle": "Dark Light Premium",
@@ -290,6 +296,7 @@ let localizedStrings: [String: [String: String]] = [
         "statusOnSettings": "Dark Light ist in Safari aktiviert und einsatzbereit.",
         "statusOffIOS": "Dark Light ist derzeit in Safari deaktiviert. Sie können es in den Einstellungen einschalten.",
         "statusUnknownPreferences": "Dark Light kann jetzt aktiviert werden.",
+        "enableInSafariSettingsMac": "Öffne Safari > Einstellungen > Erweiterungen und aktiviere Dark Light.",
         "statusOnPreferences": "Dark Light ist in Safari aktiviert und einsatzbereit.",
         "statusOffMac": "Dark Light ist derzeit in Safari deaktiviert. Sie können es in den Einstellungen einschalten.",
         "proTitle": "Dark Light Premium",
@@ -345,8 +352,10 @@ class SetupViewModel: ObservableObject {
         #if os(macOS)
         SFSafariExtensionManager.getStateOfSafariExtension(withIdentifier: extensionBundleIdentifier) { (state, error) in
             DispatchQueue.main.async {
-                if error != nil {
-                    self.isEnabled = nil
+                if let error = error as NSError? {
+                    // Safari reports a disabled extension as SFErrorNoExtensionFound
+                    // even though it is listed in Settings > Extensions.
+                    self.isEnabled = error.domain == SFErrorDomain ? false : nil
                 } else {
                     self.isEnabled = state?.isEnabled
                 }
@@ -381,7 +390,13 @@ class SetupViewModel: ObservableObject {
         SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { error in
             DispatchQueue.main.async {
                 if let error {
-                    self.preferencesMessage = "\(self.t("safariExtensionsOpenFailed")) \(error.localizedDescription)"
+                    if (error as NSError).domain == SFErrorDomain {
+                        // The same error makes the settings pane unreachable for a
+                        // disabled extension, so point to it instead.
+                        self.preferencesMessage = self.t("enableInSafariSettingsMac")
+                    } else {
+                        self.preferencesMessage = "\(self.t("safariExtensionsOpenFailed")) \(error.localizedDescription)"
+                    }
                     self.activateSafari()
                     return
                 }

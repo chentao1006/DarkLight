@@ -58,6 +58,19 @@ const THEME_CLASSES = [
   'theme-system'
 ];
 
+// Sites with a complete native dark theme that a generated one cannot match
+// (Bilibili keeps a light mint canvas and wave illustration behind Dark
+// Reader). The site reads its preference from a cookie while its scripts
+// start, which is after this document_start script, so switching the cookie
+// here selects the native theme, including its dark background artwork.
+const NATIVE_THEME_ADAPTERS = [
+  {
+    domain: 'bilibili.com',
+    cookie: 'theme_style',
+    darkClass: 'bili_dark'
+  }
+];
+
 let currentSettings = null;
 let activeAppearance = null;
 let activeConfiguredMode = null;
@@ -117,6 +130,7 @@ function applyResolvedSettings(settings) {
       activeAppearance = null;
       activeConfiguredMode = MODE_PRESERVE_SITE;
     }
+    syncNativeTheme(null);
     try {
       chrome.runtime.sendMessage({
         action: 'setBadgeState',
@@ -153,6 +167,7 @@ function applyResolvedSettings(settings) {
 
   const runId = ++appearanceRunId;
   cleanupAppearanceOverrides();
+  syncNativeTheme(effectiveAppearance);
   activeAppearance = effectiveAppearance;
   activeConfiguredMode = configuredMode;
 
@@ -651,6 +666,44 @@ function flipThemeSignals(target) {
       el.setAttribute('style', inlineStyle.replace(/color-scheme:\s*dark/gi, 'color-scheme: light'));
     }
   });
+}
+
+// Selects a site's own theme for the resolved appearance; null restores the
+// preference the user had before Dark Light changed it. The original value is
+// kept in a cookie on the same domain so every subdomain restores the same one.
+function syncNativeTheme(appearance) {
+  const hostname = window.location.hostname;
+  const adapter = NATIVE_THEME_ADAPTERS.find((item) => hostname === item.domain || hostname.endsWith('.' + item.domain));
+  if (!adapter) return;
+
+  const backupName = 'dl_orig_' + adapter.cookie;
+  const current = readCookie(adapter.cookie);
+  const backup = readCookie(backupName);
+
+  if (appearance === 'dark' || appearance === 'light') {
+    if (backup === null) writeCookie(backupName, current === null ? '-' : current, adapter.domain);
+    if (current !== appearance) writeCookie(adapter.cookie, appearance, adapter.domain);
+    document.documentElement?.classList.toggle(adapter.darkClass, appearance === 'dark');
+    return;
+  }
+
+  if (backup === null) return;
+  if (backup === '-') {
+    writeCookie(adapter.cookie, '', adapter.domain, 0);
+  } else {
+    writeCookie(adapter.cookie, backup, adapter.domain);
+  }
+  writeCookie(backupName, '', adapter.domain, 0);
+  document.documentElement?.classList.toggle(adapter.darkClass, backup === 'dark');
+}
+
+function readCookie(name) {
+  const entry = document.cookie.split('; ').find((item) => item.startsWith(name + '='));
+  return entry ? decodeURIComponent(entry.slice(name.length + 1)) : null;
+}
+
+function writeCookie(name, value, domain, maxAge = 31536000) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; domain=.${domain}; max-age=${maxAge}; SameSite=Lax`;
 }
 
 function captureThemeSnapshot(el) {
