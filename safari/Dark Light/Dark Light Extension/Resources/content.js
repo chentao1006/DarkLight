@@ -955,15 +955,11 @@ function applyDarkTokenLayer() {
       border-color: var(--dl-border) !important;
     }
 
-    /* Compact navigation cards often keep their own light CSS variable after
-       a suspended Dynamic Theme pass. Give those surfaces a stable fallback. */
-    [class*="card"], [class*="panel"] {
-      background-color: var(--dl-surface) !important;
-      color: var(--dl-text) !important;
-    }
-
-    [class*="card"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i),
-    [class*="panel"] :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i) {
+    /* Compact cards darkened by darkenLightCardSurfaces() keep readable text.
+       Scoped to marked elements: a blanket [class*="panel"] background paints
+       transparent overlays opaque (e.g. Bilibili's fixed, pointer-events:none
+       .video-note-sidebar-panel hid the whole right column). */
+    [data-dl-darkened]:is([class*="card"], [class*="panel"]) :is(p, span, li, label, strong, em, small, h1, h2, h3, h4, h5, h6, i) {
       color: inherit !important;
     }
 
@@ -1250,6 +1246,25 @@ function darkenPersistentLightContainers() {
   });
 }
 
+// Compact navigation cards often keep their own light CSS variable after a
+// suspended Dynamic Theme pass. Only darken cards that actually paint a light
+// background; transparent card/panel wrappers and overlays stay untouched.
+function darkenLightCardSurfaces() {
+  if (!document.body) return;
+
+  document.querySelectorAll('[class*="card"], [class*="panel"]').forEach((el) => {
+    if (el.hasAttribute('data-dl-darkened')) return;
+    if (el.closest('svg, picture, video, canvas')) return;
+
+    const bg = getEffectiveBackground(el);
+    if (!bg || bg.a < 0.5 || !isLightColor(bg.r, bg.g, bg.b)) return;
+
+    el.setAttribute('data-dl-darkened', 'true');
+    el.style.setProperty('background-color', '#171a1d', 'important');
+    el.style.setProperty('color', '#e7e9ec', 'important');
+  });
+}
+
 function darkenVisibleLightBlocks() {
   if (!document.body) return;
 
@@ -1304,6 +1319,7 @@ function applyDarkLight(runId) {
         console.warn('[Dark Light] Dark Reader failed, falling back to basic dark mode.', e);
         applyDarkTokenLayer();
         darkenPersistentLightContainers();
+        darkenLightCardSurfaces();
         darkenVisibleLightBlocks();
         liftDarkForegrounds();
         markPrepaintReady();
@@ -1311,6 +1327,7 @@ function applyDarkLight(runId) {
     } else {
       applyDarkTokenLayer();
       darkenPersistentLightContainers();
+      darkenLightCardSurfaces();
       darkenVisibleLightBlocks();
       liftDarkForegrounds();
       markPrepaintReady();
@@ -1401,6 +1418,7 @@ function repairLightSurfaces(runId) {
     if (!isCurrentRun(runId)) return;
     applyDarkTokenLayer();
     darkenPersistentLightContainers();
+    darkenLightCardSurfaces();
     darkenVisibleLightBlocks();
     liftDarkForegrounds();
     restoreLightSurfaceForegrounds();

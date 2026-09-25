@@ -415,21 +415,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func statusBarImage() -> NSImage {
         if let symbol = NSImage(
-            systemSymbolName: "sun.righthalf.filled",
+            systemSymbolName: "circle.bottomrighthalf.pattern.checkered",
             accessibilityDescription: "Dark Light"
         )?.withSymbolConfiguration(.init(pointSize: 18, weight: .medium)) {
-            let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
-                guard let context = NSGraphicsContext.current else { return false }
-                context.saveGraphicsState()
-                context.cgContext.translateBy(x: rect.midX, y: rect.midY)
-                context.cgContext.rotate(by: -.pi / 4)
-                context.cgContext.translateBy(x: -rect.midX, y: -rect.midY)
-                symbol.draw(in: rect)
-                context.restoreGraphicsState()
-                return true
-            }
-            image.isTemplate = true
-            return image
+            symbol.isTemplate = true
+            return symbol
         }
 
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
