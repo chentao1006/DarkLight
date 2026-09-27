@@ -29,23 +29,40 @@
         </div>
     </div>
 
+    <label class="panel master-switch">
+        <span class="master-switch-text">
+            <strong id="masterSwitchTitle" data-i18n="masterSwitch">Enable Dark Light</strong>
+            <span class="master-switch-detail when-on" data-i18n="masterSwitchOnDetail">Websites use the modes below</span>
+            <span class="master-switch-detail when-off" data-i18n="masterSwitchOffDetail">Paused. All websites keep their original look</span>
+        </span>
+        <span class="switch">
+            <input type="checkbox" id="masterSwitch" role="switch" aria-labelledby="masterSwitchTitle" checked>
+            <span class="switch-track"></span>
+        </span>
+    </label>
+
     <div id="activeBanner" class="active-banner hidden">
         <span id="activeDot" class="active-dot"></span>
         <span id="activeBannerText" data-i18n="activeBannerText">Active on this page</span>
     </div>
 
     <section id="sitePanel" class="panel">
-        <div class="site-heading">
-            <span data-i18n="currentSite">Current Site</span>
-            <strong id="currentHostname">-</strong>
+        <div class="site-heading-row">
+            <div class="site-heading">
+                <span data-i18n="currentSite">Current Site</span>
+                <strong id="currentHostname">-</strong>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="siteRuleEnabled" role="switch" aria-labelledby="currentHostname">
+                <span class="switch-track"></span>
+            </label>
         </div>
 
         <label for="siteMode" data-i18n="siteMode">Site Mode</label>
         <select id="siteMode" class="select-mode">
-            <option value="inherit" data-i18n="useDefault">Use Default</option>
-            <option value="followSystem" data-i18n="followSystem">Follow System</option>
             <option value="forceDark" data-i18n="forceDark">Force Dark</option>
             <option value="forceLight" data-i18n="forceLight">Force Light</option>
+            <option value="followSystem" data-i18n="followSystem">Follow System</option>
             <option value="timeBased" data-i18n="timeBased">Change by Time</option>
             <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
         </select>
@@ -59,9 +76,9 @@
     <section class="panel">
         <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
         <select id="defaultMode" class="select-mode">
-            <option value="followSystem" data-i18n="followSystem">Follow System</option>
             <option value="forceDark" data-i18n="forceDark">Force Dark</option>
             <option value="forceLight" data-i18n="forceLight">Force Light</option>
+            <option value="followSystem" data-i18n="followSystem">Follow System</option>
             <option value="timeBased" data-i18n="timeBased">Change by Time</option>
             <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
         </select>

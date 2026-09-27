@@ -2,8 +2,8 @@ const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
 const FREE_RULE_LIMIT = 3;
-const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
-const PRO_MODES = new Set(['timeBased', 'preserveSite']);
+const VALID_DEFAULT_MODES = ['forceDark', 'forceLight', 'followSystem', 'timeBased', 'preserveSite'];
+const PRO_MODES = new Set(['followSystem', 'timeBased', 'preserveSite']);
 const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
 const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
 let currentEntitlements = { supportsPro: false, isPro: true, iCloudSyncEnabled: false };
@@ -35,12 +35,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     localize();
 
+    const masterSwitch = document.getElementById('masterSwitch');
+    const renderMasterSwitch = () => {
+        document.body.classList.toggle('is-paused', !masterSwitch.checked);
+    };
+    chrome.storage.local.get(['darkLightEnabled'], (result) => {
+        masterSwitch.checked = result.darkLightEnabled !== false;
+        renderMasterSwitch();
+    });
+    masterSwitch.addEventListener('change', () => {
+        chrome.storage.local.set({ darkLightEnabled: masterSwitch.checked });
+        renderMasterSwitch();
+    });
+
     const defaultMode = document.getElementById('defaultMode');
     const darkTimeRange = document.getElementById('darkTimeRange');
     const darkTimeStart = document.getElementById('darkTimeStart');
     const darkTimeEnd = document.getElementById('darkTimeEnd');
     const siteMode = document.getElementById('siteMode');
     const matchSubdomains = document.getElementById('matchSubdomains');
+    const siteRuleEnabled = document.getElementById('siteRuleEnabled');
     const currentHostnameEl = document.getElementById('currentHostname');
     const openOptions = document.getElementById('openOptions');
     const buyPremium = document.getElementById('buyPremium');
@@ -106,7 +120,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     defaultMode.addEventListener('change', () => {
-        if (isLockedProMode(defaultMode.value, entitlements)) {
+        // Grandfathered Follow System only survives while it stays selected;
+        // choosing it again after switching away needs Premium.
+        if (isLockedProMode(defaultMode.value, entitlements)
+            || (defaultMode.value === 'followSystem' && requiresProUpgrade(entitlements) && settings.defaultMode !== 'followSystem')) {
             defaultMode.value = settings.defaultMode;
             openPremium();
             return;
@@ -128,6 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     siteMode.addEventListener('change', () => {
         if (!currentHostname) return;
         setRuleForCurrentSite(siteMode.value);
+    });
+
+    siteRuleEnabled.addEventListener('change', () => {
+        if (!currentHostname) return;
+        setSiteRuleEnabled(siteRuleEnabled.checked);
     });
 
     matchSubdomains.addEventListener('change', () => {
@@ -177,9 +199,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderSiteRule() {
         const rule = resolveRule(currentHostname, settings, true);
-        siteMode.value = rule ? rule.mode : 'inherit';
+        const isActive = !!rule && rule.enabled && rule.mode !== 'inherit';
+        siteRuleEnabled.checked = isActive;
+        sitePanel.classList.toggle('site-rule-off', !isActive);
+        // Off shows the mode the switch would turn on: the saved rule mode, else the default.
+        siteMode.value = rule && rule.mode !== 'inherit' ? rule.mode : settings.defaultMode;
         matchSubdomains.checked = rule ? rule.matchSubdomains !== false : true;
-        matchSubdomains.disabled = !rule;
+        matchSubdomains.disabled = !isActive;
 
         const activeBanner = document.getElementById('activeBanner');
         if (activeBanner && !activeBanner.classList.contains('hidden')) {
@@ -187,27 +213,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function setRuleForCurrentSite(mode) {
-        const exactRule = settings.siteRules.find((rule) => rule.pattern === currentHostname);
-        if (mode === 'inherit') {
-            if (exactRule) {
-                settings.siteRules = settings.siteRules.filter((rule) => rule.pattern !== currentHostname);
-            }
-            matchSubdomains.disabled = true;
-            matchSubdomains.checked = true;
+    function setSiteRuleEnabled(enabled) {
+        const rule = resolveRule(currentHostname, settings, true);
+        if (!enabled || (rule && rule.mode !== 'inherit')) {
+            if (!rule) return;
+            rule.enabled = enabled;
             saveSettings(settings, () => {
                 renderSiteRule();
                 notifyActiveTab();
             });
             return;
         }
+        setRuleForCurrentSite(siteMode.value);
+    }
 
+    function setRuleForCurrentSite(mode) {
+        const exactRule = settings.siteRules.find((rule) => rule.pattern === currentHostname);
         if (exactRule) {
             exactRule.mode = mode;
             exactRule.enabled = true;
         } else {
             if (requiresProUpgrade(entitlements) && settings.siteRules.length >= FREE_RULE_LIMIT) {
-                siteMode.value = 'inherit';
+                renderSiteRule();
                 openPremium();
                 return;
             }
@@ -349,7 +376,9 @@ function normalizeEntitlements(entitlements) {
     return {
         supportsPro: entitlements?.supportsPro === true,
         isPro: entitlements?.supportsPro === true ? entitlements?.isPro === true : true,
-        iCloudSyncEnabled: entitlements?.iCloudSyncEnabled === true
+        iCloudSyncEnabled: entitlements?.iCloudSyncEnabled === true,
+        // Missing means the background has not decided yet; keep existing users working.
+        legacyFollowSystem: entitlements?.legacyFollowSystem !== false
     };
 }
 
@@ -361,7 +390,13 @@ function allowedDefaultModes(entitlements) {
     return VALID_DEFAULT_MODES;
 }
 
+// Premium modes keep their badge for free users, including grandfathered Follow System.
+function showsProBadge(mode, entitlements = currentEntitlements) {
+    return PRO_MODES.has(mode) && requiresProUpgrade(entitlements);
+}
+
 function isLockedProMode(mode, entitlements = currentEntitlements) {
+    if (mode === 'followSystem' && entitlements.legacyFollowSystem) return false;
     return PRO_MODES.has(mode) && requiresProUpgrade(entitlements);
 }
 
@@ -369,14 +404,14 @@ function allowedRuleModes(entitlements) {
     return ['inherit', ...allowedDefaultModes(entitlements)];
 }
 
-function renderModeOptions(select, includeInherit) {
+function renderModeOptions(select, isSiteMode) {
     const currentValue = select.value;
-    const modes = includeInherit ? allowedRuleModes(currentEntitlements) : allowedDefaultModes(currentEntitlements);
+    const modes = isSiteMode ? allowedRuleModes(currentEntitlements).filter((mode) => mode !== 'inherit') : allowedDefaultModes(currentEntitlements);
     select.innerHTML = '';
     modes.forEach((mode) => {
         const option = document.createElement('option');
         option.value = mode;
-        option.textContent = `${modeLabel(mode)}${!includeInherit && isLockedProMode(mode) ? `（${I18n.getMessage('proBadge') || 'Premium'}）` : ''}`;
+        option.textContent = `${modeLabel(mode)}${!isSiteMode && showsProBadge(mode) ? `（${I18n.getMessage('proBadge') || 'Premium'}）` : ''}`;
         select.appendChild(option);
     });
     select.value = modes.includes(currentValue) ? currentValue : modes[0];
@@ -426,7 +461,7 @@ function normalizeSettings(settings) {
     const validRuleModes = allowedRuleModes(currentEntitlements);
     return {
         version: SETTINGS_VERSION,
-        defaultMode: validDefaultModes.includes(settings.defaultMode) && !isLockedProMode(settings.defaultMode) ? settings.defaultMode : 'followSystem',
+        defaultMode: validDefaultModes.includes(settings.defaultMode) && !isLockedProMode(settings.defaultMode) ? settings.defaultMode : 'forceDark',
         darkTimeStart: normalizeTime(settings.darkTimeStart, '19:00'),
         darkTimeEnd: normalizeTime(settings.darkTimeEnd, '07:00'),
         siteRules: Array.isArray(settings.siteRules)

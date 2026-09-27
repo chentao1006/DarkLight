@@ -90,5 +90,14 @@
   },
   "importFailed": {
     "message": "导入失败，请选择有效的暗光 JSON 文件。"
+  },
+  "masterSwitch": {
+    "message": "启用暗光"
+  },
+  "masterSwitchOnDetail": {
+    "message": "网页将按下方模式显示"
+  },
+  "masterSwitchOffDetail": {
+    "message": "已暂停，所有网页保持原样"
   }
 }

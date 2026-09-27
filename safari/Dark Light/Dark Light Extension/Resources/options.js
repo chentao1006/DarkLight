@@ -2,8 +2,8 @@ const SETTINGS_KEY = 'darkLightSettings';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
 const SETTINGS_VERSION = 2;
 const FREE_RULE_LIMIT = 3;
-const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
-const PRO_MODES = new Set(['timeBased', 'preserveSite']);
+const VALID_DEFAULT_MODES = ['forceDark', 'forceLight', 'followSystem', 'timeBased', 'preserveSite'];
+const PRO_MODES = new Set(['followSystem', 'timeBased', 'preserveSite']);
 const PREMIUM_AUTO_REFRESH_INTERVAL_MS = 2000;
 const PREMIUM_AUTO_REFRESH_TIMEOUT_MS = 120000;
 
@@ -45,7 +45,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function bindEvents() {
   document.getElementById('defaultMode').addEventListener('change', (event) => {
-    if (isLockedProMode(event.target.value)) {
+    // Grandfathered Follow System only survives while it stays selected;
+    // choosing it again after switching away needs Premium.
+    if (isLockedProMode(event.target.value)
+      || (event.target.value === 'followSystem' && requiresProUpgrade() && settings.defaultMode !== 'followSystem')) {
       event.target.value = settings.defaultMode;
       showProRequired();
       return;
@@ -121,7 +124,7 @@ function render() {
     .sort((a, b) => a.pattern.localeCompare(b.pattern))
     .forEach((rule) => {
       const row = document.createElement('div');
-      row.className = 'rule-row';
+      row.className = rule.enabled ? 'rule-row' : 'rule-row is-disabled';
 
       const main = document.createElement('div');
       main.className = 'rule-main';
@@ -141,12 +144,22 @@ function render() {
       const actions = document.createElement('div');
       actions.className = 'rule-actions';
 
-      const toggleBtn = document.createElement('button');
-      toggleBtn.textContent = rule.enabled ? I18n.getMessage('disable') : I18n.getMessage('enable');
-      toggleBtn.addEventListener('click', () => {
-        rule.enabled = !rule.enabled;
+      const toggle = document.createElement('label');
+      toggle.className = 'switch';
+      toggle.title = rule.enabled ? I18n.getMessage('enabled') : I18n.getMessage('disabled');
+      const toggleInput = document.createElement('input');
+      toggleInput.type = 'checkbox';
+      toggleInput.setAttribute('role', 'switch');
+      toggleInput.setAttribute('aria-label', `${rule.pattern} ${I18n.getMessage('enable') || 'Enable'}`);
+      toggleInput.checked = rule.enabled;
+      toggleInput.addEventListener('change', () => {
+        rule.enabled = toggleInput.checked;
         saveSettings(settings, render);
       });
+      const toggleTrack = document.createElement('span');
+      toggleTrack.className = 'switch-track';
+      toggle.appendChild(toggleInput);
+      toggle.appendChild(toggleTrack);
 
       const editBtn = document.createElement('button');
       editBtn.textContent = I18n.getMessage('editSite') || 'Edit';
@@ -163,7 +176,7 @@ function render() {
 
       main.appendChild(pattern);
       main.appendChild(meta);
-      actions.appendChild(toggleBtn);
+      actions.appendChild(toggle);
       actions.appendChild(editBtn);
       actions.appendChild(deleteBtn);
       row.appendChild(main);
@@ -186,7 +199,8 @@ function openRuleForm(rule) {
 
   editingRuleId = rule ? rule.id : null;
   document.getElementById('rulePattern').value = rule ? rule.pattern : '';
-  document.getElementById('ruleMode').value = rule ? rule.mode : 'forceDark';
+  // Older rules may still use "Use Default"; show the current default mode instead.
+  document.getElementById('ruleMode').value = !rule ? 'forceDark' : rule.mode === 'inherit' ? settings.defaultMode : rule.mode;
   document.getElementById('ruleSubdomains').checked = rule ? rule.matchSubdomains !== false : true;
   document.getElementById('ruleForm').classList.remove('hidden');
   document.getElementById('rulePattern').focus();
@@ -384,14 +398,14 @@ function modeLabel(mode) {
   return I18n.getMessage(key) || mode;
 }
 
-function renderModeOptions(select, includeInherit) {
+function renderModeOptions(select, isRuleMode) {
   const currentValue = select.value;
-  const modes = includeInherit ? ['inherit', ...allowedDefaultModes()] : allowedDefaultModes();
+  const modes = allowedDefaultModes();
   select.innerHTML = '';
   modes.forEach((mode) => {
     const option = document.createElement('option');
     option.value = mode;
-    option.textContent = `${modeLabel(mode)}${!includeInherit && isLockedProMode(mode) ? `（${I18n.getMessage('proBadge') || 'Premium'}）` : ''}`;
+    option.textContent = `${modeLabel(mode)}${!isRuleMode && showsProBadge(mode) ? `（${I18n.getMessage('proBadge') || 'Premium'}）` : ''}`;
     select.appendChild(option);
   });
   select.value = modes.includes(currentValue) ? currentValue : modes[0];
@@ -440,7 +454,9 @@ function normalizeEntitlements(nextEntitlements) {
   return {
     supportsPro: nextEntitlements?.supportsPro === true,
     isPro: nextEntitlements?.supportsPro === true ? nextEntitlements?.isPro === true : true,
-    iCloudSyncEnabled: nextEntitlements?.iCloudSyncEnabled === true
+    iCloudSyncEnabled: nextEntitlements?.iCloudSyncEnabled === true,
+    // Missing means the background has not decided yet; keep existing users working.
+    legacyFollowSystem: nextEntitlements?.legacyFollowSystem !== false
   };
 }
 
@@ -452,7 +468,13 @@ function allowedDefaultModes() {
   return VALID_DEFAULT_MODES;
 }
 
+// Premium modes keep their badge for free users, including grandfathered Follow System.
+function showsProBadge(mode) {
+  return PRO_MODES.has(mode) && requiresProUpgrade();
+}
+
 function isLockedProMode(mode) {
+  if (mode === 'followSystem' && entitlements.legacyFollowSystem) return false;
   return PRO_MODES.has(mode) && requiresProUpgrade();
 }
 
@@ -497,7 +519,7 @@ function normalizeSettings(nextSettings) {
   const validRuleModes = allowedRuleModes();
   return {
     version: SETTINGS_VERSION,
-    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) && !isLockedProMode(nextSettings.defaultMode) ? nextSettings.defaultMode : 'followSystem',
+    defaultMode: validDefaultModes.includes(nextSettings.defaultMode) && !isLockedProMode(nextSettings.defaultMode) ? nextSettings.defaultMode : 'forceDark',
     darkTimeStart: normalizeTime(nextSettings.darkTimeStart, '19:00'),
     darkTimeEnd: normalizeTime(nextSettings.darkTimeEnd, '07:00'),
     siteRules: Array.isArray(nextSettings.siteRules)

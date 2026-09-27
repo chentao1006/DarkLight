@@ -32,52 +32,6 @@
             </div>
         </header>
 
-        <section class="section">
-            <div class="default-mode-row">
-                <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
-                <select id="defaultMode">
-                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
-                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
-                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
-                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
-                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
-                </select>
-                <div id="darkTimeRange" class="time-range hidden">
-                    <span data-i18n="darkTimeRange">Dark time</span>
-                    <input id="darkTimeStart" type="time" value="19:00" aria-label="Dark mode start time">
-                    <span aria-hidden="true">–</span>
-                    <input id="darkTimeEnd" type="time" value="07:00" aria-label="Dark mode end time">
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="section-header">
-                <h2 data-i18n="siteRules">Site Rules</h2>
-                <button id="addRule" data-i18n="addRule">Add Rule</button>
-            </div>
-
-            <div class="rule-form hidden" id="ruleForm">
-                <input id="rulePattern" type="text" data-i18n-placeholder="enterSiteDomain" placeholder="example.com">
-                <select id="ruleMode">
-                    <option value="inherit" data-i18n="useDefault">Use Default</option>
-                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
-                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
-                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
-                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
-                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
-                </select>
-                <label class="inline-check">
-                    <input id="ruleSubdomains" type="checkbox" checked>
-                    <span data-i18n="matchSubdomains">Match subdomains</span>
-                </label>
-                <button id="saveRule" data-i18n="save">Save</button>
-                <button id="cancelRule" class="ghost" data-i18n="cancel">Cancel</button>
-            </div>
-
-            <div id="ruleList" class="rule-list"></div>
-        </section>
-
         <section class="section pro-section">
             <div class="section-header">
                 <div>
@@ -104,6 +58,52 @@
                 </div>
             </div>
         </section>
+
+        <section class="section">
+            <div class="default-mode-row">
+                <label for="defaultMode" data-i18n="defaultMode">Default Mode</label>
+                <select id="defaultMode">
+                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
+                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+                </select>
+                <div id="darkTimeRange" class="time-range hidden">
+                    <span data-i18n="darkTimeRange">Dark time</span>
+                    <input id="darkTimeStart" type="time" value="19:00" aria-label="Dark mode start time">
+                    <span aria-hidden="true">–</span>
+                    <input id="darkTimeEnd" type="time" value="07:00" aria-label="Dark mode end time">
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 data-i18n="siteRules">Site Rules</h2>
+                <button id="addRule" data-i18n="addRule">Add Rule</button>
+            </div>
+
+            <div class="rule-form hidden" id="ruleForm">
+                <input id="rulePattern" type="text" data-i18n-placeholder="enterSiteDomain" placeholder="example.com">
+                <select id="ruleMode">
+                    <option value="forceDark" data-i18n="forceDark">Force Dark</option>
+                    <option value="forceLight" data-i18n="forceLight">Force Light</option>
+                    <option value="followSystem" data-i18n="followSystem">Follow System</option>
+                    <option value="timeBased" data-i18n="timeBased">Change by Time</option>
+                    <option value="preserveSite" data-i18n="preserveSite">Preserve Site Design</option>
+                </select>
+                <label class="inline-check">
+                    <input id="ruleSubdomains" type="checkbox" checked>
+                    <span data-i18n="matchSubdomains">Match subdomains</span>
+                </label>
+                <button id="saveRule" data-i18n="save">Save</button>
+                <button id="cancelRule" class="ghost" data-i18n="cancel">Cancel</button>
+            </div>
+
+            <div id="ruleList" class="rule-list"></div>
+        </section>
+
     </main>
 
     <script src="i18n.js"></script>

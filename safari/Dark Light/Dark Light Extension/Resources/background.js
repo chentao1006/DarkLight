@@ -1,5 +1,7 @@
 const SETTINGS_KEY = 'darkLightSettings';
+const ENABLED_KEY = 'darkLightEnabled';
 const ENTITLEMENTS_KEY = 'darkLightEntitlements';
+const LEGACY_FOLLOW_SYSTEM_KEY = 'darkLightLegacyFollowSystem';
 const SAFARI_NATIVE_APP_ID = 'com.ct106.darklight.Extension';
 
 const SETTINGS_VERSION = 2;
@@ -25,6 +27,7 @@ const PREPAINT_CSS_BY_MODE = {
 
 function setBadgeOff() {
   chrome.action.setBadgeText({ text: '' });
+  chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
 }
 
 function trackAptabaseEvent(eventName) {
@@ -65,13 +68,15 @@ function refreshTabAppearance(tabId) {
   });
 }
 
-function setBadgeState(tabId, appearance, mode) {
+function setBadgeState(tabId, appearance, mode, isSiteRule = false) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
   const isFollowSystem = mode === 'followSystem';
   const isTimeBased = mode === MODE_TIME_BASED;
   const isPreserveSite = mode === 'preserveSite';
-  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isTimeBased ? 'T' : isPreserveSite ? 'O' : '';
+  const modeText = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isTimeBased ? 'T' : isPreserveSite ? 'O' : '';
+  // "S:" marks a site-specific rule instead of the default mode.
+  const text = modeText && isSiteRule ? `S:${modeText}` : modeText;
   const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0b5cff' : '#334155';
 
   chrome.action.setBadgeText({ text, tabId });
@@ -84,7 +89,7 @@ function setBadgeState(tabId, appearance, mode) {
   }
 }
 
-function resolveModeForUrl(url, settings) {
+function resolveBadgeForUrl(url, settings) {
   try {
     const hostname = normalizePattern(new URL(url).hostname);
     const matches = settings.siteRules.filter((rule) => {
@@ -93,20 +98,42 @@ function resolveModeForUrl(url, settings) {
     });
     matches.sort((a, b) => b.pattern.length - a.pattern.length);
     const rule = matches[0];
-    return rule && rule.mode !== MODE_INHERIT ? rule.mode : settings.defaultMode;
+    const isSiteRule = !!rule && rule.mode !== MODE_INHERIT;
+    return { mode: isSiteRule ? rule.mode : settings.defaultMode, isSiteRule };
   } catch (_) {
     return null;
   }
 }
 
-function refreshBadgeForTab(tabId, url) {
-  if (typeof tabId !== 'number' || !/^https?:\/\//i.test(url || '')) {
-    chrome.action.setBadgeText({ text: '', tabId });
-    return;
+function loadExtensionEnabled(callback) {
+  chrome.storage.local.get([ENABLED_KEY], (result) => callback(result[ENABLED_KEY] !== false));
+}
+
+function setBadgePaused(tabId) {
+  chrome.action.setBadgeText({ text: '—', tabId });
+  chrome.action.setBadgeBackgroundColor({ color: '#8a939b', tabId });
+  try {
+    chrome.action.setBadgeTextColor({ color: '#ffffff', tabId });
+  } catch (_) {
+    // Firefox does not support setBadgeTextColor — silently ignore
   }
-  loadSettings((settings) => {
-    const mode = resolveModeForUrl(url, settings);
-    if (mode) setBadgeState(tabId, null, mode);
+}
+
+function refreshBadgeForTab(tabId, url) {
+  if (typeof tabId !== 'number') return;
+  loadExtensionEnabled((enabled) => {
+    if (!enabled) {
+      setBadgePaused(tabId);
+      return;
+    }
+    if (!/^https?:\/\//i.test(url || '')) {
+      chrome.action.setBadgeText({ text: '', tabId });
+      return;
+    }
+    loadSettings((settings) => {
+      const badge = resolveBadgeForUrl(url, settings);
+      if (badge) setBadgeState(tabId, null, badge.mode, badge.isSiteRule);
+    });
   });
 }
 
@@ -121,6 +148,11 @@ chrome.runtime.onInstalled.addListener(() => {
   syncPrepaintContentScripts();
 });
 chrome.runtime.onInstalled.addListener(refreshProStateAndSync);
+chrome.runtime.onInstalled.addListener(() => {
+  loadLegacyFollowSystem((legacyFollowSystem) => {
+    getStoredEntitlements((entitlements) => setStoredEntitlements({ ...entitlements, legacyFollowSystem }));
+  });
+});
 chrome.runtime.onStartup.addListener(() => {
   trackAptabaseEvent('extension_started');
   setBadgeOff();
@@ -139,7 +171,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace !== 'local' || !changes[ENABLED_KEY]) return;
+  syncPrepaintContentScripts();
+  chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
+});
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync' && changes[SETTINGS_KEY]) {
+    if (changes[SETTINGS_KEY].newValue?.defaultMode !== MODE_FOLLOW_SYSTEM) {
+      revokeLegacyFollowSystem();
+    }
     pushSettingsToICloud(changes[SETTINGS_KEY].newValue);
     syncPrepaintContentScripts(changes[SETTINGS_KEY].newValue);
     chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
@@ -173,8 +214,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'setBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;
     if (typeof tabId === 'number') {
-      setBadgeState(tabId, message.effectiveAppearance, message.mode);
-      refreshBadgeForTabId(tabId);
+      loadExtensionEnabled((enabled) => {
+        if (enabled) setBadgeState(tabId, message.effectiveAppearance, message.mode, message.source === 'siteRule');
+        refreshBadgeForTabId(tabId);
+      });
     }
   }
   if (message.action === 'clearBadgeState') {
@@ -283,14 +326,41 @@ function setStoredEntitlements(entitlements, callback) {
 }
 
 function storeEntitlementsFromNative(response, callback) {
-  const entitlements = {
-    supportsPro: response?.ok === true,
-    isPro: response?.ok === true ? response?.isPro === true : true,
-    iCloudSyncEnabled: response?.iCloudSyncEnabled === true,
-    source: response?.ok ? 'native' : 'local',
-    checkedAt: Date.now()
-  };
-  setStoredEntitlements(entitlements, callback);
+  loadLegacyFollowSystem((legacyFollowSystem) => {
+    const entitlements = {
+      supportsPro: response?.ok === true,
+      isPro: response?.ok === true ? response?.isPro === true : true,
+      iCloudSyncEnabled: response?.iCloudSyncEnabled === true,
+      legacyFollowSystem,
+      source: response?.ok ? 'native' : 'local',
+      checkedAt: Date.now()
+    };
+    setStoredEntitlements(entitlements, callback);
+  });
+}
+
+// Follow System became a Premium default mode. Users whose default was already
+// Follow System keep it until they switch the default to another mode.
+function loadLegacyFollowSystem(callback) {
+  chrome.storage.local.get([LEGACY_FOLLOW_SYSTEM_KEY], (result) => {
+    if (typeof result[LEGACY_FOLLOW_SYSTEM_KEY] === 'boolean') {
+      callback(result[LEGACY_FOLLOW_SYSTEM_KEY]);
+      return;
+    }
+    chrome.storage.sync.get([SETTINGS_KEY], (syncResult) => {
+      const legacyFollowSystem = syncResult[SETTINGS_KEY]?.defaultMode === MODE_FOLLOW_SYSTEM;
+      chrome.storage.local.set({ [LEGACY_FOLLOW_SYSTEM_KEY]: legacyFollowSystem }, () => callback(legacyFollowSystem));
+    });
+  });
+}
+
+function revokeLegacyFollowSystem() {
+  chrome.storage.local.get([LEGACY_FOLLOW_SYSTEM_KEY], (result) => {
+    if (result[LEGACY_FOLLOW_SYSTEM_KEY] === false) return;
+    chrome.storage.local.set({ [LEGACY_FOLLOW_SYSTEM_KEY]: false }, () => {
+      getStoredEntitlements((entitlements) => setStoredEntitlements({ ...entitlements, legacyFollowSystem: false }));
+    });
+  });
 }
 
 function refreshProStateAndSync(callback) {
@@ -351,13 +421,14 @@ function sendNativeMessage(message, callback) {
 function syncPrepaintContentScripts(settingsOverride) {
   if (!chrome.scripting?.getRegisteredContentScripts) return;
 
-  const applySettings = (settings) => {
+  const applySettings = (settings) => loadExtensionEnabled((enabled) => applySettingsForState(settings, enabled));
+  const applySettingsForState = (settings, enabled) => {
     getStoredEntitlements((entitlements) => {
       let finalSettings = normalizeSettings(settings);
       if (entitlements.supportsPro && !entitlements.isPro) {
         finalSettings.siteRules = finalSettings.siteRules.slice(0, FREE_RULE_LIMIT);
       }
-      const scripts = buildPrepaintContentScripts(finalSettings);
+      const scripts = enabled ? buildPrepaintContentScripts(finalSettings) : [];
 
       chrome.scripting.getRegisteredContentScripts({}, (registeredScripts) => {
         if (chrome.runtime.lastError) return;

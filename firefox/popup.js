@@ -1,6 +1,6 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
-const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
+const VALID_DEFAULT_MODES = ['forceDark', 'forceLight', 'followSystem', 'timeBased', 'preserveSite'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.userAgent.includes('iPhone')) {
@@ -26,12 +26,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     localize();
 
+    const masterSwitch = document.getElementById('masterSwitch');
+    const renderMasterSwitch = () => {
+        document.body.classList.toggle('is-paused', !masterSwitch.checked);
+    };
+    chrome.storage.local.get(['darkLightEnabled'], (result) => {
+        masterSwitch.checked = result.darkLightEnabled !== false;
+        renderMasterSwitch();
+    });
+    masterSwitch.addEventListener('change', () => {
+        chrome.storage.local.set({ darkLightEnabled: masterSwitch.checked });
+        renderMasterSwitch();
+    });
+
     const defaultMode = document.getElementById('defaultMode');
     const darkTimeRange = document.getElementById('darkTimeRange');
     const darkTimeStart = document.getElementById('darkTimeStart');
     const darkTimeEnd = document.getElementById('darkTimeEnd');
     const siteMode = document.getElementById('siteMode');
     const matchSubdomains = document.getElementById('matchSubdomains');
+    const siteRuleEnabled = document.getElementById('siteRuleEnabled');
     const currentHostnameEl = document.getElementById('currentHostname');
     const openOptions = document.getElementById('openOptions');
     const sitePanel = document.getElementById('sitePanel');
@@ -105,6 +119,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         setRuleForCurrentSite(siteMode.value);
     });
 
+    siteRuleEnabled.addEventListener('change', () => {
+        if (!currentHostname) return;
+        setSiteRuleEnabled(siteRuleEnabled.checked);
+    });
+
     matchSubdomains.addEventListener('change', () => {
         if (!currentHostname) return;
         const rule = resolveRule(currentHostname, settings, true);
@@ -122,9 +141,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderSiteRule() {
         const rule = resolveRule(currentHostname, settings, true);
-        siteMode.value = rule ? rule.mode : 'inherit';
+        const isActive = !!rule && rule.enabled && rule.mode !== 'inherit';
+        siteRuleEnabled.checked = isActive;
+        sitePanel.classList.toggle('site-rule-off', !isActive);
+        // Off shows the mode the switch would turn on: the saved rule mode, else the default.
+        siteMode.value = rule && rule.mode !== 'inherit' ? rule.mode : settings.defaultMode;
         matchSubdomains.checked = rule ? rule.matchSubdomains !== false : true;
-        matchSubdomains.disabled = !rule;
+        matchSubdomains.disabled = !isActive;
 
         const activeBanner = document.getElementById('activeBanner');
         if (activeBanner && !activeBanner.classList.contains('hidden')) {
@@ -136,21 +159,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         darkTimeRange.classList.toggle('hidden', settings.defaultMode !== 'timeBased');
     }
 
-    function setRuleForCurrentSite(mode) {
-        const exactRule = settings.siteRules.find((rule) => rule.pattern === currentHostname);
-        if (mode === 'inherit') {
-            if (exactRule) {
-                settings.siteRules = settings.siteRules.filter((rule) => rule.pattern !== currentHostname);
-            }
-            matchSubdomains.disabled = true;
-            matchSubdomains.checked = true;
+    function setSiteRuleEnabled(enabled) {
+        const rule = resolveRule(currentHostname, settings, true);
+        if (!enabled || (rule && rule.mode !== 'inherit')) {
+            if (!rule) return;
+            rule.enabled = enabled;
             saveSettings(settings, () => {
                 renderSiteRule();
                 notifyActiveTab();
             });
             return;
         }
+        setRuleForCurrentSite(siteMode.value);
+    }
 
+    function setRuleForCurrentSite(mode) {
+        const exactRule = settings.siteRules.find((rule) => rule.pattern === currentHostname);
         if (exactRule) {
             exactRule.mode = mode;
             exactRule.enabled = true;
@@ -232,9 +256,9 @@ function allowedRuleModes(entitlements) {
     return ['inherit', ...allowedDefaultModes(entitlements)];
 }
 
-function renderModeOptions(select, includeInherit) {
+function renderModeOptions(select, isSiteMode) {
     const currentValue = select.value;
-    const modes = includeInherit ? allowedRuleModes() : allowedDefaultModes();
+    const modes = isSiteMode ? allowedRuleModes().filter((mode) => mode !== 'inherit') : allowedDefaultModes();
     select.innerHTML = '';
     modes.forEach((mode) => {
         const option = document.createElement('option');

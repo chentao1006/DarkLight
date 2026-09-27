@@ -22,6 +22,7 @@ globalThis.resolveEffectiveAppearance = resolveEffectiveAppearance;
 globalThis.refreshFollowSystemAppearance = refreshFollowSystemAppearance;
 
 const SETTINGS_KEY = 'darkLightSettings';
+const ENABLED_KEY = 'darkLightEnabled';
 const SETTINGS_VERSION = 2;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
@@ -29,7 +30,7 @@ const MODE_FORCE_LIGHT = 'forceLight';
 const MODE_TIME_BASED = 'timeBased';
 const MODE_PRESERVE_SITE = 'preserveSite';
 const MODE_INHERIT = 'inherit';
-const VALID_DEFAULT_MODES = [MODE_FOLLOW_SYSTEM, MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_TIME_BASED, MODE_PRESERVE_SITE];
+const VALID_DEFAULT_MODES = [MODE_FORCE_DARK, MODE_FORCE_LIGHT, MODE_FOLLOW_SYSTEM, MODE_TIME_BASED, MODE_PRESERVE_SITE];
 
 const MATCH_ATTRS = [
   'theme',
@@ -71,6 +72,8 @@ const NATIVE_THEME_ADAPTERS = [
 ];
 
 let currentSettings = null;
+// Master switch from the popup. When off, every page is left untouched.
+let extensionEnabled = true;
 let activeAppearance = null;
 let activeConfiguredMode = null;
 let themeObserver = null;
@@ -103,6 +106,11 @@ try {
 }
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace !== 'local' || !changes[ENABLED_KEY]) return;
+  loadSettings(applyResolvedSettings);
+});
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
   applyResolvedSettings(normalizeSettings(changes[SETTINGS_KEY].newValue));
 });
@@ -119,7 +127,7 @@ function applyResolvedSettings(settings) {
   currentSettings = normalizeSettings(settings);
   const hostname = window.location.hostname;
   const rule = resolveRule(hostname, currentSettings);
-  const configuredMode = rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
+  const configuredMode = !extensionEnabled ? MODE_PRESERVE_SITE : rule && rule.mode !== MODE_INHERIT ? rule.mode : currentSettings.defaultMode;
   const source = rule ? 'siteRule' : 'default';
 
   if (configuredMode === MODE_PRESERVE_SITE) {
@@ -186,6 +194,13 @@ function markPrepaintReady() {
 }
 
 function loadSettings(callback) {
+  chrome.storage.local.get([ENABLED_KEY], (result) => {
+    extensionEnabled = result[ENABLED_KEY] !== false;
+    loadStoredSettings(callback);
+  });
+}
+
+function loadStoredSettings(callback) {
   chrome.storage.sync.get([
     SETTINGS_KEY,
     'lightForceEnabled',

@@ -1,4 +1,5 @@
 const SETTINGS_KEY = 'darkLightSettings';
+const ENABLED_KEY = 'darkLightEnabled';
 const SETTINGS_VERSION = 2;
 const MODE_FOLLOW_SYSTEM = 'followSystem';
 const MODE_FORCE_DARK = 'forceDark';
@@ -20,6 +21,7 @@ const PREPAINT_CSS_BY_MODE = {
 
 function setBadgeOff() {
   chrome.action.setBadgeText({ text: '' });
+  chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
 }
 
 async function trackAptabaseEvent(eventName) {
@@ -57,13 +59,15 @@ async function trackAptabaseEvent(eventName) {
   }
 }
 
-function setBadgeState(tabId, appearance, mode) {
+function setBadgeState(tabId, appearance, mode, isSiteRule = false) {
   const isForcedDark = mode === 'forceDark';
   const isForcedLight = mode === 'forceLight';
   const isFollowSystem = mode === 'followSystem';
   const isTimeBased = mode === MODE_TIME_BASED;
   const isPreserveSite = mode === 'preserveSite';
-  const text = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isTimeBased ? 'T' : isPreserveSite ? 'O' : '';
+  const modeText = isForcedDark ? '🌙' : isForcedLight ? '☀️' : isFollowSystem ? 'A' : isTimeBased ? 'T' : isPreserveSite ? 'O' : '';
+  // "S:" marks a site-specific rule instead of the default mode.
+  const text = modeText && isSiteRule ? `S:${modeText}` : modeText;
   const color = isForcedDark ? '#2f3a40' : isForcedLight ? '#0b5cff' : '#334155';
 
   chrome.action.setBadgeText({ text, tabId });
@@ -76,7 +80,7 @@ function setBadgeState(tabId, appearance, mode) {
   }
 }
 
-function resolveModeForUrl(url, settings) {
+function resolveBadgeForUrl(url, settings) {
   try {
     const hostname = normalizePattern(new URL(url).hostname);
     const matches = settings.siteRules.filter((rule) => {
@@ -85,20 +89,42 @@ function resolveModeForUrl(url, settings) {
     });
     matches.sort((a, b) => b.pattern.length - a.pattern.length);
     const rule = matches[0];
-    return rule && rule.mode !== MODE_INHERIT ? rule.mode : settings.defaultMode;
+    const isSiteRule = !!rule && rule.mode !== MODE_INHERIT;
+    return { mode: isSiteRule ? rule.mode : settings.defaultMode, isSiteRule };
   } catch (_) {
     return null;
   }
 }
 
-function refreshBadgeForTab(tabId, url) {
-  if (typeof tabId !== 'number' || !/^https?:\/\//i.test(url || '')) {
-    chrome.action.setBadgeText({ text: '', tabId });
-    return;
+function loadExtensionEnabled(callback) {
+  chrome.storage.local.get([ENABLED_KEY], (result) => callback(result[ENABLED_KEY] !== false));
+}
+
+function setBadgePaused(tabId) {
+  chrome.action.setBadgeText({ text: '—', tabId });
+  chrome.action.setBadgeBackgroundColor({ color: '#8a939b', tabId });
+  try {
+    chrome.action.setBadgeTextColor({ color: '#ffffff', tabId });
+  } catch (_) {
+    // Firefox does not support setBadgeTextColor — silently ignore
   }
-  loadSettings((settings) => {
-    const mode = resolveModeForUrl(url, settings);
-    if (mode) setBadgeState(tabId, null, mode);
+}
+
+function refreshBadgeForTab(tabId, url) {
+  if (typeof tabId !== 'number') return;
+  loadExtensionEnabled((enabled) => {
+    if (!enabled) {
+      setBadgePaused(tabId);
+      return;
+    }
+    if (!/^https?:\/\//i.test(url || '')) {
+      chrome.action.setBadgeText({ text: '', tabId });
+      return;
+    }
+    loadSettings((settings) => {
+      const badge = resolveBadgeForUrl(url, settings);
+      if (badge) setBadgeState(tabId, null, badge.mode, badge.isSiteRule);
+    });
   });
 }
 
@@ -127,6 +153,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace !== 'local' || !changes[ENABLED_KEY]) return;
+  syncPrepaintContentScripts();
+  chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
+});
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace !== 'sync' || !changes[SETTINGS_KEY]) return;
   syncPrepaintContentScripts(changes[SETTINGS_KEY].newValue);
   chrome.tabs.query({}, (tabs) => tabs.forEach((tab) => refreshBadgeForTab(tab.id, tab.url)));
@@ -141,8 +173,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   if (message.action === 'setBadgeState') {
     const tabId = message.tabId ?? sender.tab?.id;
     if (typeof tabId === 'number') {
-      setBadgeState(tabId, message.effectiveAppearance, message.mode);
-      refreshBadgeForTabId(tabId);
+      loadExtensionEnabled((enabled) => {
+        if (enabled) setBadgeState(tabId, message.effectiveAppearance, message.mode, message.source === 'siteRule');
+        refreshBadgeForTabId(tabId);
+      });
     }
   }
   if (message.action === 'clearBadgeState') {
@@ -158,8 +192,9 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 function syncPrepaintContentScripts(settingsOverride) {
   if (!chrome.scripting?.getRegisteredContentScripts) return;
 
-  const applySettings = (settings) => {
-    const scripts = buildPrepaintContentScripts(normalizeSettings(settings));
+  const applySettings = (settings) => loadExtensionEnabled((enabled) => applySettingsForState(settings, enabled));
+  const applySettingsForState = (settings, enabled) => {
+    const scripts = enabled ? buildPrepaintContentScripts(normalizeSettings(settings)) : [];
 
     chrome.scripting.getRegisteredContentScripts({}, (registeredScripts) => {
       if (chrome.runtime.lastError) {

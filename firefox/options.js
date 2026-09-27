@@ -1,6 +1,6 @@
 const SETTINGS_KEY = 'darkLightSettings';
 const SETTINGS_VERSION = 2;
-const VALID_DEFAULT_MODES = ['followSystem', 'forceDark', 'forceLight', 'timeBased', 'preserveSite'];
+const VALID_DEFAULT_MODES = ['forceDark', 'forceLight', 'followSystem', 'timeBased', 'preserveSite'];
 
 let settings = null;
 let editingRuleId = null;
@@ -72,7 +72,7 @@ function render() {
     .sort((a, b) => a.pattern.localeCompare(b.pattern))
     .forEach((rule) => {
       const row = document.createElement('div');
-      row.className = 'rule-row';
+      row.className = rule.enabled ? 'rule-row' : 'rule-row is-disabled';
 
       const main = document.createElement('div');
       main.className = 'rule-main';
@@ -92,12 +92,22 @@ function render() {
       const actions = document.createElement('div');
       actions.className = 'rule-actions';
 
-      const toggleBtn = document.createElement('button');
-      toggleBtn.textContent = rule.enabled ? I18n.getMessage('disable') : I18n.getMessage('enable');
-      toggleBtn.addEventListener('click', () => {
-        rule.enabled = !rule.enabled;
+      const toggle = document.createElement('label');
+      toggle.className = 'switch';
+      toggle.title = rule.enabled ? I18n.getMessage('enabled') : I18n.getMessage('disabled');
+      const toggleInput = document.createElement('input');
+      toggleInput.type = 'checkbox';
+      toggleInput.setAttribute('role', 'switch');
+      toggleInput.setAttribute('aria-label', `${rule.pattern} ${I18n.getMessage('enable') || 'Enable'}`);
+      toggleInput.checked = rule.enabled;
+      toggleInput.addEventListener('change', () => {
+        rule.enabled = toggleInput.checked;
         saveSettings(settings, render);
       });
+      const toggleTrack = document.createElement('span');
+      toggleTrack.className = 'switch-track';
+      toggle.appendChild(toggleInput);
+      toggle.appendChild(toggleTrack);
 
       const editBtn = document.createElement('button');
       editBtn.textContent = I18n.getMessage('editSite') || 'Edit';
@@ -114,7 +124,7 @@ function render() {
 
       main.appendChild(pattern);
       main.appendChild(meta);
-      actions.appendChild(toggleBtn);
+      actions.appendChild(toggle);
       actions.appendChild(editBtn);
       actions.appendChild(deleteBtn);
       row.appendChild(main);
@@ -132,7 +142,8 @@ function confirmDeleteRule(rule) {
 function openRuleForm(rule) {
   editingRuleId = rule ? rule.id : null;
   document.getElementById('rulePattern').value = rule ? rule.pattern : '';
-  document.getElementById('ruleMode').value = rule ? rule.mode : 'forceDark';
+  // Older rules may still use "Use Default"; show the current default mode instead.
+  document.getElementById('ruleMode').value = !rule ? 'forceDark' : rule.mode === 'inherit' ? settings.defaultMode : rule.mode;
   document.getElementById('ruleSubdomains').checked = rule ? rule.matchSubdomains !== false : true;
   document.getElementById('ruleForm').classList.remove('hidden');
   document.getElementById('rulePattern').focus();
@@ -188,9 +199,9 @@ function modeLabel(mode) {
   return I18n.getMessage(key) || mode;
 }
 
-function renderModeOptions(select, includeInherit) {
+function renderModeOptions(select, isRuleMode) {
   const currentValue = select.value;
-  const modes = includeInherit ? ['inherit', ...allowedDefaultModes()] : allowedDefaultModes();
+  const modes = allowedDefaultModes();
   select.innerHTML = '';
   modes.forEach((mode) => {
     const option = document.createElement('option');

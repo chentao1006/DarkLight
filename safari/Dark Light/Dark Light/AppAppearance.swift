@@ -68,19 +68,21 @@ final class LaunchAtLoginController: ObservableObject {
 /// A visual preference for an app window. The original app is never changed;
 /// Dark Light only renders a real-time, GPU-filtered mirror above it.
 enum AppAppearanceMode: String, Codable, CaseIterable, Identifiable {
-    case followSystem
     case forceDark
     case forceLight
+    case followSystem
     case timeBased
     case preserveApp = "preserveSite"
 
     var id: String { rawValue }
 
+    var requiresPremium: Bool { self == .followSystem }
+
     var menuTag: Int {
         switch self {
-        case .followSystem: return 1
         case .forceDark: return 2
         case .forceLight: return 3
+        case .followSystem: return 1
         case .timeBased: return 4
         case .preserveApp: return 5
         }
@@ -101,57 +103,57 @@ enum AppAppearanceMode: String, Codable, CaseIterable, Identifiable {
         switch language {
         case "zh":
             switch self {
-            case .followSystem: return "跟随系统外观"
             case .forceDark: return "强制深色"
             case .forceLight: return "强制浅色"
+            case .followSystem: return "跟随系统外观"
             case .timeBased: return "根据时间段改变"
             case .preserveApp: return "保持应用原样"
             }
         case "ja":
             switch self {
-            case .followSystem: return "システムに従う"
             case .forceDark: return "強制的にダーク"
             case .forceLight: return "強制的にライト"
+            case .followSystem: return "システムに従う"
             case .timeBased: return "時間帯で切り替え"
             case .preserveApp: return "アプリの表示をそのまま使う"
             }
         case "ko":
             switch self {
-            case .followSystem: return "시스템 따르기"
             case .forceDark: return "강제 다크"
             case .forceLight: return "강제 라이트"
+            case .followSystem: return "시스템 따르기"
             case .timeBased: return "시간대에 따라 변경"
             case .preserveApp: return "앱 모양 유지"
             }
         case "es":
             switch self {
-            case .followSystem: return "Seguir al sistema"
             case .forceDark: return "Forzar oscuro"
             case .forceLight: return "Forzar claro"
+            case .followSystem: return "Seguir al sistema"
             case .timeBased: return "Cambiar según horario"
             case .preserveApp: return "Mantener apariencia de la app"
             }
         case "fr":
             switch self {
-            case .followSystem: return "Suivre le système"
             case .forceDark: return "Forcer le mode sombre"
             case .forceLight: return "Forcer le mode clair"
+            case .followSystem: return "Suivre le système"
             case .timeBased: return "Changer selon l’horaire"
             case .preserveApp: return "Conserver l’apparence de l’app"
             }
         case "de":
             switch self {
-            case .followSystem: return "System folgen"
             case .forceDark: return "Dunkel erzwingen"
             case .forceLight: return "Hell erzwingen"
+            case .followSystem: return "System folgen"
             case .timeBased: return "Nach Zeitplan wechseln"
             case .preserveApp: return "App-Erscheinungsbild beibehalten"
             }
         default:
             switch self {
-            case .followSystem: return "Follow System"
             case .forceDark: return "Force Dark"
             case .forceLight: return "Force Light"
+            case .followSystem: return "Follow System"
             case .timeBased: return "Change by Time"
             case .preserveApp: return "Keep App Appearance"
             }
@@ -219,10 +221,18 @@ final class AppAppearanceController: NSObject, ObservableObject {
     @Published private(set) var hasScreenCapturePermission = false
     @Published private(set) var isFiltering = false
     @Published private(set) var hasPremiumAccess = false
+    /// Master switch from the status bar menu. Off keeps every rule but filters nothing.
+    @Published private(set) var isEnabled = true
     @Published private var schedule = AppAppearanceSchedule()
 
     private let storageKey = "DarkLight.appAppearanceRules.v1"
     private let scheduleStorageKey = "DarkLight.appAppearanceSchedule.v1"
+    private let premiumAccessStorageKey = "DarkLight.appAppearancePremiumAccess.v1"
+    private let enabledStorageKey = "DarkLight.appAppearanceEnabled.v1"
+    private let grandfatheredStorageKey = "DarkLight.appAppearanceGrandfatheredApps.v1"
+    /// Apps that already used a now Premium-only mode before it became Premium.
+    /// They keep it until the user switches that app to another mode or removes it.
+    private var grandfatheredApps: Set<String> = []
     private var workspaceObservers: [NSObjectProtocol] = []
     private var trackingTimer: Timer?
     private var trackingInterval: TimeInterval?
@@ -237,6 +247,11 @@ final class AppAppearanceController: NSObject, ObservableObject {
         super.init()
         loadRules()
         loadSchedule()
+        // Last known entitlement, so Premium-only rules keep filtering at launch
+        // while StoreKit is re-checked asynchronously.
+        hasPremiumAccess = UserDefaults.standard.bool(forKey: premiumAccessStorageKey)
+        loadGrandfatheredApps()
+        isEnabled = UserDefaults.standard.object(forKey: enabledStorageKey) as? Bool ?? true
         // Cheap, side-effect-free read only. Do not call refreshScreenCapturePermission()
         // here: its SCShareableContent fallback triggers the system Screen Recording
         // prompt as a side effect, which must never fire before the user has actually
@@ -250,15 +265,35 @@ final class AppAppearanceController: NSObject, ObservableObject {
     }
 
     var hasActiveFilterRules: Bool {
-        rules.contains { $0.isEnabled && $0.mode != .preserveApp }
+        isEnabled && rules.contains { $0.isEnabled && $0.mode != .preserveApp && canUse($0.mode, for: $0.bundleIdentifier) }
     }
 
     var canAddAnotherApp: Bool {
         hasPremiumAccess || rules.count < Self.freeAppRuleLimit
     }
 
+    func setEnabled(_ enabled: Bool) {
+        guard isEnabled != enabled else { return }
+        isEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: enabledStorageKey)
+        updateTrackingState()
+        refreshNow()
+    }
+
+    func canUse(_ mode: AppAppearanceMode, for bundleIdentifier: String? = nil) -> Bool {
+        if hasPremiumAccess || !mode.requiresPremium { return true }
+        guard let bundleIdentifier else { return false }
+        return rules.contains { $0.bundleIdentifier == bundleIdentifier && $0.mode == mode }
+            && grandfatheredApps.contains(bundleIdentifier)
+    }
+
     func setPremiumAccess(_ hasPremiumAccess: Bool) {
+        guard self.hasPremiumAccess != hasPremiumAccess else { return }
         self.hasPremiumAccess = hasPremiumAccess
+        UserDefaults.standard.set(hasPremiumAccess, forKey: premiumAccessStorageKey)
+        guard didStart else { return }
+        updateTrackingState()
+        refreshNow()
     }
 
     func start() {
@@ -476,6 +511,10 @@ final class AppAppearanceController: NSObject, ObservableObject {
             }
             return true
         }
+        guard canUse(mode, for: app.bundleIdentifier) else { return false }
+        if mode != rules.first(where: { $0.bundleIdentifier == app.bundleIdentifier })?.mode {
+            revokeGrandfathering(for: app.bundleIdentifier)
+        }
         if let index = rules.firstIndex(where: { $0.bundleIdentifier == app.bundleIdentifier }) {
             rules[index].appName = app.appName
             rules[index].mode = mode
@@ -503,7 +542,10 @@ final class AppAppearanceController: NSObject, ObservableObject {
             remove(rule)
             return
         }
-        guard let index = rules.firstIndex(where: { $0.id == rule.id }) else { return }
+        guard canUse(mode, for: rule.bundleIdentifier), let index = rules.firstIndex(where: { $0.id == rule.id }) else { return }
+        if mode != rules[index].mode {
+            revokeGrandfathering(for: rule.bundleIdentifier)
+        }
         rules[index].mode = mode
         rules[index].isEnabled = true
         persistRules()
@@ -530,6 +572,7 @@ final class AppAppearanceController: NSObject, ObservableObject {
 
     func remove(_ rule: AppAppearanceRule) {
         rules.removeAll { $0.id == rule.id }
+        revokeGrandfathering(for: rule.bundleIdentifier)
         persistRules()
         updateTrackingState()
         refreshNow()
@@ -642,6 +685,25 @@ final class AppAppearanceController: NSObject, ObservableObject {
             return
         }
         rules = decoded
+    }
+
+    private func loadGrandfatheredApps() {
+        if let stored = UserDefaults.standard.stringArray(forKey: grandfatheredStorageKey) {
+            grandfatheredApps = Set(stored)
+            return
+        }
+        // First launch with Premium-only modes: keep every existing rule working.
+        grandfatheredApps = Set(rules.filter { $0.mode.requiresPremium }.map(\.bundleIdentifier))
+        persistGrandfatheredApps()
+    }
+
+    private func revokeGrandfathering(for bundleIdentifier: String) {
+        guard grandfatheredApps.remove(bundleIdentifier) != nil else { return }
+        persistGrandfatheredApps()
+    }
+
+    private func persistGrandfatheredApps() {
+        UserDefaults.standard.set(Array(grandfatheredApps), forKey: grandfatheredStorageKey)
     }
 
     private func loadSchedule() {
@@ -766,6 +828,7 @@ final class AppAppearanceController: NSObject, ObservableObject {
         case .forceLight:
             return .forceLight
         case .followSystem:
+            guard canUse(.followSystem, for: rule.bundleIdentifier) else { return nil }
             return systemUsesDarkAppearance ? .forceDark : .forceLight
         case .timeBased:
             return isWithinDarkSchedule ? .forceDark : .forceLight
@@ -1426,7 +1489,10 @@ enum AppThemeControlStrings {
                 "strategy": "策略",
                 "limitTitle": "免费版最多 3 个应用",
                 "limitDetail": "升级高级版即可为不限数量的应用设置主题。",
-                "upgrade": "了解高级版"
+                "upgrade": "了解高级版",
+                "premiumBadge": "高级版",
+                "premiumModeTitle": "“跟随系统外观”为高级版功能",
+                "premiumModeDetail": "升级高级版即可让应用随系统外观自动切换深浅色。"
             ],
             "ja": [
                 "title": "アプリテーマ管理",
@@ -1461,7 +1527,10 @@ enum AppThemeControlStrings {
                 "strategy": "テーマ",
                 "limitTitle": "無料版はアプリ 3 個まで",
                 "limitDetail": "Premium にアップグレードすると、無制限のアプリにテーマを設定できます。",
-                "upgrade": "Premium を見る"
+                "upgrade": "Premium を見る",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "「システムに従う」は Premium 機能です",
+                "premiumModeDetail": "Premium にアップグレードすると、アプリをシステムの外観に合わせて自動で切り替えられます。"
             ],
             "ko": [
                 "title": "앱 테마 제어",
@@ -1496,7 +1565,10 @@ enum AppThemeControlStrings {
                 "strategy": "테마",
                 "limitTitle": "무료 버전은 앱 3개까지",
                 "limitDetail": "Premium으로 업그레이드하면 앱 수 제한 없이 테마를 설정할 수 있습니다.",
-                "upgrade": "Premium 알아보기"
+                "upgrade": "Premium 알아보기",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "‘시스템 따르기’는 Premium 기능입니다",
+                "premiumModeDetail": "Premium으로 업그레이드하면 앱이 시스템 모양에 맞춰 자동으로 전환됩니다."
             ],
             "es": [
                 "title": "Control de tema de apps",
@@ -1531,7 +1603,10 @@ enum AppThemeControlStrings {
                 "strategy": "Tema",
                 "limitTitle": "La versión gratuita permite 3 apps",
                 "limitDetail": "Actualiza a Premium para configurar temas en un número ilimitado de apps.",
-                "upgrade": "Ver Premium"
+                "upgrade": "Ver Premium",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "«Seguir al sistema» es una función Premium",
+                "premiumModeDetail": "Actualiza a Premium para que las apps cambien automáticamente con la apariencia del sistema."
             ],
             "fr": [
                 "title": "Contrôle du thème des apps",
@@ -1566,7 +1641,10 @@ enum AppThemeControlStrings {
                 "strategy": "Thème",
                 "limitTitle": "La version gratuite permet 3 apps",
                 "limitDetail": "Passez à Premium pour définir un thème pour un nombre illimité d’apps.",
-                "upgrade": "Voir Premium"
+                "upgrade": "Voir Premium",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "« Suivre le système » est une fonction Premium",
+                "premiumModeDetail": "Passez à Premium pour que les apps suivent automatiquement l’apparence du système."
             ],
             "de": [
                 "title": "App-Themensteuerung",
@@ -1601,7 +1679,10 @@ enum AppThemeControlStrings {
                 "strategy": "Thema",
                 "limitTitle": "Die kostenlose Version erlaubt 3 Apps",
                 "limitDetail": "Mit Premium können Sie für unbegrenzt viele Apps Themen festlegen.",
-                "upgrade": "Premium ansehen"
+                "upgrade": "Premium ansehen",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "„System folgen“ ist eine Premium-Funktion",
+                "premiumModeDetail": "Mit Premium wechseln Apps automatisch mit dem System-Erscheinungsbild."
             ],
             "en": [
                 "title": "App Theme Control",
@@ -1636,10 +1717,27 @@ enum AppThemeControlStrings {
                 "strategy": "Theme",
                 "limitTitle": "Free includes 3 apps",
                 "limitDetail": "Upgrade to Premium to set themes for unlimited apps.",
-                "upgrade": "View Premium"
+                "upgrade": "View Premium",
+                "premiumBadge": "Premium",
+                "premiumModeTitle": "Follow System is a Premium feature",
+                "premiumModeDetail": "Upgrade to Premium to have apps switch automatically with the system appearance."
             ]
         ]
         return localized[language]?[key] ?? localized["en"]![key]!
+    }
+}
+
+@ViewBuilder
+private func appearanceModeLabel(_ mode: AppAppearanceMode, controller: AppAppearanceController, language: String, bundleIdentifier: String? = nil) -> some View {
+    let title = mode.title(language: language)
+    let badgedTitle = "\(title) (\(AppThemeControlStrings.text("premiumBadge", language: language)))"
+    if !mode.requiresPremium || controller.hasPremiumAccess {
+        Text(title)
+    } else if controller.canUse(mode, for: bundleIdentifier) {
+        // Grandfathered: still usable, but marked as Premium.
+        Text(badgedTitle)
+    } else {
+        Label(badgedTitle, systemImage: "lock.fill")
     }
 }
 
@@ -1649,6 +1747,7 @@ struct AppAppearanceView: View {
     let language: String
     let showPremium: () -> Void
     @State private var showingFreeLimitAlert = false
+    @State private var showingPremiumModeAlert = false
     @State private var rulePendingRemoval: AppAppearanceRule?
     @StateObject private var launchAtLogin = LaunchAtLoginController.shared
 
@@ -1722,10 +1821,16 @@ struct AppAppearanceView: View {
                             Spacer()
                             Picker("", selection: Binding(
                                 get: { rule.mode },
-                                set: { controller.setMode($0, for: rule) }
+                                set: { mode in
+                                    if controller.canUse(mode, for: rule.bundleIdentifier) {
+                                        controller.setMode(mode, for: rule)
+                                    } else {
+                                        showingPremiumModeAlert = true
+                                    }
+                                }
                             )) {
                                 ForEach(AppAppearanceMode.allCases.filter { $0 != .preserveApp }) { mode in
-                                    Text(mode.title(language: language)).tag(mode)
+                                    appearanceModeLabel(mode, controller: controller, language: language, bundleIdentifier: rule.bundleIdentifier).tag(mode)
                                 }
                             }
                             .labelsHidden()
@@ -1790,6 +1895,14 @@ struct AppAppearanceView: View {
             Button(text("cancel"), role: .cancel) {}
         } message: {
             Text(text("limitDetail"))
+        }
+        .alert(text("premiumModeTitle"), isPresented: $showingPremiumModeAlert) {
+            Button(text("upgrade")) {
+                showPremium()
+            }
+            Button(text("cancel"), role: .cancel) {}
+        } message: {
+            Text(text("premiumModeDetail"))
         }
     }
 
@@ -1873,7 +1986,7 @@ struct AppAppearanceView: View {
             guard response == .OK, let url = panel.url else { return }
             Task { @MainActor in
                 guard let app = controller.applicationCandidate(at: url) else { return }
-                if !controller.addRule(for: app, mode: .followSystem) {
+                if !controller.addRule(for: app, mode: .forceDark) {
                     showingFreeLimitAlert = true
                 }
             }
@@ -1923,8 +2036,9 @@ private struct AppPickerView: View {
     let language: String
     let showPremium: () -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedMode: AppAppearanceMode = .followSystem
+    @State private var selectedMode: AppAppearanceMode = .forceDark
     @State private var showingFreeLimitAlert = false
+    @State private var showingPremiumModeAlert = false
 
     private func text(_ key: String) -> String { AppThemeControlStrings.text(key, language: language) }
     private var apps: [AppAppearanceCandidate] { controller.availableApplications() }
@@ -1940,9 +2054,18 @@ private struct AppPickerView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            Picker(text("strategy"), selection: $selectedMode) {
+            Picker(text("strategy"), selection: Binding(
+                get: { selectedMode },
+                set: { mode in
+                    if controller.canUse(mode) {
+                        selectedMode = mode
+                    } else {
+                        showingPremiumModeAlert = true
+                    }
+                }
+            )) {
                 ForEach(AppAppearanceMode.allCases) { mode in
-                    Text(mode.title(language: language)).tag(mode)
+                    appearanceModeLabel(mode, controller: controller, language: language).tag(mode)
                 }
             }
             .pickerStyle(.menu)
@@ -1985,6 +2108,15 @@ private struct AppPickerView: View {
             Button(text("cancel"), role: .cancel) {}
         } message: {
             Text(text("limitDetail"))
+        }
+        .alert(text("premiumModeTitle"), isPresented: $showingPremiumModeAlert) {
+            Button(text("upgrade")) {
+                dismiss()
+                showPremium()
+            }
+            Button(text("cancel"), role: .cancel) {}
+        } message: {
+            Text(text("premiumModeDetail"))
         }
     }
 

@@ -87,5 +87,14 @@
   },
   "activeBannerText": {
     "message": "Modo de página actual"
+  },
+  "masterSwitch": {
+    "message": "Activar Dark Light"
+  },
+  "masterSwitchOnDetail": {
+    "message": "Las webs se muestran según los modos de abajo"
+  },
+  "masterSwitchOffDetail": {
+    "message": "En pausa. Todas las webs mantienen su aspecto original"
   }
 }

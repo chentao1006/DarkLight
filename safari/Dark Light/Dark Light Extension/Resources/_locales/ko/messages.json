@@ -92,5 +92,14 @@
   },
   "activeBannerText": {
     "message": "현재 페이지 모드"
+  },
+  "masterSwitch": {
+    "message": "Dark Light 사용"
+  },
+  "masterSwitchOnDetail": {
+    "message": "아래 모드에 따라 웹페이지를 표시합니다"
+  },
+  "masterSwitchOffDetail": {
+    "message": "일시 중지됨. 모든 웹페이지가 원래 모습으로 표시됩니다"
   }
 }

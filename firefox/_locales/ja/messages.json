@@ -87,5 +87,14 @@
   },
   "activeBannerText": {
     "message": "現在のページのモード"
+  },
+  "masterSwitch": {
+    "message": "Dark Light を有効にする"
+  },
+  "masterSwitchOnDetail": {
+    "message": "以下のモードでページを表示します"
+  },
+  "masterSwitchOffDetail": {
+    "message": "一時停止中。すべてのページが元の表示のままになります"
   }
 }

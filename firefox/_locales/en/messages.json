@@ -90,5 +90,14 @@
   },
   "importFailed": {
     "message": "Import failed. Please choose a valid Dark Light JSON file."
+  },
+  "masterSwitch": {
+    "message": "Enable Dark Light"
+  },
+  "masterSwitchOnDetail": {
+    "message": "Websites use the modes below"
+  },
+  "masterSwitchOffDetail": {
+    "message": "Paused. All websites keep their original look"
   }
 }

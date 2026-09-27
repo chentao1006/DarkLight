@@ -103,7 +103,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         let controller = AppAppearanceController.shared
 
-        if let app = controller.focusedApplication() {
+        let masterSwitch = addMenuItem(to: menu, title: menuText("enableAppThemeControl"), action: #selector(toggleAppThemeControl))
+        masterSwitch.state = controller.isEnabled ? .on : .off
+        menu.addItem(.separator())
+
+        if controller.isEnabled, let app = controller.focusedApplication() {
             let header = NSMenuItem(title: menuText("currentApp", app.appName), action: nil, keyEquivalent: "")
             header.isEnabled = false
             menu.addItem(header)
@@ -117,6 +121,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 )
                 modeItem.tag = mode.menuTag
                 modeItem.state = (enabledRule?.mode ?? .preserveApp) == mode ? .on : .off
+                if mode.requiresPremium && !controller.hasPremiumAccess {
+                    modeItem.title += " (\(AppThemeControlStrings.text("premiumBadge", language: menuLanguage)))"
+                    if !controller.canUse(mode, for: app.bundleIdentifier) {
+                        modeItem.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: nil)
+                    }
+                }
             }
 
             menu.addItem(.separator())
@@ -261,12 +271,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         )
     }
 
+    @objc private func toggleAppThemeControl() {
+        let controller = AppAppearanceController.shared
+        controller.setEnabled(!controller.isEnabled)
+    }
+
     @objc private func openAppThemeControl() {
         showAppThemeControl()
     }
 
     @objc private func setFocusedAppStrategy(_ sender: NSMenuItem) {
         guard let mode = AppAppearanceMode(menuTag: sender.tag) else { return }
+        let controller = AppAppearanceController.shared
+        guard controller.canUse(mode, for: controller.focusedApplication()?.bundleIdentifier) else {
+            openMainWindow()
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: openPremiumNotification, object: nil)
+            }
+            return
+        }
         AppAppearanceController.shared.setAppearance(mode, forFocusedApplication: AppAppearanceController.shared.focusedApplication())
     }
 
@@ -282,6 +305,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let language = menuLanguage
         let text: String
         switch (language, key) {
+        case ("zh", "enableAppThemeControl"): text = "启用应用主题控制"
         case ("zh", "currentApp"): text = "当前应用：%@"
         case ("zh", "makeDark"): text = "让 %@ 显示为深色"
         case ("zh", "makeLight"): text = "让 %@ 显示为浅色"
@@ -290,6 +314,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case ("zh", "openAppThemeControl"): text = "打开应用主题控制"
         case ("zh", "quit"): text = "退出暗光"
 
+        case ("ja", "enableAppThemeControl"): text = "アプリテーマ管理を有効にする"
         case ("ja", "currentApp"): text = "現在のアプリ：%@"
         case ("ja", "makeDark"): text = "%@ をダーク表示にする"
         case ("ja", "makeLight"): text = "%@ をライト表示にする"
@@ -298,6 +323,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case ("ja", "openAppThemeControl"): text = "アプリテーマ管理を開く"
         case ("ja", "quit"): text = "Dark Light を終了"
 
+        case ("ko", "enableAppThemeControl"): text = "앱 테마 제어 사용"
         case ("ko", "currentApp"): text = "현재 앱: %@"
         case ("ko", "makeDark"): text = "%@을(를) 어둡게 표시"
         case ("ko", "makeLight"): text = "%@을(를) 밝게 표시"
@@ -306,6 +332,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case ("ko", "openAppThemeControl"): text = "앱 테마 제어 열기"
         case ("ko", "quit"): text = "Dark Light 종료"
 
+        case ("es", "enableAppThemeControl"): text = "Activar el control de tema de apps"
         case ("es", "currentApp"): text = "App actual: %@"
         case ("es", "makeDark"): text = "Mostrar %@ en oscuro"
         case ("es", "makeLight"): text = "Mostrar %@ en claro"
@@ -314,6 +341,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case ("es", "openAppThemeControl"): text = "Abrir el control de tema de apps"
         case ("es", "quit"): text = "Salir de Dark Light"
 
+        case ("fr", "enableAppThemeControl"): text = "Activer le contrôle du thème des apps"
         case ("fr", "currentApp"): text = "App active : %@"
         case ("fr", "makeDark"): text = "Afficher %@ en sombre"
         case ("fr", "makeLight"): text = "Afficher %@ en clair"
@@ -322,6 +350,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case ("fr", "openAppThemeControl"): text = "Ouvrir le contrôle du thème des apps"
         case ("fr", "quit"): text = "Quitter Dark Light"
 
+        case ("de", "enableAppThemeControl"): text = "App-Themensteuerung aktivieren"
         case ("de", "currentApp"): text = "Aktuelle App: %@"
         case ("de", "makeDark"): text = "%@ dunkel anzeigen"
         case ("de", "makeLight"): text = "%@ hell anzeigen"
@@ -332,6 +361,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         default:
             switch key {
+            case "enableAppThemeControl": text = "Enable App Theme Control"
             case "currentApp": text = "Current app: %@"
             case "makeDark": text = "Show %@ in dark"
             case "makeLight": text = "Show %@ in light"
