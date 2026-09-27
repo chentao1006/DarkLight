@@ -495,20 +495,22 @@ import UIKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         DailyCheckInScheduler.shared.start()
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = ViewController()
-        window.makeKeyAndVisible()
-        self.window = window
-
-        if let url = launchOptions?[.url] as? URL, PremiumDeepLink.handlesPremiumURL([url]) {
-            PremiumDeepLink.requestOpenPremium()
-        }
         return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(
+            name: "Default Configuration",
+            sessionRole: connectingSceneSession.role
+        )
+        configuration.delegateClass = SceneDelegate.self
+        return configuration
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
@@ -517,6 +519,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         PremiumDeepLink.requestOpenPremium()
         return true
+    }
+}
+
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = ViewController()
+        window.makeKeyAndVisible()
+        self.window = window
+
+        handlePremiumURLs(connectionOptions.urlContexts.map(\.url))
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        handlePremiumURLs(URLContexts.map(\.url))
+    }
+
+    private func handlePremiumURLs(_ urls: [URL]) {
+        guard PremiumDeepLink.handlesPremiumURL(urls) else { return }
+        PremiumDeepLink.requestOpenPremium()
     }
 }
 #endif

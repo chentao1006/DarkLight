@@ -27,6 +27,23 @@
 	<string>暗光仅将你明确添加、且没有自动适配深浅色主题的应用窗口实时送入本机 GPU 滤镜，以提供深色或浅色视觉效果；不会录制、保存或上传屏幕内容。</string>
 	<key>SFSafariWebExtensionConverterVersion</key>
 	<string>26.5</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
