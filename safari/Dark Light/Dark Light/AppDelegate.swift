@@ -71,7 +71,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // Keep applying saved app themes without leaving a redundant running
         // indicator in the Dock. The menu-bar item remains the background
         // service's entry point.
-        guard AppAppearanceController.shared.hasActiveFilterRules else {
+        LaunchAtLoginController.shared.refresh()
+        guard launchedAsLoginItem || LaunchAtLoginController.shared.isEnabled
+                || AppAppearanceController.shared.hasActiveFilterRules else {
             return true
         }
         NSApplication.shared.setActivationPolicy(.accessory)
@@ -107,24 +109,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         masterSwitch.state = controller.isEnabled ? .on : .off
         menu.addItem(.separator())
 
-        if controller.isEnabled, let app = controller.focusedApplication() {
+        if let app = controller.focusedApplication() {
             let header = NSMenuItem(title: menuText("currentApp", app.appName), action: nil, keyEquivalent: "")
             header.isEnabled = false
             menu.addItem(header)
 
-            let enabledRule = controller.enabledRule(for: app)
-            for mode in AppAppearanceMode.allCases {
-                let modeItem = addMenuItem(
-                    to: menu,
-                    title: mode.title(language: menuLanguage),
-                    action: #selector(setFocusedAppStrategy(_:))
-                )
-                modeItem.tag = mode.menuTag
-                modeItem.state = (enabledRule?.mode ?? .preserveApp) == mode ? .on : .off
-                if mode.requiresPremium && !controller.hasPremiumAccess {
-                    modeItem.title += " (\(AppThemeControlStrings.text("premiumBadge", language: menuLanguage)))"
-                    if !controller.canUse(mode, for: app.bundleIdentifier) {
-                        modeItem.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: nil)
+            if controller.isEnabled {
+                let enabledRule = controller.enabledRule(for: app)
+                for mode in AppAppearanceMode.allCases {
+                    let modeItem = addMenuItem(
+                        to: menu,
+                        title: mode.title(language: menuLanguage),
+                        action: #selector(setFocusedAppStrategy(_:))
+                    )
+                    modeItem.tag = mode.menuTag
+                    modeItem.state = (enabledRule?.mode ?? .preserveApp) == mode ? .on : .off
+                    if mode.requiresPremium && !controller.hasPremiumAccess {
+                        modeItem.title += " (\(AppThemeControlStrings.text("premiumBadge", language: menuLanguage)))"
+                        if !controller.canUse(mode, for: app.bundleIdentifier) {
+                            modeItem.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: nil)
+                        }
                     }
                 }
             }

@@ -19,6 +19,7 @@ final class LaunchAtLoginController: ObservableObject {
 
     @Published private(set) var isAvailable = false
     @Published private(set) var isEnabled = false
+    @Published private(set) var requiresApproval = false
     @Published private(set) var errorMessage: String?
 
     private init() {
@@ -32,7 +33,9 @@ final class LaunchAtLoginController: ObservableObject {
             return
         }
         isAvailable = true
-        isEnabled = SMAppService.mainApp.status == .enabled
+        let status = SMAppService.mainApp.status
+        isEnabled = status == .enabled
+        requiresApproval = status == .requiresApproval
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -51,8 +54,13 @@ final class LaunchAtLoginController: ObservableObject {
         let service = SMAppService.mainApp
         do {
             if enabled {
-                if service.status != .enabled {
+                if service.status == .requiresApproval {
+                    SMAppService.openSystemSettingsLoginItems()
+                } else if service.status != .enabled {
                     try service.register()
+                    if service.status == .requiresApproval {
+                        SMAppService.openSystemSettingsLoginItems()
+                    }
                 }
             } else if service.status != .notRegistered {
                 try service.unregister()
@@ -62,6 +70,12 @@ final class LaunchAtLoginController: ObservableObject {
             errorMessage = error.localizedDescription
         }
         refresh()
+    }
+
+    func openLoginItemsSettings() {
+        if #available(macOS 13.0, *) {
+            SMAppService.openSystemSettingsLoginItems()
+        }
     }
 }
 
@@ -1462,8 +1476,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "已获得屏幕录制权限。暗光不会保存屏幕内容。",
                 "capturePillTitle": "关于窗口左上角的系统提示",
                 "capturePillDetail": "这是 macOS 在屏幕录制时产生的系统提示，会遮挡窗口左上角，导致无法显示红黄绿窗口控制按钮。该限制无法由暗光解决。",
+                "enableAppThemeControl": "启用应用主题控制",
+                "appThemeControlDetail": "关闭后暂停所有应用主题效果，保留已配置的规则。",
                 "launchAtLogin": "开机启动",
                 "launchAtLoginDetail": "登录 Mac 后静默启动，仅在菜单栏显示暗光图标。",
+                "launchAtLoginApproval": "需要在系统设置中允许启动，点击前往“登录项”。",
                 "launchAtLoginError": "无法更新开机启动：",
                 "rules": "应用规则",
                 "addApp": "添加应用",
@@ -1500,8 +1517,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "画面収録が許可されています。Dark Light は画面内容を保存しません。",
                 "capturePillTitle": "ウインドウ左上のシステム表示について",
                 "capturePillDetail": "これは画面収録中に macOS が表示するシステム表示です。ウインドウ左上に重なるため、赤・黄・緑のウインドウボタンは表示できません。この制限は Dark Light では解消できません。",
+                "enableAppThemeControl": "アプリテーマ管理を有効にする",
+                "appThemeControlDetail": "オフにするとすべてのアプリのテーマ効果を一時停止します。設定済みのルールは保持されます。",
                 "launchAtLogin": "ログイン時に起動",
                 "launchAtLoginDetail": "ログイン時はウインドウを表示せず、メニューバーのアイコンのみを表示します。",
+                "launchAtLoginApproval": "システム設定で許可が必要です。「ログイン項目」を開く。",
                 "launchAtLoginError": "ログイン時に起動を更新できませんでした：",
                 "rules": "アプリのルール",
                 "addApp": "アプリを追加",
@@ -1538,8 +1558,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "화면 기록 권한이 허용되었습니다. Dark Light는 화면 내용을 저장하지 않습니다.",
                 "capturePillTitle": "창 왼쪽 위 시스템 표시 안내",
                 "capturePillDetail": "화면 기록 중 macOS가 표시하는 시스템 표시입니다. 창의 왼쪽 위를 가리므로 빨강, 노랑, 초록 창 제어 버튼을 표시할 수 없습니다. Dark Light로는 이 제한을 해결할 수 없습니다.",
+                "enableAppThemeControl": "앱 테마 제어 사용",
+                "appThemeControlDetail": "끄면 모든 앱의 테마 효과가 일시 중지되며 설정한 규칙은 유지됩니다.",
                 "launchAtLogin": "로그인 시 실행",
                 "launchAtLoginDetail": "로그인 시 창을 열지 않고 메뉴 막대 아이콘으로만 실행합니다.",
+                "launchAtLoginApproval": "시스템 설정에서 허용해야 합니다. 로그인 항목 열기.",
                 "launchAtLoginError": "로그인 시 실행을 업데이트할 수 없음:",
                 "rules": "앱 규칙",
                 "addApp": "앱 추가",
@@ -1576,8 +1599,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "La grabación de pantalla está activada. Dark Light nunca guarda el contenido de la pantalla.",
                 "capturePillTitle": "Sobre el indicador del sistema en la esquina superior izquierda",
                 "capturePillDetail": "Es un indicador del sistema que macOS muestra durante la grabación de pantalla. Cubre la esquina superior izquierda de la ventana, por lo que no se pueden mostrar los botones rojo, amarillo y verde. Dark Light no puede eliminar esta limitación.",
+                "enableAppThemeControl": "Activar el control de tema de apps",
+                "appThemeControlDetail": "Al desactivarlo, se pausan todos los efectos y se conservan las reglas configuradas.",
                 "launchAtLogin": "Abrir al iniciar sesión",
                 "launchAtLoginDetail": "Se inicia en silencio al iniciar sesión y solo aparece en la barra de menús.",
+                "launchAtLoginApproval": "Se requiere autorización en Ajustes del Sistema. Abrir ítems de inicio.",
                 "launchAtLoginError": "No se pudo actualizar el inicio de sesión:",
                 "rules": "Reglas de apps",
                 "addApp": "Añadir app",
@@ -1614,8 +1640,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "L’enregistrement de l’écran est activé. Dark Light n’enregistre jamais le contenu de l’écran.",
                 "capturePillTitle": "À propos de l’indicateur système en haut à gauche",
                 "capturePillDetail": "C’est un indicateur système affiché par macOS pendant l’enregistrement de l’écran. Il recouvre le coin supérieur gauche de la fenêtre, ce qui empêche l’affichage des boutons rouge, jaune et vert. Dark Light ne peut pas supprimer cette limitation.",
+                "enableAppThemeControl": "Activer le contrôle du thème des apps",
+                "appThemeControlDetail": "La désactivation suspend tous les effets et conserve les règles configurées.",
                 "launchAtLogin": "Ouvrir à la connexion",
                 "launchAtLoginDetail": "Démarre discrètement à la connexion et reste accessible uniquement depuis la barre des menus.",
+                "launchAtLoginApproval": "Autorisation requise dans Réglages Système. Ouvrir les éléments de connexion.",
                 "launchAtLoginError": "Impossible de mettre à jour l’ouverture à la connexion :",
                 "rules": "Règles des apps",
                 "addApp": "Ajouter une app",
@@ -1652,8 +1681,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "Bildschirmaufnahme ist aktiviert. Dark Light speichert keine Bildschirminhalte.",
                 "capturePillTitle": "Hinweis zur Systemanzeige oben links",
                 "capturePillDetail": "Dies ist eine macOS-Systemanzeige während der Bildschirmaufnahme. Sie verdeckt die obere linke Fensterecke, daher können die roten, gelben und grünen Fensterknöpfe nicht angezeigt werden. Dark Light kann diese Einschränkung nicht aufheben.",
+                "enableAppThemeControl": "App-Themensteuerung aktivieren",
+                "appThemeControlDetail": "Beim Ausschalten werden alle Themeneffekte pausiert. Die konfigurierten Regeln bleiben erhalten.",
                 "launchAtLogin": "Beim Anmelden öffnen",
                 "launchAtLoginDetail": "Startet bei der Anmeldung unauffällig und ist nur über die Menüleiste verfügbar.",
+                "launchAtLoginApproval": "Zustimmung in den Systemeinstellungen erforderlich. Anmeldeobjekte öffnen.",
                 "launchAtLoginError": "Anmeldung beim Start konnte nicht aktualisiert werden:",
                 "rules": "App-Regeln",
                 "addApp": "App hinzufügen",
@@ -1690,8 +1722,11 @@ enum AppThemeControlStrings {
                 "permissionGranted": "Screen Recording is enabled. Dark Light never saves screen contents.",
                 "capturePillTitle": "About the system indicator at the window’s top-left",
                 "capturePillDetail": "macOS shows this system indicator during Screen Recording. It covers the window’s top-left corner, so the red, yellow, and green window controls cannot be shown. Dark Light cannot remove this system limitation.",
+                "enableAppThemeControl": "Enable App Theme Control",
+                "appThemeControlDetail": "Turn off to pause all app theme effects while keeping your configured rules.",
                 "launchAtLogin": "Launch at login",
                 "launchAtLoginDetail": "Start silently when you log in. Dark Light will be available from the menu bar only.",
+                "launchAtLoginApproval": "Approval required in System Settings. Open Login Items.",
                 "launchAtLoginError": "Could not update Launch at Login:",
                 "rules": "App rules",
                 "addApp": "Add app",
@@ -1741,6 +1776,56 @@ private func appearanceModeLabel(_ mode: AppAppearanceMode, controller: AppAppea
     }
 }
 
+/// Use AppKit's standard add/remove segmented control and system artwork.
+private struct AppRuleListButtons: NSViewRepresentable {
+    @Environment(\.isEnabled) private var isEnabled
+    let addTitle: String
+    let removeTitle: String
+    let canRemove: Bool
+    let add: () -> Void
+    let remove: () -> Void
+
+    final class Coordinator: NSObject {
+        var parent: AppRuleListButtons
+
+        init(_ parent: AppRuleListButtons) { self.parent = parent }
+
+        @objc func performAction(_ sender: NSSegmentedControl) {
+            switch sender.selectedSegment {
+            case 0: parent.add()
+            case 1: parent.remove()
+            default: break
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeNSView(context: Context) -> NSSegmentedControl {
+        let control = NSSegmentedControl()
+        control.segmentCount = 2
+        control.segmentStyle = .smallSquare
+        control.trackingMode = .momentary
+        control.controlSize = .small
+        control.setImage(NSImage(named: NSImage.addTemplateName), forSegment: 0)
+        control.setImage(NSImage(named: NSImage.removeTemplateName), forSegment: 1)
+        control.segmentDistribution = .fillEqually
+        control.target = context.coordinator
+        control.action = #selector(Coordinator.performAction(_:))
+        control.sizeToFit()
+        return control
+    }
+
+    func updateNSView(_ control: NSSegmentedControl, context: Context) {
+        context.coordinator.parent = self
+        control.setEnabled(isEnabled, forSegment: 0)
+        control.setEnabled(isEnabled && canRemove, forSegment: 1)
+        control.setToolTip(addTitle, forSegment: 0)
+        control.setToolTip(removeTitle, forSegment: 1)
+        control.setAccessibilityLabel("\(addTitle) / \(removeTitle)")
+    }
+}
+
 struct AppAppearanceView: View {
     @ObservedObject var controller: AppAppearanceController
     @ObservedObject var proStore: ProStore
@@ -1749,6 +1834,7 @@ struct AppAppearanceView: View {
     @State private var showingFreeLimitAlert = false
     @State private var showingPremiumModeAlert = false
     @State private var rulePendingRemoval: AppAppearanceRule?
+    @State private var selectedRuleID: AppAppearanceRule.ID?
     @StateObject private var launchAtLogin = LaunchAtLoginController.shared
 
     private func text(_ key: String) -> String { AppThemeControlStrings.text(key, language: language) }
@@ -1769,93 +1855,126 @@ struct AppAppearanceView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if !controller.hasScreenCapturePermission {
-                permissionCard
-            } else {
-                Label(text("permissionGranted"), systemImage: "checkmark.shield.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            if launchAtLogin.isAvailable {
-                launchAtLoginSection
-            }
-
-            HStack {
-                Text(text("rules")).font(.headline)
-                Spacer()
-                Button(action: {
-                    if controller.canAddAnotherApp {
-                        browseForApplication()
-                    } else {
-                        showingFreeLimitAlert = true
-                    }
-                }) {
-                    Label(text("addApp"), systemImage: "plus")
-                }
-            }
-
-            if controller.rules.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "rectangle.on.rectangle")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
-                    Text(text("noRules"))
-                        .font(.subheadline.weight(.medium))
-                    Text(text("noRulesDetail"))
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(text("enableAppThemeControl"))
+                        .font(.body)
+                    Text(text("appThemeControlDetail"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity, minHeight: 150)
-            } else {
-                List {
-                    ForEach(controller.rules) { rule in
-                        HStack(spacing: 12) {
-                            Image(nsImage: installedAppIcon(for: rule.bundleIdentifier))
-                                .resizable()
-                                .frame(width: 26, height: 26)
-                            VStack(alignment: .leading) {
-                                Text(rule.appName).font(.body.weight(.medium))
-                            }
-                            Spacer()
-                            Picker("", selection: Binding(
-                                get: { rule.mode },
-                                set: { mode in
-                                    if controller.canUse(mode, for: rule.bundleIdentifier) {
-                                        controller.setMode(mode, for: rule)
-                                    } else {
-                                        showingPremiumModeAlert = true
+                Spacer(minLength: 16)
+                Toggle("", isOn: Binding(
+                    get: { controller.isEnabled },
+                    set: { controller.setEnabled($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.regular)
+                .accessibilityLabel(text("enableAppThemeControl"))
+            }
+            .padding(.vertical, 4)
+
+            Group {
+                if !controller.hasScreenCapturePermission {
+                    permissionCard
+                } else {
+                    Label(text("permissionGranted"), systemImage: "checkmark.shield.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                if launchAtLogin.isAvailable {
+                    launchAtLoginSection
+                }
+
+                Text(text("rules")).font(.headline)
+
+                VStack(spacing: 0) {
+                    if controller.rules.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "rectangle.on.rectangle")
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
+                            Text(text("noRules"))
+                                .font(.subheadline.weight(.medium))
+                            Text(text("noRulesDetail"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 150)
+                    } else {
+                        List(selection: $selectedRuleID) {
+                            ForEach(controller.rules) { rule in
+                                HStack(spacing: 12) {
+                                    Image(nsImage: installedAppIcon(for: rule.bundleIdentifier))
+                                        .resizable()
+                                        .frame(width: 26, height: 26)
+                                    VStack(alignment: .leading) {
+                                        Text(rule.appName).font(.body.weight(.medium))
                                     }
+                                    Spacer()
+                                    Picker("", selection: Binding(
+                                        get: { rule.mode },
+                                        set: { mode in
+                                            if controller.canUse(mode, for: rule.bundleIdentifier) {
+                                                controller.setMode(mode, for: rule)
+                                            } else {
+                                                showingPremiumModeAlert = true
+                                            }
+                                        }
+                                    )) {
+                                        ForEach(AppAppearanceMode.allCases.filter { $0 != .preserveApp }) { mode in
+                                            appearanceModeLabel(mode, controller: controller, language: language, bundleIdentifier: rule.bundleIdentifier).tag(mode)
+                                        }
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.menu)
+                                    .frame(minWidth: 130, alignment: .trailing)
                                 }
-                            )) {
-                                ForEach(AppAppearanceMode.allCases.filter { $0 != .preserveApp }) { mode in
-                                    appearanceModeLabel(mode, controller: controller, language: language, bundleIdentifier: rule.bundleIdentifier).tag(mode)
-                                }
-                            }
-                            .labelsHidden()
-                            .pickerStyle(.menu)
-                            .frame(minWidth: 130, alignment: .trailing)
-                            Button(text("remove"), role: .destructive) {
-                                rulePendingRemoval = rule
+                                .padding(.vertical, 3)
+                                .tag(rule.id)
                             }
                         }
-                        .padding(.vertical, 3)
+                        .listStyle(.inset)
+                        .frame(minHeight: 150, maxHeight: 280)
+                    }
+                    Divider()
+                    HStack(spacing: 0) {
+                        AppRuleListButtons(
+                            addTitle: text("addApp"),
+                            removeTitle: text("remove"),
+                            canRemove: controller.rules.contains { $0.id == selectedRuleID },
+                            add: {
+                                if controller.canAddAnotherApp {
+                                    browseForApplication()
+                                } else {
+                                    showingFreeLimitAlert = true
+                                }
+                            },
+                            remove: {
+                                rulePendingRemoval = controller.rules.first { $0.id == selectedRuleID }
+                            }
+                        )
+                        .fixedSize()
+                        Spacer(minLength: 0)
                     }
                 }
-                .listStyle(.inset)
-                .frame(minHeight: 150, maxHeight: 280)
-            }
+                .background(Color(nsColor: .controlBackgroundColor))
 
-            if controller.rules.contains(where: { $0.mode == .timeBased }) {
-                AppAppearanceScheduleEditor(controller: controller, language: language)
-            }
+                if controller.rules.contains(where: { $0.mode == .timeBased }) {
+                    AppAppearanceScheduleEditor(controller: controller, language: language)
+                }
 
-            if let status = controller.statusMessage {
-                Text(status).font(.caption).foregroundStyle(.secondary)
-            }
+                if let status = controller.statusMessage {
+                    Text(status).font(.caption).foregroundStyle(.secondary)
+                }
 
-            screenCapturePillNotice
+                screenCapturePillNotice
+            }
+            .disabled(!controller.isEnabled)
+            .opacity(controller.isEnabled ? 1 : 0.5)
 
         }
         .padding(24)
@@ -1868,6 +1987,9 @@ struct AppAppearanceView: View {
         .onChange(of: proStore.isPro) { isPro in
             controller.setPremiumAccess(isPro)
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            launchAtLogin.refresh()
+        }
         .confirmationDialog(
             String(format: text("removeTitle"), pendingRemovalName),
             isPresented: Binding(
@@ -1879,6 +2001,9 @@ struct AppAppearanceView: View {
             if let rule = rulePendingRemoval {
                 Button(text("remove"), role: .destructive) {
                     controller.remove(rule)
+                    if selectedRuleID == rule.id {
+                        selectedRuleID = nil
+                    }
                     rulePendingRemoval = nil
                 }
             }
@@ -1956,6 +2081,12 @@ struct AppAppearanceView: View {
                 Text(text("launchAtLoginDetail"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if launchAtLogin.requiresApproval {
+                    Button(text("launchAtLoginApproval")) {
+                        launchAtLogin.openLoginItemsSettings()
+                    }
+                    .font(.caption)
+                }
                 if let errorMessage = launchAtLogin.errorMessage {
                     Text("\(text("launchAtLoginError")) \(errorMessage)")
                         .font(.caption)
@@ -1986,7 +2117,9 @@ struct AppAppearanceView: View {
             guard response == .OK, let url = panel.url else { return }
             Task { @MainActor in
                 guard let app = controller.applicationCandidate(at: url) else { return }
-                if !controller.addRule(for: app, mode: .forceDark) {
+                if controller.addRule(for: app, mode: .forceDark) {
+                    selectedRuleID = app.id
+                } else {
                     showingFreeLimitAlert = true
                 }
             }
