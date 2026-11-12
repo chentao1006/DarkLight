@@ -920,25 +920,13 @@ struct PremiumDetailsView: View {
 import Cocoa
 
 class ViewController: NSViewController {
-    @IBOutlet var webView: WKWebView?
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        webView?.isHidden = true
-        webView?.removeFromSuperview()
-        
-        let setupView = SetupView()
-        let hostingView = NSHostingView(rootView: setupView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: view.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+    override func loadView() {
+        // Host SwiftUI directly so the window sizes it on macOS 12 as well.
+        // No temporary WebKit view or nested Auto Layout pass is needed.
+        let hostingView = NSHostingView(rootView: SetupView())
+        hostingView.frame = NSRect(x: 0, y: 0, width: 640, height: 720)
+        hostingView.autoresizingMask = [.width, .height]
+        view = hostingView
     }
 }
 #endif
