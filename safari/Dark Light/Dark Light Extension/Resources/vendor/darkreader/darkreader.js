@@ -2020,7 +2020,10 @@
     ];
     const shorthandVarDepPropRegexps = isSafari
         ? shorthandVarDependantProperties.map((prop) => {
-              const regexp = new RegExp(`${prop}:\\s*(.*?)\\s*;`);
+              // Dark Light patch: require a declaration boundary so a custom property
+              // such as `--sail-color-background: var(--x)` is not misread as the
+              // `background` shorthand (it painted transparent overlays opaque).
+              const regexp = new RegExp(`(?:^|[\\s;])${prop}:\\s*(.*?)\\s*;`);
               return [prop, regexp];
           })
         : null;
