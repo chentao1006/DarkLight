@@ -30,6 +30,7 @@ if xcodebuild -project "${XCODE_PROJECT}" \
               -configuration "Release" \
               -destination "generic/platform=macOS" \
               -derivedDataPath "${DERIVED_DATA_DIR}" \
+              'SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) DARK_LIGHT_TEST_PREMIUM' \
               -allowProvisioningUpdates \
               build; then
     echo "✅ Compilation successful!"

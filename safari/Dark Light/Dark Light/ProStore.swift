@@ -9,7 +9,11 @@ let iCloudSyncEnabledKey = "darkLightICloudSyncEnabled"
 @MainActor
 final class ProStore: ObservableObject {
     @Published var product: Product?
+    #if DARK_LIGHT_TEST_PREMIUM
+    @Published var isPro = true
+    #else
     @Published var isPro = false
+    #endif
     @Published var isLoading = false
     @Published var isPurchasing = false
     @Published var purchaseMessage: String?
@@ -39,12 +43,14 @@ final class ProStore: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        #if !DARK_LIGHT_TEST_PREMIUM
         do {
             product = try await Product.products(for: [proProductIdentifier]).first
         } catch {
             purchaseMessage = "Unable to load purchase information."
         }
 
+        #endif
         isPro = await Self.hasUnlockedPro()
     }
 
@@ -91,6 +97,9 @@ final class ProStore: ObservableObject {
     }
 
     static func hasUnlockedPro() async -> Bool {
+        #if DARK_LIGHT_TEST_PREMIUM
+        return true
+        #else
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else {
                 continue
@@ -100,6 +109,7 @@ final class ProStore: ObservableObject {
             }
         }
         return false
+        #endif
     }
 
     private func listenForTransactionUpdates() -> Task<Void, Never> {

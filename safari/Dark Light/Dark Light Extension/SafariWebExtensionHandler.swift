@@ -197,6 +197,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
 
     private func hasUnlockedPro() async -> Bool {
+        #if DARK_LIGHT_TEST_PREMIUM
+        return true
+        #else
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else {
                 continue
@@ -206,5 +209,6 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             }
         }
         return false
+        #endif
     }
 }
